@@ -483,7 +483,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
-    var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge{display:none}';document.head.appendChild(st);
+    var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
     b.children[0].onclick=function(){m.hidden=!m.hidden};
     m.onclick=function(e){var o=e.target.getAttribute('data-o');m.hidden=true;if(o==='exp')exportAll();if(o==='imp')inp.click()};
@@ -973,7 +973,7 @@ body::before{display:none}
 .nav{position:fixed;top:0;bottom:0;right:0;z-index:60;width:min(290px,84vw);background:linear-gradient(180deg,var(--green-2),var(--green-d));border-left:1px solid var(--gold);
   padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));overflow-y:auto;transform:translateX(105%);transition:transform .25s ease;box-shadow:-10px 0 40px rgba(0,0,0,.4)}
 body.menu .nav{transform:none}
-.nav .mh{display:flex;align-items:center;gap:10px;padding:4px 4px 14px;margin-bottom:8px;border-bottom:1px solid rgba(197,154,80,.35);color:var(--gold-lt)}
+.nav .mh{position:static;background:none;display:flex;align-items:center;gap:10px;padding:4px 4px 14px;margin-bottom:8px;border-bottom:1px solid rgba(197,154,80,.35);color:var(--gold-lt)}
 .nav .mh i{width:22px;height:38px;background:var(--lion) center/contain no-repeat}.nav .mh b{flex:1;font-size:15px;font-weight:800}
 .nav .mh .x{font:inherit;font-size:20px;line-height:1;color:var(--gold-lt);background:transparent;border:1px solid rgba(232,207,142,.4);border-radius:10px;width:38px;height:38px;cursor:pointer}
 .nav .in{display:grid;gap:4px}
@@ -2384,7 +2384,7 @@ document.addEventListener('click',function(e){
   var pid=S.partyId;S.kind=k;resetSheet(k);if(pid){var p=partyById(pid);if(p)applyParty(p)}S.dirty=false;vInv();
 });
 $('#topBack').addEventListener('click',function(){leaveGuard(back)});
-function menu(on){document.body.classList.toggle('menu',on);$('#menuBtn').setAttribute('aria-expanded',on?'true':'false');if(on){var c=$('#nav [aria-current="page"]')||$('#menuX');setTimeout(function(){c.focus()},60)}}
+function menu(on){document.body.classList.toggle('menu',on);$('#menuBtn').setAttribute('aria-expanded',on?'true':'false');if(on){var c=$('#nav [aria-current="page"]')||$('#menuX');$('#nav').scrollTop=0;setTimeout(function(){c.focus({preventScroll:true})},60)}}
 $('#menuBtn').addEventListener('click',function(){menu(!document.body.classList.contains('menu'))});
 $('#menuX').addEventListener('click',function(){menu(false);$('#menuBtn').focus()});$('#scrim').addEventListener('click',function(){menu(false)});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('menu'))menu(false)});
