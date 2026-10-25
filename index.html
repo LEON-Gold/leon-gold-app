@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-25 23:17</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-25 23:23</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -952,20 +952,11 @@ body::before{display:none}
 .gate .rule{display:flex;align-items:center;gap:10px;color:var(--gold);font-size:11px}.gate .rule::before,.gate .rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(197,154,80,.6),transparent)}
 .gate .who{display:inline-flex;align-items:center;gap:8px;margin:0 auto;padding:4px 12px 4px 4px;border-radius:99px;background:rgba(232,207,142,.08);border:1px solid rgba(232,207,142,.2);font-size:13px;color:#f3ead0}
 .gate .who img{width:26px;height:26px;border-radius:50%;border:1px solid var(--gold)}
-.gate .dots{display:flex;justify-content:center;gap:12px;direction:ltr;min-height:16px}
-.gate .dots i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--gold);transition:background .15s,transform .15s}
-.gate .dots i.on{background:radial-gradient(circle at 35% 35%,#f6e3a8,#c59a50);transform:scale(1.1);box-shadow:0 0 8px rgba(232,207,142,.5)}
 .gate .card.shake{animation:gShake .4s}
 .gate .err{color:var(--gold-lt);opacity:.75;font-size:12.5px;min-height:18px;margin-top:-4px}.gate .err.bad{color:#ffb4a6;opacity:1}
-.gate .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;direction:ltr}
-.gate .pad button{font:inherit;font-size:22px;font-weight:500;height:56px;border-radius:16px;cursor:pointer;color:#f3ead0;
-  background:linear-gradient(180deg,rgba(232,207,142,.10),rgba(232,207,142,.03));border:1px solid rgba(197,154,80,.35);transition:transform .08s,background .15s}
-.gate .pad button:active{transform:scale(.95);background:rgba(232,207,142,.22)}
-.gate .pad .ok{background:linear-gradient(180deg,#e8cf8e,#b88a3e);color:#0a3023;border-color:#e8cf8e;font-size:15px;font-weight:800}
-.gate .pad .del{font-size:15px;color:var(--gold-lt)}
-.gate input#gatePin{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-.gate .uname{font:inherit;font-size:15px;text-align:center;color:#f3ead0;background:rgba(232,207,142,.07);border:1px solid rgba(197,154,80,.45);border-radius:14px;padding:12px;width:100%;box-sizing:border-box;outline:none}
+.gate .uname{font:inherit;font-size:16px;text-align:center;color:#f3ead0;background:rgba(232,207,142,.07);border:1px solid rgba(197,154,80,.45);border-radius:14px;padding:12px;width:100%;box-sizing:border-box;outline:none}
 .gate .uname::placeholder{color:rgba(232,207,142,.5)}.gate .uname:focus{border-color:#e8cf8e;box-shadow:0 0 0 3px rgba(232,207,142,.15)}
+.gate .uname.pin{direction:ltr;letter-spacing:.35em}.gate .uname.pin::placeholder{letter-spacing:0}
 .gate .ft{font-size:10.5px;color:var(--bar-dim);opacity:.8}
 @keyframes gIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes gShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
@@ -1781,32 +1772,32 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   if(!isLocked()){if(g){g.remove();document.body.style.overflow=''}return}
   if(g)return;
   g=document.createElement('div');g.id='gate';g.className='gate';
-  var me=S.me,FA='۰۱۲۳۴۵۶۷۸۹';
+  var me=S.me;
   g.innerHTML='<form class="card" id="gateForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
     +'<div class="rule">دفتر حساب طلا و جواهر</div>'
     +'<input id="gateUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="30">'
-    +'<input id="gatePin" type="password" inputmode="numeric" maxlength="12" aria-label="رمز ورود"><div class="dots" aria-hidden="true"></div>'
-    +'<div class="err" id="gateErr" role="status">نام کاربری و رمز را وارد کن</div>'
-    +'<div class="pad">'+[1,2,3,4,5,6,7,8,9].map(function(d){return '<button type="button" data-d="'+d+'">'+FA[d]+'</button>'}).join('')
-    +'<button type="button" class="del" data-del aria-label="پاک کردن">⌫</button><button type="button" data-d="0">۰</button><button type="submit" class="ok">ورود</button></div>'
+    +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
+    +'<button type="submit" hidden></button><div class="err" id="gateErr" role="status">نام کاربری و رمز را وارد کن</div>'
     +'<div class="ft">بعد از '+fmt(IDLE_MIN)+' دقیقه بی‌کاری دفتر خودش قفل می‌شود</div></form>';
   document.body.appendChild(g);document.body.style.overflow='hidden';
   var inp=$('#gatePin'),card=g.querySelector('.card'),er=$('#gateErr');
-  function dots(){var n=inp.value.length;if(n&&Date.now()>=WAITTILL){er.textContent='نام کاربری و رمز را وارد کن';er.classList.remove('bad')}g.querySelector('.dots').innerHTML=Array(Math.max(4,n)+1).join('<i></i>');[].forEach.call(g.querySelectorAll('.dots i'),function(x,i){if(i<n)x.className='on'})}
-  function bad(msg){er.textContent=msg;er.classList.add('bad');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');inp.value='';dots()}
-  var un=$('#gateUser');un.value=lsGet('leon_user')||'';var rr=userRec(un.value);if(rr&&rr.photo){var av=document.createElement('div');av.innerHTML=avHTML(rr.u,rr.photo);card.insertBefore(av.firstChild,card.querySelector('.wm'));card.querySelector('.lg').remove()}un.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();un.blur()}});
-  dots();
-  g.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
-    if(b.dataset.d!=null){if(inp.value.length<12)inp.value+=b.dataset.d;dots()}else if(b.hasAttribute('data-del')){inp.value=inp.value.slice(0,-1);dots()}});
-  g._key=function(ev){if(!$('#gate'))return document.removeEventListener('keydown',g._key);if(document.activeElement===un)return;var k=fanum(ev.key);
-    if(/^[0-9]$/.test(k)){ev.preventDefault();if(inp.value.length<12)inp.value+=k;dots()}else if(ev.key==='Backspace'){ev.preventDefault();inp.value=inp.value.slice(0,-1);dots()}else if(ev.key==='Enter'){ev.preventDefault();card.requestSubmit()}};
-  document.addEventListener('keydown',g._key);
-  card.addEventListener('submit',async function(ev){ev.preventDefault();
+  function bad(msg){er.textContent=msg;er.classList.add('bad');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');inp.value=''}
+  var un=$('#gateUser');un.value=lsGet('leon_user')||'';var rr=userRec(un.value);if(rr&&rr.photo){var av=document.createElement('div');av.innerHTML=avHTML(rr.u,rr.photo);card.insertBefore(av.firstChild,card.querySelector('.wm'));card.querySelector('.lg').remove()}un.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();inp.focus()}});
+  (un.value?inp:un).focus();
+  function enter(us,h){UNLOCKED=us.u+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',us.u);FAILS=0;LASTACT=Date.now();render()}
+  function who(){return lockUsers().filter(function(x){return normU(x.u)===normU(un.value)})[0]}
+  /* logs in as soon as the typed password is right; a pause on a wrong one counts as a failed try */
+  var idle=0;inp.addEventListener('input',async function(){clearTimeout(idle);if(Date.now()<WAITTILL){idle=setTimeout(function(){card.requestSubmit()},1500);return}
+    if(inp.value){er.textContent='نام کاربری و رمز را وارد کن';er.classList.remove('bad')}
+    var v=inp.value,us=who();if(!v)return;
+    if(us){var h=await pinHash(v,us.salt||'');if(h===us.hash&&inp.value===v&&$('#gate')){enter(us,h);return}}
+    idle=setTimeout(function(){if(inp.value===v&&$('#gate'))card.requestSubmit()},1500)});
+  card.addEventListener('submit',async function(ev){ev.preventDefault();clearTimeout(idle);
     if(Date.now()<WAITTILL){bad('چند بار اشتباه زدی؛ '+fmt(Math.ceil((WAITTILL-Date.now())/1000))+' ثانیه صبر کن');return}
     if(!normU(un.value)){er.textContent='نام کاربری را بنویس';er.classList.add('bad');un.focus();return}
     if(!inp.value){bad('رمز را وارد کن');return}
-    var us=lockUsers().filter(function(x){return normU(x.u)===normU(un.value)})[0],h=await pinHash(inp.value,us?us.salt||'':'x');
-    if(us&&h===us.hash){UNLOCKED=us.u+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',us.u);FAILS=0;LASTACT=Date.now();document.removeEventListener('keydown',g._key);render()}
+    var us=who(),h=await pinHash(inp.value,us?us.salt||'':'x');
+    if(us&&h===us.hash)enter(us,h);
     else{FAILS++;if(FAILS>=5){WAITTILL=Date.now()+30000;FAILS=0;bad('۵ بار اشتباه؛ ۳۰ ثانیه صبر کن')}else bad('نام کاربری یا رمز اشتباه است')}});
 }
 function lockNow(){UNLOCKED=null;ssSet('leon_unlock',null);render()}
