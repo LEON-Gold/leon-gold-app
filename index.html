@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-25 23:40</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 00:09</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1063,6 +1063,52 @@ body.noact{padding-bottom:24px}
 .kindbar button[disabled]{opacity:.55;cursor:default}
 .act[hidden]{display:none!important}
 @media (min-width:900px){body{padding-bottom:90px}}
+
+/* ===== polish: one shared motion vocabulary, paper surfaces, hallmark plaques ===== */
+:root{--ease-out:cubic-bezier(.22,1,.36,1);--t-fast:.14s;--t-med:.24s;--t-slow:.38s;
+  --lift:0 1px 0 rgba(255,255,255,.85) inset,0 1px 2px rgba(4,23,15,.06),0 12px 28px -18px rgba(4,23,15,.45)}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent}
+.top{border-bottom:1px solid rgba(197,154,80,.38);box-shadow:0 8px 20px -14px rgba(0,0,0,.65)}
+/* paper cards: warm gradient, hairline gold edge, green-tinted lift */
+.sec{background:linear-gradient(180deg,#fffefa,#fdf8ec);border-color:rgba(197,154,80,.42);border-radius:16px;box-shadow:var(--lift);padding:14px 14px 16px;gap:12px}
+.sec h2{font-size:15px}
+.sec h2::before{width:7px;height:7px;border:0;background:linear-gradient(135deg,#f6e3a8,#b88a3e);box-shadow:0 0 0 2px rgba(197,154,80,.18)}
+/* hallmark plaques: the stamped double frame of a bullion bar, the one bold element */
+.kpi{position:relative;background:radial-gradient(120% 70% at 50% 0%,rgba(232,207,142,.12),transparent 62%),linear-gradient(160deg,var(--green-2),var(--green-d));box-shadow:0 10px 24px -16px rgba(4,23,15,.8)}
+.kpi::after{content:"";position:absolute;inset:4px;border:1px solid rgba(232,207,142,.24);border-radius:10px;pointer-events:none}
+.kpi .sub{font-size:11.5px}
+.badge{font-size:11px}.bal em{font-size:11.5px}
+.nav .grp{font-size:11.5px;letter-spacing:0}
+.row{background:#fff;border-color:#ece2c9;border-radius:14px}
+.empty{border-color:rgba(197,154,80,.45);background:rgba(255,255,255,.5)}
+/* fields: a gold focus halo instead of a bare border swap */
+.f input,.f select,.srch,.pin input,.pin select{transition:border-color var(--t-fast),box-shadow var(--t-fast)}
+.f input:focus,.f select:focus,.srch:focus,.pin input:focus,.pin select:focus{outline:none;border-color:var(--gold-d);box-shadow:0 0 0 3px rgba(197,154,80,.22)}
+/* press feedback: transform only, so bounds never shift */
+.btn,.row,.chip,.kindbar button,.nav button.it,.nav .pf,.top .back,.top .lockb,.top .menub{transition:transform var(--t-fast) var(--ease-out),background-color var(--t-fast),filter var(--t-fast)}
+.btn:active:not([disabled]),.chip:active,.kindbar button:active:not([disabled]),.top .back:active,.top .lockb:active,.top .menub:active{transform:scale(.97)}
+.btn.pri:active:not([disabled]){filter:brightness(1.12)}
+.row:active{transform:scale(.985);background:#faf5e6}
+.nav button.it:active,.nav .pf:active{transform:scale(.98);background:rgba(232,207,142,.14)}
+/* drawer: decelerating slide, items arrive in order */
+.nav{transition:transform var(--t-slow) var(--ease-out)}
+.scrim{transition:opacity var(--t-slow) ease}
+body.menu .nav .in>*{animation:navIn .42s var(--ease-out) both;animation-delay:calc(var(--i,0) * 24ms + 70ms)}
+@keyframes navIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+/* a new page settles in; data refreshes on the same page stay still */
+#main.vin>*{animation:viewIn .34s var(--ease-out) both}
+#main.vin>*:nth-child(2){animation-delay:35ms}#main.vin>*:nth-child(3){animation-delay:70ms}#main.vin>*:nth-child(n+4){animation-delay:100ms}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.modal{animation:fadeIn var(--t-med) ease-out}
+.modal .box{animation:popIn .3s var(--ease-out);box-shadow:0 24px 60px -20px rgba(0,0,0,.55),0 0 0 4px rgba(197,154,80,.12)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.toast{animation:toastIn .32s var(--ease-out);box-shadow:0 12px 30px -12px rgba(0,0,0,.55)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){
+  body.menu .nav .in>*,#main.vin>*,.modal,.modal .box,.toast{animation:none}
+  .btn,.row,.chip,.kindbar button,.nav button.it,.nav .pf{transition:none}
+  .btn:active:not([disabled]),.chip:active,.row:active,.nav button.it:active,.nav .pf:active{transform:none}}
 
 .sheet[hidden]{display:none!important}
 </style>
@@ -1677,6 +1723,7 @@ function setTop(title,sub,backBtn){
   $('#topBack').hidden=!backBtn;
   $('#dot').className='dot'+(S.db?'':' off');$('#dot').title=S.db?'متصل':'ذخیره‌سازی غیرفعال';
 }
+var lastVK='',vinT=0;
 function render(){
   var v=S.view,editing=EDITING[v];
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();menuProf();
@@ -1688,6 +1735,7 @@ function render(){
   gateCheck();if(isLocked()){main.innerHTML='';return}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
   ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform})[v]();if(v==='prform')prformReady();
+  var vk=v+'|'+(S.param||'');if(vk!==lastVK){lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
 /* gram balance valued at today's 18-carat gram price, plus the rial balance; null when no price is set */
 function totalR(b){return null}   // gram balances are never converted to rial at today's price
@@ -2383,6 +2431,7 @@ document.addEventListener('click',function(e){
 });
 $('#topBack').addEventListener('click',function(){leaveGuard(back)});
 function menu(on){document.body.classList.toggle('menu',on);$('#menuBtn').setAttribute('aria-expanded',on?'true':'false');if(on){var c=$('#nav [aria-current="page"]')||$('#menuX');$('#nav').scrollTop=0;setTimeout(function(){c.focus({preventScroll:true})},60)}}
+$$('#nav .in>*').forEach(function(x,i){x.style.setProperty('--i',i)});
 $('#menuBtn').addEventListener('click',function(){menu(!document.body.classList.contains('menu'))});
 $('#menuX').addEventListener('click',function(){menu(false);$('#menuBtn').focus()});$('#scrim').addEventListener('click',function(){menu(false)});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('menu'))menu(false)});
