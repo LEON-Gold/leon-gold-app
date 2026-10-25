@@ -483,6 +483,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
+    var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
     b.children[0].onclick=function(){m.hidden=!m.hidden};
     m.onclick=function(e){var o=e.target.getAttribute('data-o');m.hidden=true;if(o==='exp')exportAll();if(o==='imp')inp.click()};
@@ -1117,7 +1118,7 @@ body.noact{padding-bottom:24px}
     <div class="card">
       <h3>اطلاعات تکمیلی و پرداخت</h3>
       <label><span>قیمت یک گرم طلا (ریال):</span><input class="num gp" inputmode="decimal"></label>
-      <label><span>قیمت مثقال طلای ۱۸ عیار:</span><input class="num" inputmode="decimal"></label>
+      <label><span>قیمت مثقال طلای ۱۸ عیار:</span><input class="num mq" inputmode="decimal"></label>
       <label><span>مانده قبلی (ریال):</span><span class="dual"><input class="num" id="r_prev" inputmode="decimal"><select id="r_prev_t" aria-label="نوع مانده قبلی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
       <label><span>وضعیت تحویل کالا:</span><span class="dual"><select id="r_deliv" aria-label="وضعیت تحویل"><option value="dl">تحویل شد</option><option value="nd">تحویل نشد</option></select></span></label>
       <label><span>نقدی:</span><span class="dual"><input class="num rp" inputmode="decimal"><select id="r_p1_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
@@ -1193,7 +1194,7 @@ body.noact{padding-bottom:24px}
     <div class="card">
       <h3>اطلاعات تکمیلی و تسویه</h3>
       <label><span>قیمت یک گرم طلا (ریال):</span><input class="num gp" inputmode="decimal"></label>
-      <label><span>قیمت مثقال طلای ۱۸ عیار:</span><input class="num" inputmode="decimal"></label>
+      <label><span>قیمت مثقال طلای ۱۸ عیار:</span><input class="num mq" inputmode="decimal"></label>
       <label><span>مانده قبلی (گرم):</span><span class="dual"><input class="num" id="w_prev" inputmode="decimal"><select id="w_prev_t" aria-label="نوع مانده قبلی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
       <label><span>وضعیت تحویل کالا:</span><span class="dual"><select id="w_deliv" aria-label="وضعیت تحویل"><option value="dl">تحویل شد</option><option value="nd">تحویل نشد</option></select></span></label>
       <label><span>طلای دریافتی (گرم):</span><span class="dual"><input class="num" id="w_recv" inputmode="decimal"><select id="w_recv_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
@@ -1267,9 +1268,11 @@ body.noact{padding-bottom:24px}
   }
   function blank(n){return n?fmt(n,2):''}
   function pl(n,d){return n?(+n.toFixed(d||0)).toLocaleString('fa-IR',{useGrouping:false,maximumFractionDigits:d||0}):''}
-  // gram and mithqal price of the trade follow each other (mithqal = 4.3318 g)
-  document.addEventListener('input',function(e){var id=e.target&&e.target.id;
-    if(id==='tx_mq')$('#tx_gp').value=pl(Math.round(parse(e.target.value)/4.3318));else if(id==='tx_gp')$('#tx_mq').value=pl(Math.round(parse(e.target.value)*4.3318))},true);
+  // gram and mithqal price follow each other (mithqal = 4.3318 g): the trade's pair, and each sheet's .gp/.mq pair
+  document.addEventListener('input',function(e){var t=e.target,id=t&&t.id;
+    if(id==='tx_mq')$('#tx_gp').value=pl(Math.round(parse(t.value)/4.3318));else if(id==='tx_gp')$('#tx_mq').value=pl(Math.round(parse(t.value)*4.3318));
+    else if(t&&t.classList&&(t.classList.contains('gp')||t.classList.contains('mq'))){var g=t.classList.contains('gp'),o=$(g?'.mq':'.gp',t.closest('.sheet')),v=parse(t.value);
+      if(o){o.value=v?pl(Math.round(g?v*4.3318:v/4.3318)):'';o.dispatchEvent(new Event('sync'))}}},true);
   var taxEl=document.getElementById('taxPct');
   function tax(){return parse(taxEl.value)/100}
   var $=function(s,r){return (r||document).querySelector(s)};
@@ -2174,6 +2177,7 @@ function mk(label,target,o){o=o||{};var t=el(target);if(!t)return document.creat
   var w=document.createElement('label');w.className='f'+(o.w2?' w2':'');var sp=document.createElement('span');sp.textContent=label;w.appendChild(sp);
   var inp=document.createElement('input');inp.type='text';inp.value=t.value;if(o.num){inp.className='num';inp.inputMode='decimal'}if(o.ph)inp.placeholder=o.ph;
   inp.addEventListener('input',function(){t.value=inp.value;fire(t,'input')});w.appendChild(inp);
+  t.addEventListener('sync',function(){if(document.activeElement!==inp)inp.value=t.value});
   if(o.sel){var st=el(o.sel),s=document.createElement('select');s.setAttribute('aria-label',label+' - نوع');
     [].slice.call(st.options).forEach(function(op){var n=document.createElement('option');n.value=op.value;n.textContent=op.textContent;s.appendChild(n)});s.value=st.value;
     s.addEventListener('change',function(){st.value=s.value;fire(st,'change')});var d=document.createElement('div');d.className='dual';d.appendChild(inp);d.appendChild(s);w.appendChild(d)}
@@ -2239,11 +2243,11 @@ function renderForm(){
   var taxf=function(){return $('#taxPct')};
   if(kind==='retail'){
     app.appendChild(fsec('مشخصات سند',[mk('تاریخ',meta(1),{num:1}),mk('شماره سند',meta(2),{num:1}),mk('ساعت',meta(3),{num:1}),mk('درصد مالیات',taxf,{num:1})]));
-    app.appendChild(fsec('قیمت طلا',[mk('قیمت یک گرم طلا (ریال)',N('.gp'),{num:1,w2:1}),mk('قیمت مثقال طلای ۱۸ عیار',function(){return $$('#retail .card label input')[1]},{num:1,w2:1})]));
+    app.appendChild(fsec('قیمت طلا',[mk('قیمت یک گرم طلا (ریال)',N('.gp'),{num:1,w2:1}),mk('قیمت مثقال طلای ۱۸ عیار',N('.mq'),{num:1,w2:1})]));
   }else{
     var dn=document.createElement('p');dn.className='note';dn.id='docNote';var ds=document.createElement('section');ds.className='sec';var h=document.createElement('h2');h.textContent='نوع سند';ds.appendChild(h);ds.appendChild(docSeg());ds.appendChild(dn);app.appendChild(ds);docNote();
     app.appendChild(fsec('مشخصات سند',[mk('تاریخ',meta(1),{num:1}),mk('شماره سند',meta(2),{num:1}),mk('سررسید',meta(3),{num:1}),mk('درصد مالیات',taxf,{num:1})]));
-    app.appendChild(fsec('قیمت طلا',[mk('قیمت یک گرم طلا (ریال)',N('.gp'),{num:1,w2:1}),mk('قیمت مثقال طلای ۱۸ عیار',function(){return $$('#whole .card label input')[1]},{num:1,w2:1})]));
+    app.appendChild(fsec('قیمت طلا',[mk('قیمت یک گرم طلا (ریال)',N('.gp'),{num:1,w2:1}),mk('قیمت مثقال طلای ۱۸ عیار',N('.mq'),{num:1,w2:1})]));
   }
   var total=rows().length,filled=0;rows().forEach(function(tr,i){if($$('input',tr).some(function(x){return x.value&&!x.classList.contains('c')&&x.value!==''}))filled=i+1});
   var n=Math.min(Math.max(shown[kind],filled),total);shown[kind]=n;
