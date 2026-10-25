@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-25 23:23</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-25 23:35</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1955,11 +1955,16 @@ async function restoreLog(id){var e=null;S.log.forEach(function(x){if(x.id===id)
     var snap=Object.assign({},cur);delete snap.id;logAct('edit',e.col,e.docId,snap)}
   if(await put(e.col,e.docId,e.data)){try{await S.db.collection('log').doc(id).update({restored:true})}catch(x){}toast('بازگردانده شد')}}
 async function saveFile(name,text,type){var d=null;try{d=await window.claude.use('downloads')}catch(e){}
-  if(!d){toast('ذخیره فایل در این نمایش ممکن نیست');return}
-  try{await d.save({filename:name,data:text instanceof Blob?text:new Blob([text],{type:type})})}catch(e){if(!(e&&e.code==='declined'))toast('فایل ذخیره نشد')}}
+  if(!d){toast('ذخیره فایل در این نمایش ممکن نیست');return false}
+  try{await d.save({filename:name,data:text instanceof Blob?text:new Blob([text],{type:type})});return true}catch(e){if(!(e&&e.code==='declined'))toast('فایل ذخیره نشد');return false}}
 function day(){return new Date().toISOString().slice(0,10)}
 function strip(o){var c=Object.assign({},o);return c}
-function backupJson(){saveFile('leon-gold-backup-'+day()+'.json',JSON.stringify({app:'leon-gold',format:2,at:new Date().toISOString(),parties:S.parties.map(strip),invoices:S.invoices.map(strip),settlements:S.settlements.map(strip)},null,1),'application/json')}
+/* the lock button reminds to back up once a day (local date); a saved backup marks the day done */
+function localDay(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function lockAsk(){if(lsGet('leon_lastbk')===localDay())return lockNow();
+  var m=document.createElement('div');m.className='modal';m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>امروز هنوز پشتیبان نگرفته‌ای. قبل از قفل، پشتیبان کامل بگیرم؟</p><div class="btns"><button class="btn pri" data-y>پشتیبان و قفل</button><button class="btn" data-l>فقط قفل</button></div></div>';
+  document.body.appendChild(m);m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){m.remove();await backupJson();lockNow()}else if(e.target.closest('[data-l]')){m.remove();lockNow()}else if(e.target===m)m.remove()})}
+async function backupJson(){if(await saveFile('leon-gold-backup-'+day()+'.json',JSON.stringify({app:'leon-gold',format:2,at:new Date().toISOString(),parties:S.parties.map(strip),invoices:S.invoices.map(strip),settlements:S.settlements.map(strip)},null,1),'application/json'))lsSet('leon_lastbk',localDay())}
 function csv(rows){var q=function(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};return '\ufeff'+rows.map(function(r){return r.map(q).join(',')}).join('\r\n')}
 function csvInvoices(){var rows=[['تاریخ','شماره','نوع','طرف‌حساب','شرح کالا','تعداد','وزن (گرم)','عیار','اجرت ٪','سود ٪','مبلغ ردیف (ریال)','وزن ۷۵۰ (گرم)','جمع ردیف (گرم)','مبلغ کل سند']];
   S.invoices.slice().sort(function(a,b){return a.ts<b.ts?-1:1}).forEach(function(i){var base=[i.date||'',num(i.no),invLabel(i),i.partyName||''],u=unitOf(i),tot=u==='g'?(+(i.amount||0).toFixed(3))+' گرم':Math.round(i.amount||0)+' ریال';
@@ -2326,7 +2331,7 @@ document.addEventListener('click',function(e){
     case 'pfrm':ask('عکس پروفایل حذف شود؟',async function(){try{await updUser(curUser(),{photo:''});toast('عکس حذف شد.')}catch(x){toast(dberr(x))}},'حذف');break;
     case 'tabto':tab(b.dataset.t);break;
     case 'gousers':leaveGuard(function(){tab('home');setTimeout(function(){var x=$('#secUsers');if(x)x.scrollIntoView({behavior:'smooth',block:'start'})},60)});break;
-    case 'menulock':leaveGuard(lockNow);break;
+    case 'menulock':leaveGuard(lockAsk);break;
     case 'pinoff':pinOff(b.dataset.u||'');break;
     case 'urename':renameDialog(b.dataset.u||'');break;
     case 'csvinv':csvInvoices();break;
@@ -2430,7 +2435,7 @@ exportBtn('#pvPdf','در حال ساخت PDF…',async function(dl){
 
 /* ---------- boot ---------- */
 render();initDb();
-$('#lockBtn').addEventListener('click',function(){leaveGuard(lockNow)});
+$('#lockBtn').addEventListener('click',function(){leaveGuard(lockAsk)});
 })();
 
 </script>
