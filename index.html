@@ -490,7 +490,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 14:12</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 14:57</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2145,19 +2145,27 @@ function priceCard(){var pr=todayPrice();
   +'<div class="kpis"><div class="kpi"><small>هر گرم طلای ۱۸ عیار</small><b>'+fmt(pr.gp)+'</b><span class="sub">ریال · '+fmt(Math.round(pr.gp/10))+' تومان</span></div>'
   +'<div class="kpi"><small>مثقال طلای ۱۸ عیار</small><b>'+fmt(mithqal(pr.gp))+'</b><span class="sub">ریال · '+fmt(Math.round(mithqal(pr.gp)/10))+' تومان</span></div></div>'
   +'<p class="note">'+(old?'<span class="stale">این قیمت مال '+esc(jdate(pr.ts))+' است؛ قیمت امروز را به‌روز کن.</span>':'به‌روزشده امروز ساعت '+esc(jtime(pr.ts))+ch)+'</p></section>'}
-/* market price from tgju (CORS-open): today's latest 18k gram tick in rial, else the last daily close; a suggestion the
+/* market price: the Tehran gold union board (estjt.ir), copied every few minutes by a GitHub Action into price.json on the
+   app repo's price branch; if that is missing or over 40 minutes old, tgju (CORS-open) as before. A suggestion the
    owner confirms, never saved on its own. Cached 5 minutes; any failure (offline, holiday, odd value) just means no suggestion. */
 var LIVE={at:0,p:null,busy:null};
 function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<55000)return Promise.resolve(LIVE.p);if(LIVE.busy)return LIVE.busy;
   var get=function(kind){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
     return fetch('https://api.tgju.org/v1/market/indicator/'+kind+'/geram18?length=1&start=0',{cache:'no-store',signal:c.signal})
       .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).then(function(j){return j&&j.data&&j.data[0]||null})};
-  LIVE.busy=get('today-table-data').then(function(r){if(r)return {gp:num(r[0]),at:String(r[1]||'').slice(0,5),today:true};
-      return get('summary-table-data').then(function(x){return x?{gp:num(x[3]),day:String(x[7]||''),today:false}:null})})
+  var union=function(){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+    return fetch('https://raw.githubusercontent.com/LEON-Gold/leon-gold-app/price/price.json?t='+Math.floor(Date.now()/60000),{cache:'no-store',signal:c.signal})
+      .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()})
+      .then(function(j){return j&&j.gp&&Date.now()-Date.parse(j.fetched)<2400000?{gp:+j.gp,day:String(j.day||''),at:String(j.time||''),src:'union'}:null})
+      .catch(function(){return null})};
+  var tgju=function(){return get('today-table-data').then(function(r){if(r)return {gp:num(r[0]),at:String(r[1]||'').slice(0,5),today:true};
+      return get('summary-table-data').then(function(x){return x?{gp:num(x[3]),day:String(x[7]||''),today:false}:null})})};
+  LIVE.busy=union().then(function(p){return p||tgju()})
     .then(function(p){LIVE.busy=null;if(!p||!(p.gp>1e6&&p.gp<1e12))return null;LIVE.p=p;LIVE.at=Date.now();return p})
     .catch(function(){LIVE.busy=null;return null});
   return LIVE.busy}
-function liveWhen(p){return p.today?'امروز ساعت '+toFa(p.at):'بسته‌شدن '+toFa(p.day)}
+function liveSrc(p){return p.src==='union'?'اتحادیه طلای تهران':'tgju'}
+function liveWhen(p){return p.src==='union'?p.day+' ساعت '+toFa(p.at):p.today?'امروز ساعت '+toFa(p.at):'بسته‌شدن '+toFa(p.day)}
 // home: one quiet line under the saved price, filled in when the market answers
 // the market line refreshes itself every minute while home is on screen, and at once when the app comes back to the front
 function liveTick(){if(S.view==='home'&&document.visibilityState==='visible'&&$('#liveP'))livePrice().then(fillLive)}
@@ -2165,7 +2173,7 @@ setInterval(liveTick,60000);document.addEventListener('visibilitychange',liveTic
 function fillLive(p){var el=$('#liveP');if(!el||!p)return;var pr=todayPrice(),d=pr&&pr.gp?(p.gp-pr.gp)/pr.gp*100:null;
   var moved=el.dataset.gp&&+el.dataset.gp!==p.gp;el.dataset.gp=p.gp;
   if(moved){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}
-  el.innerHTML='<span><b>بازار الان: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+(d!=null&&Math.abs(d)>=0.01?'، '+(d>0?'▲ ':'▼ ')+fmt(Math.abs(d),2)+'٪ نسبت به قیمت ثبت‌شده':'')+' · منبع tgju</small></span>'
+  el.innerHTML='<span><b>بازار الان: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+(d!=null&&Math.abs(d)>=0.01?'، '+(d>0?'▲ ':'▼ ')+fmt(Math.abs(d),2)+'٪ نسبت به قیمت ثبت‌شده':'')+' · منبع '+liveSrc(p)+'</small></span>'
     +'<button class="btn sm" data-act="uselive" type="button">ثبت این قیمت</button>';el.hidden=false}
 function priceDialog(pre){var pr=todayPrice(),m=document.createElement('div');m.className='modal';
   m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>قیمت امروز را وارد کن. می‌توانی قیمت یک گرم ۱۸ عیار یا یک مثقال ۱۸ عیار را بنویسی؛ دیگری خودکار حساب می‌شود.</p>'
@@ -2180,7 +2188,7 @@ function priceDialog(pre){var pr=todayPrice(),m=document.createElement('div');m.
   m.addEventListener('input',calc);m.addEventListener('change',calc);
   if(pre)use(pre);else inp.focus();
   livePrice().then(function(p){if(!lv.isConnected)return;if(!p){lv.textContent='قیمت آنلاین در دسترس نیست؛ اینترنت را بررسی کن یا قیمت را دستی بنویس.';return}
-    lv.innerHTML='<span><b>بازار: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+' · منبع tgju</small></span><button class="btn sm" data-live type="button">استفاده از این قیمت</button>';
+    lv.innerHTML='<span><b>بازار: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+' · منبع '+liveSrc(p)+'</small></span><button class="btn sm" data-live type="button">استفاده از این قیمت</button>';
     lv.querySelector('[data-live]').addEventListener('click',function(){use(p)})});
   m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){var gp=calc();if(!(gp>0)){toast('قیمت را بنویس');return}
       var p0=todayPrice();if(p0&&p0.gp&&Math.abs(gp-p0.gp)/p0.gp>0.15&&!m.dataset.ok){m.dataset.ok=1;hint.textContent='این قیمت بیش از ۱۵٪ با قیمت قبلی ('+fmt(p0.gp)+' ریال) فرق دارد. اگر درست است دوباره «ذخیره» را بزن.';return}
