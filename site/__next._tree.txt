@@ -1,3 +1,4 @@
-:HL["/leon-gold-app/site/_next/static/chunks/2xrek86ndqt4z.css","style"]
-1:[["children",{"s":"__PAGE__","h":160}]]
-0:{"b":"OwB4rSj_dplFUKilLmu-w","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+:HL["/leon-gold-app/site/_next/static/chunks/0pdy1rpqpqykh.css","style"]
+:HL["leaf.png","image"]
+1:[["children",{"s":"__PAGE__","h":128}]]
+0:{"b":"5G96ss0Ouoqn6YvU7Oo34","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
