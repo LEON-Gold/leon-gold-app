@@ -482,9 +482,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 12:42</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 12:57</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
-    var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
+    var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
     b.children[0].onclick=function(){m.hidden=!m.hidden};
     m.onclick=function(e){var o=e.target.getAttribute('data-o');m.hidden=true;if(o==='exp')exportAll();if(o==='imp')inp.click()};
@@ -1180,6 +1180,32 @@ body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:c
 #main{grid-template-columns:minmax(0,1fr)}
 .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 .kpi{min-width:0}.kpi .bal{white-space:normal}.kpi .bal .n{white-space:nowrap}
+/* outline buttons sitting straight on the page (not on a card) need gold ink once the page goes dark */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(#main>.btns,#main>.qa,#main>.pnav) .btn:not(.pri),:root:not([data-theme="light"]) #main>.btn:not(.pri){color:var(--gold-lt);border-color:rgba(232,207,142,.55)}}
+:root[data-theme="dark"] :is(#main>.btns,#main>.qa,#main>.pnav) .btn:not(.pri),:root[data-theme="dark"] #main>.btn:not(.pri){color:var(--gold-lt);border-color:rgba(232,207,142,.55)}
+/* home: today at a glance */
+.sec h2 small{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);margin-inline-start:8px}
+.tday{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tday div{background:#fff;border:1px solid #ece2c9;border-radius:12px;padding:10px;display:grid;gap:1px;min-width:0}
+.tday small{font-size:11.5px;color:var(--muted)}.tday b{font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.tday span{font-size:11.5px;color:var(--muted)}
+.tgmini{display:grid;gap:7px;width:100%;font:inherit;text-align:right;color:inherit;background:#fff;border:1px solid var(--gold);border-radius:12px;padding:10px 12px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out)}
+.tgmini:active{transform:scale(.985)}
+.tgl{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}.tgl b{font-family:var(--display);font-size:16px;color:var(--emerald)}
+/* floating new-document button: the primary action, so it wears the same gold leaf as the save button */
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:24;width:58px;height:58px;border-radius:50%;
+  display:grid;place-items:center;padding:0;cursor:pointer;background:var(--leaf);background-size:180% 100%;background-position:30% 0;border:1px solid #f3dfa4;
+  box-shadow:0 10px 24px -8px rgba(4,23,15,.55),0 0 0 4px rgba(6,20,14,.08);transition:transform var(--t-fast) var(--ease-out)}
+.fab svg{width:26px;height:26px;stroke:#0a1f15;stroke-width:2.4;stroke-linecap:round;fill:none}
+.fab:active{transform:scale(.94)}
+.fab[hidden],body.menu .fab{display:none}
+body:has(#fab:not([hidden])) #main{padding-bottom:84px}
+/* bottom sheet for the button: rises from the thumb, on the drawer curve */
+.asheet{place-items:end center;padding:0}
+.asheet .box{max-width:560px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:sheetUp .28s cubic-bezier(.32,.72,0,1)}
+.asheet p{font-size:15px;color:var(--emerald)}.asheet p b{font-family:var(--display);font-size:17px}
+.asg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.asg .btn.ghost{color:var(--muted)}
+@keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.asheet .box{animation:fadeIn .16s ease-out}.fab,.tgmini{transition:none}}
 /* only real buttons look pressable; plain rows are information */
 div.row{cursor:default}div.row:active{transform:none;background:#fff}
 /* reduced motion: fewer and gentler, not zero — fades stay, movement goes */
@@ -1196,7 +1222,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
 
 <header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
-<main id="main"></main>
+<main id="main"></main><button class="fab" id="fab" data-act="fab" type="button" aria-label="سند جدید" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
 <div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش A4</button></div></div></div>
 <div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A4)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
@@ -1824,7 +1850,7 @@ function setTop(title,sub,backBtn){
 }
 var lastVK='',vinT=0;
 function render(){
-  var v=S.view,editing=EDITING[v];
+  var v=S.view,editing=EDITING[v];$('#fab').hidden=true;
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();menuProf();
   $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets'))?'page':'false')});
   if(S.nodb){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="warn">ذخیره‌سازی در این نمایش فعال نیست. صفحه را داخل حساب Claude خودت و با همان مرورگر یا برنامه‌ای که وارد آن هستی باز کن.</div>';return}
@@ -1834,6 +1860,7 @@ function render(){
   gateCheck();if(isLocked()){main.innerHTML='';return}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
   ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform})[v]();if(v==='prform')prformReady();
+  $('#fab').hidden=!!editing||v==='home';
   var vk=v+'|'+(S.param||'');if(vk!==lastVK){lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
 /* gram balance valued at today's 18-carat gram price, plus the rial balance; null when no price is set */
@@ -1846,13 +1873,30 @@ function invRow(i){var u=unitOf(i),amt=i.amount||0,v=balHTML(amt,u);
   if(i.kind==='whole'&&Math.abs(amt)<0.0005&&(Math.abs(i.deltaG||0)>=0.0005||Math.abs(i.deltaR||0)>=0.5))v=(Math.abs(i.deltaG||0)>=0.0005?balHTML(i.deltaG,'g'):'')+(Math.abs(i.deltaR||0)>=0.5?balHTML(i.deltaR,'r'):'');
   return '<button class="row" data-act="inv" data-id="'+esc(i.id)+'"><span class="t">'+esc(i.partyName||'—')+'<span class="badge'+(i.kind==='whole'?' g':'')+'">'+esc(invLabel(i))+'</span></span>'
   +'<span class="s">شماره '+esc(i.no||'')+' · '+esc(i.date||'')+'</span><span class="v">'+v+'</span></button>'}
+/* today at a glance: the day's sales and the nearest-deadline running target */
+function todayCard(){var d=todayD(),M=metrics(d,d),t=null,tv=0;
+  S.targets.forEach(function(x){var v=tgVal(x);if(tgState(x,v)==='on'&&(!t||x.e<t.e)){t=x;tv=v}});
+  var cell=function(l,v,u){return '<div><small>'+l+'</small><b>'+v+'</b><span>'+u+'</span></div>'},tg='';
+  if(t){var pct=Math.max(0,Math.min(100,tv/t.goal*100)),u=TGT[t.type]?TGT[t.type][1]:'';
+    tg='<button class="tgmini" data-act="tab" data-t="targets" type="button"><span class="tgl"><b>'+esc(t.title||TGT[t.type][0])+'</b><span>'+tgFmt(t,tv)+' از '+tgFmt(t,t.goal)+(u?' '+u:'')+'، '+fmt(t.e-d+1)+' روز مانده</span></span>'
+      +'<span class="tgbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(pct)+'" aria-label="پیشرفت تارگت"><i style="width:'+pct.toFixed(1)+'%"></i></span></button>'}
+  return '<section class="sec today"><h2>امروز<small>'+jstr(d)+'</small><span class="sp"></span><button class="lnk" data-act="tab" data-t="report">گزارش</button></h2>'
+    +'<div class="tday">'+cell('فروش خالص عمده',gr(M.net),'گرم')+cell('فروش خرده',fmt(M.saleR),'ریال')+cell('سند ثبت‌شده',fmt(M.inv),'سند')+'</div>'+tg+'</section>'}
+/* floating new-document button: thumb-reach on every page except home (it has its own) and forms */
+function fabSheet(){var pid=S.view==='party'&&S.param?String(S.param):'',p=pid?partyById(pid):null,dp=pid?' data-p="'+esc(pid)+'"':'';
+  var m=document.createElement('div');m.className='modal asheet';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-label="سند جدید"><p>سند جدید'+(p?' برای <b>'+esc(p.name)+'</b>':'')+'</p><div class="asg">'
+    +'<button class="btn pri" data-act="new" data-k="retail"'+dp+' type="button">فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole"'+dp+' type="button">فاکتور عمده</button>'
+    +'<button class="btn" data-act="newset"'+dp+' type="button">سند تسویه</button><button class="btn ghost" data-x type="button">انصراف</button></div></div>';
+  document.body.appendChild(m);m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-x],[data-act]'))setTimeout(function(){m.remove()},0)});
+  var f=m.querySelector('.btn');if(f)f.focus({preventScroll:true})}
 function vHome(){
   setTop('دفتر لئون گلد','خلاصه حساب‌ها',false);
   var gp=0,gn=0,rp=0,rn=0;S.parties.forEach(function(p){var b=S.bal[p.id];if(!b)return;if(b.g>0)gp+=b.g;else gn+=-b.g;if(b.r>0)rp+=b.r;else rn+=-b.r});
   var top=S.parties.slice().sort(function(a,b){return Math.abs(S.bal[b.id].g)*50+Math.abs(S.bal[b.id].r)/1e6-(Math.abs(S.bal[a.id].g)*50+Math.abs(S.bal[a.id].r)/1e6)}).filter(function(p){var b=S.bal[p.id];return Math.abs(b.g)>=0.0005||Math.abs(b.r)>=0.5}).slice(0,5);
   var rec=S.invoices.slice().sort(function(a,b){return a.ts<b.ts?1:-1}).slice(0,5);
   var oo=S.orders.filter(isOpenOrder),ol=oo.filter(isLate),low=S.products.filter(isLow),pend=rawGold().pend,nsrc=S.products.filter(isNeg).length+orphans().length;
-  main.innerHTML=priceCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
+  main.innerHTML=priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
   +'<div class="kpis"><div class="kpi"><small>طلب گرمی از طرف‌حساب‌ها</small><b>'+fmt(gp,3)+' گرم</b><span class="sub">جمع بدهکارها</span></div>'
   +'<div class="kpi"><small>بدهی گرمی من</small><b>'+fmt(gn,3)+' گرم</b><span class="sub">جمع بستانکارها</span></div>'
   +'<div class="kpi"><small>طلب ریالی</small><b>'+fmt(rp,0)+'</b><span class="sub">ریال</span></div>'
@@ -2614,6 +2658,7 @@ document.addEventListener('click',function(e){
     case 'newset':go('set',{partyId:b.dataset.p||''});break;
     case 'set':go('set',{id:id});break;
     case 'party':go('party',id);break;
+    case 'fab':fabSheet();break;
     case 'rpk':S.rp.k=b.dataset.k;S.rp.off=0;render();break;
     case 'rpoff':S.rp.off=Math.min(0,S.rp.off+(+b.dataset.n));render();break;
     case 'evk':S.ev.k=b.dataset.k;render();break;
