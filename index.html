@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 13:42</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 13:51</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1185,7 +1185,10 @@ body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:c
 :root[data-theme="dark"] :is(#main>.btns,#main>.qa,#main>.pnav) .btn:not(.pri),:root[data-theme="dark"] #main>.btn:not(.pri){color:var(--gold-lt);border-color:rgba(232,207,142,.55)}
 /* market price suggestion: a quiet line, never louder than the saved price above it */
 .livep{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px dashed rgba(197,154,80,.5);padding-top:10px;font-size:12.5px;color:var(--muted)}
-.livep[hidden]{display:none}.livep span{display:grid;gap:1px}.livep b{font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}.livep small{font-size:11.5px}
+.livep[hidden]{display:none}
+.livep.flash b{animation:liveFlash 1.2s ease-out}
+@keyframes liveFlash{0%{color:#b0843d;text-shadow:0 0 12px rgba(216,180,106,.55)}100%{color:var(--ink);text-shadow:none}}
+@media (prefers-reduced-motion:reduce){.livep.flash b{animation:none}}.livep span{display:grid;gap:1px}.livep b{font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}.livep small{font-size:11.5px}
 /* home: today at a glance */
 .sec h2 small{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);margin-inline-start:8px}
 .tday{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -2127,7 +2130,7 @@ function priceCard(){var pr=todayPrice();
 /* market price from tgju (CORS-open): today's latest 18k gram tick in rial, else the last daily close; a suggestion the
    owner confirms, never saved on its own. Cached 5 minutes; any failure (offline, holiday, odd value) just means no suggestion. */
 var LIVE={at:0,p:null,busy:null};
-function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<300000)return Promise.resolve(LIVE.p);if(LIVE.busy)return LIVE.busy;
+function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<55000)return Promise.resolve(LIVE.p);if(LIVE.busy)return LIVE.busy;
   var get=function(kind){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
     return fetch('https://api.tgju.org/v1/market/indicator/'+kind+'/geram18?length=1&start=0',{cache:'no-store',signal:c.signal})
       .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).then(function(j){return j&&j.data&&j.data[0]||null})};
@@ -2138,7 +2141,12 @@ function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<300000)return Pr
   return LIVE.busy}
 function liveWhen(p){return p.today?'امروز ساعت '+toFa(p.at):'بسته‌شدن '+toFa(p.day)}
 // home: one quiet line under the saved price, filled in when the market answers
+// the market line refreshes itself every minute while home is on screen, and at once when the app comes back to the front
+function liveTick(){if(S.view==='home'&&document.visibilityState==='visible'&&$('#liveP'))livePrice().then(fillLive)}
+setInterval(liveTick,60000);document.addEventListener('visibilitychange',liveTick);
 function fillLive(p){var el=$('#liveP');if(!el||!p)return;var pr=todayPrice(),d=pr&&pr.gp?(p.gp-pr.gp)/pr.gp*100:null;
+  var moved=el.dataset.gp&&+el.dataset.gp!==p.gp;el.dataset.gp=p.gp;
+  if(moved){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}
   el.innerHTML='<span><b>بازار الان: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+(d!=null&&Math.abs(d)>=0.01?'، '+(d>0?'▲ ':'▼ ')+fmt(Math.abs(d),2)+'٪ نسبت به قیمت ثبت‌شده':'')+' · منبع tgju</small></span>'
     +'<button class="btn sm" data-act="uselive" type="button">ثبت این قیمت</button>';el.hidden=false}
 function priceDialog(pre){var pr=todayPrice(),m=document.createElement('div');m.className='modal';
