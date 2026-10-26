@@ -463,32 +463,41 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   async function exportAll(){await ready;var ph={};for(var k in blobs)ph[k]=await b64(blobs[k]);
     var d=new Date(),day=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
     saveAs('leon-gold-offline-'+day+'.json',new Blob([JSON.stringify({app:'leon-gold-offline',format:1,at:d.toISOString(),docs:docs,photos:ph})],{type:'application/json'}))}
+  /* the app's «پشتیبان کامل» reads product photos through this (id -> data URL) */
+  window.__leonPhotos=async function(){await ready;var ph={};for(var k in blobs)ph[k]=await b64(blobs[k]);return ph};
+  var COLS=['parties','invoices','settlements','products','orders','targets','prices','settings','log'];
+  var CNAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
+  // a full file (offline export, or «پشتیبان کامل» format 3+) replaces everything; an old format-2 file replaces only what it holds
   async function importAll(file){var j;try{j=JSON.parse(await file.text())}catch(e){alert('این فایل JSON معتبر نیست.');return}
     var col={};
     if(j&&j.app==='leon-gold-offline'&&j.docs)col=j.docs;
-    else if(j&&j.app==='leon-gold'){['parties','invoices','settlements','products','orders','settings','prices','log'].forEach(function(c){
+    else if(j&&j.app==='leon-gold'){COLS.forEach(function(c){
       if(Array.isArray(j[c])){col[c]={};j[c].forEach(function(o){var x=clone(o),id=x.id;delete x.id;if(id)col[c][id]=x})}})}
     else{alert('این فایل پشتیبان لئون گلد نیست.');return}
-    var cnt=Object.keys(col).map(function(c){return c+': '+Object.keys(col[c]).length}).join('\n');
-    if(!confirm('اطلاعات آفلاین این مرورگر با این فایل جایگزین می‌شود:\n'+cnt+'\n\nادامه می‌دهی؟'))return;
-    await ready;var full=j.app==='leon-gold-offline';
+    var full=j.app==='leon-gold-offline'||(+j.format||0)>=3,np=j.photos?Object.keys(j.photos).length:0;
+    var fa=function(n){return Number(n).toLocaleString('fa-IR')};
+    var cnt=Object.keys(col).filter(function(c){return Object.keys(col[c]).length}).map(function(c){return '• '+fa(Object.keys(col[c]).length)+' '+(CNAME[c]||c)}).join('\n')+(np?'\n• '+fa(np)+' عکس کالا':'');
+    var when=j.at?new Intl.DateTimeFormat('fa-IR',{dateStyle:'medium',timeStyle:'short'}).format(new Date(j.at)):'';
+    if(!confirm('بازگردانی پشتیبان'+(when?' '+when:'')+':\n'+cnt+'\n\n'+(full?'همه‌ی اطلاعات این دستگاه با این فایل جایگزین می‌شود.':'این فایل پشتیبان قدیمی است و فقط همین بخش‌ها را دارد؛ فقط همین‌ها جایگزین می‌شوند و بقیه دست نمی‌خورد.')+'\n\nادامه می‌دهی؟'))return;
+    await ready;
     for(var c in docs)if(full||col[c])for(var id in docs[c])await put(c,id,undefined);
     for(c in col)for(id in col[c])await put(c,id,col[c][id]);
-    if(full&&j.photos)for(var k in j.photos){var bl=await (await fetch(j.photos[k])).blob();blobs[k]=bl;await write('blobs',k,bl)}
-    alert('اطلاعات وارد شد.');location.reload()}
+    if(j.photos)for(var k in j.photos){try{var bl=await (await fetch(j.photos[k])).blob();blobs[k]=bl;await write('blobs',k,bl)}catch(e){}}
+    alert('بازگردانی انجام شد.');location.reload()}
   function badge(){document.title+=' · آفلاین';var t=document.createElement('meta');t.name='apple-mobile-web-app-title';t.content='لئون گلد';document.head.appendChild(t);var b=document.createElement('div');b.id='offBadge';
     b.style.cssText='position:fixed;left:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:99999;font:12px Vazirmatn,Tahoma,sans-serif;direction:rtl;letter-spacing:0';
     b.innerHTML='<button type="button" style="all:unset;cursor:pointer;background:#0a1f15;color:#f3ead0;border:1px solid #c59a50;border-radius:14px;padding:4px 10px">آفلاین ▾</button>'+
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 13:51</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 14:12</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
     b.children[0].onclick=function(){m.hidden=!m.hidden};
     m.onclick=function(e){var o=e.target.getAttribute('data-o');m.hidden=true;if(o==='exp')exportAll();if(o==='imp')inp.click()};
     inp.onchange=function(){if(inp.files[0])importAll(inp.files[0]);inp.value=''};
+    window.__leonImportPick=function(){inp.click()};
     document.body.appendChild(b)}
   if(document.body)badge();else document.addEventListener('DOMContentLoaded',badge);
   /* installed on a phone (served over https): keep the app available offline */
@@ -1913,7 +1922,16 @@ function vHome(){
   +(rec.length?rec.map(invRow).join(''):'<div class="empty">هنوز فاکتوری ذخیره نشده.</div>')+'</div></section>';
   var ps=$('.sec.price');if(ps){ps.insertAdjacentHTML('beforeend','<div class="livep" id="liveP" hidden></div>');livePrice().then(fillLive)}
 }
-function vBackup(){setTop('پشتیبان و خروجی‌ها','',true);main.innerHTML='<section class="sec"><h2>پشتیبان و سوابق</h2><p class="note">هر ثبت و حذف در سوابق می‌ماند و چیزی که حذف شده، از همان‌جا برمی‌گردد.</p><div class="btns"><button class="btn sm" data-act="log" type="button">سوابق تغییرات</button><button class="btn sm" data-act="backup" type="button">پشتیبان کامل</button><button class="btn sm" data-act="csvinv" type="button">اکسل اقلام فاکتورها</button><button class="btn sm" data-act="csvbal" type="button">اکسل مانده‌ها</button><button class="btn sm" data-act="csvstock" type="button">اکسل موجودی کالا</button></div></section>'}
+function vBackup(){setTop('پشتیبان و خروجی‌ها','',true);
+  var lb=lsGet('leon_lastbk')||'',info={};try{info=JSON.parse(lsGet('leon_lastbk_info')||'{}')}catch(e){}
+  var last=lb.length>10?'آخرین پشتیبان روی این دستگاه: '+jdate(lb)+' ساعت '+jtime(lb)+(info.parties!=null?'؛ شامل '+bkSummary(info)+(info.photos?'، '+fmt(info.photos)+' عکس':''):''):'روی این دستگاه هنوز پشتیبان کامل گرفته نشده.';
+  var changed=lastChange()&&(lb.length<=10||lastChange()>lb);
+  main.innerHTML='<section class="sec"><h2>پشتیبان کامل</h2>'
+   +'<p class="note">همه‌ی اطلاعات دفتر در یک فایل: طرف‌حساب‌ها، فاکتورها، سندهای تسویه، کالاها با عکس، سفارش‌ها، تارگت‌ها، قیمت‌ها، کاربران و رمزها، و سوابق تغییرات. فایل را جای امنی نگه دار؛ رمزها و همه‌ی حساب‌ها داخلش است.</p>'
+   +'<div class="'+(changed?'warn':'lockbar')+'">'+esc(last)+(changed?'<br>از آن موقع اطلاعات تغییر کرده؛ پشتیبان تازه بگیر.':'')+'</div>'
+   +'<div class="btns"><button class="btn pri" data-act="backup" type="button">گرفتن پشتیبان کامل</button>'+(window.__leonImportPick?'<button class="btn" data-act="restorebk" type="button">بازگردانی از فایل</button>':'')+'</div>'
+   +(window.__leonImportPick?'<p class="note">بازگردانی، اطلاعات این دستگاه را با محتوای فایل جایگزین می‌کند و قبلش تعداد هر بخش را نشان می‌دهد تا تأیید کنی. فایل‌های پشتیبان قدیمی هم قابل بازگردانی‌اند.</p>':'')+'</section>'
+   +'<section class="sec"><h2>سوابق و خروجی اکسل</h2><p class="note">هر ثبت و حذف در سوابق می‌ماند و چیزی که حذف شده، از همان‌جا برمی‌گردد.</p><div class="btns"><button class="btn sm" data-act="log" type="button">سوابق تغییرات</button><button class="btn sm" data-act="csvinv" type="button">اکسل اقلام فاکتورها</button><button class="btn sm" data-act="csvbal" type="button">اکسل مانده‌ها</button><button class="btn sm" data-act="csvstock" type="button">اکسل موجودی کالا</button></div></section>'}
 function vUsers(){setTop('ورود و کاربران','',true);main.innerHTML=secHTML()}
 /* ---------- profile: the signed-in ledger user edits own photo, username and password ---------- */
 function userRec(u){return lockUsers().filter(function(x){return x.u===u})[0]||null}
@@ -2188,12 +2206,23 @@ async function saveFile(name,text,type){var d=null;try{d=await window.claude.use
 function day(){return new Date().toISOString().slice(0,10)}
 function strip(o){var c=Object.assign({},o);return c}
 /* the lock button asks for a backup when the backed-up collections changed (per the audit log) after this device's last backup */
-var BK_COLS=['parties','invoices','settlements'];
+var BK_COLS=['parties','invoices','settlements','products','orders','targets'];
 function lastChange(){var t='';S.log.forEach(function(e){if(BK_COLS.indexOf(e.col)>=0&&e.ts>t)t=e.ts});return t}
 function lockAsk(){var lc=lastChange(),lb=lsGet('leon_lastbk')||'';if(!lc||(lb.length>10&&lc<=lb))return lockNow();
   var m=document.createElement('div');m.className='modal';m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>از آخرین پشتیبان، اطلاعات دفتر تغییر کرده. قبل از قفل، پشتیبان کامل بگیرم؟</p><div class="btns"><button class="btn pri" data-y>پشتیبان و قفل</button><button class="btn" data-l>فقط قفل</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){m.remove();await backupJson();lockNow()}else if(e.target.closest('[data-l]')){m.remove();lockNow()}else if(e.target===m)m.remove()})}
-async function backupJson(){if(await saveFile('leon-gold-backup-'+day()+'.json',JSON.stringify({app:'leon-gold',format:2,at:new Date().toISOString(),parties:S.parties.map(strip),invoices:S.invoices.map(strip),settlements:S.settlements.map(strip)},null,1),'application/json'))lsSet('leon_lastbk',new Date().toISOString())}
+/* a full backup carries every collection (logins and price included) plus product photos when the runtime can read them;
+   format 2 files held only parties, invoices and settlements */
+var BK_ALL=['parties','invoices','settlements','products','orders','targets','prices','settings','log'];
+var BK_NAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
+function bkSummary(c){return BK_ALL.filter(function(k){return c[k]}).map(function(k){return fmt(c[k])+' '+BK_NAME[k]}).join('، ')}
+async function backupJson(){var d={app:'leon-gold',format:3,at:new Date().toISOString()},cnt={};
+  BK_ALL.forEach(function(k){d[k]=(S[k]||[]).map(strip);cnt[k]=d[k].length});
+  if(window.__leonPhotos){try{d.photos=await window.__leonPhotos();cnt.photos=Object.keys(d.photos).length}catch(e){}}
+  var t=new Date(),hm=('0'+t.getHours()).slice(-2)+('0'+t.getMinutes()).slice(-2);
+  if(await saveFile('leon-gold-backup-'+localDay()+'-'+hm+'.json',JSON.stringify(d),'application/json')){
+    lsSet('leon_lastbk',d.at);lsSet('leon_lastbk_info',JSON.stringify(cnt));
+    toast('پشتیبان کامل ذخیره شد: '+bkSummary(cnt)+(cnt.photos?'، '+fmt(cnt.photos)+' عکس':''));if(S.view==='backup')render()}}
 function csv(rows){var q=function(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};return '\ufeff'+rows.map(function(r){return r.map(q).join(',')}).join('\r\n')}
 function csvInvoices(){var rows=[['تاریخ','شماره','نوع','طرف‌حساب','شرح کالا','تعداد','وزن (گرم)','عیار','اجرت ٪','سود ٪','مبلغ ردیف (ریال)','وزن ۷۵۰ (گرم)','جمع ردیف (گرم)','مبلغ کل سند']];
   S.invoices.slice().sort(function(a,b){return a.ts<b.ts?-1:1}).forEach(function(i){var base=[i.date||'',num(i.no),invLabel(i),i.partyName||''],u=unitOf(i),tot=u==='g'?(+(i.amount||0).toFixed(3))+' گرم':Math.round(i.amount||0)+' ریال';
@@ -2725,6 +2754,7 @@ document.addEventListener('click',function(e){
     case 'csvstock':csvStock();break;
     case 'setprice':priceDialog();break;
     case 'uselive':priceDialog(LIVE.p);break;
+    case 'restorebk':if(window.__leonImportPick)window.__leonImportPick();break;
     case 'pickphoto':{var fi=$('#pr_photo');if(fi){fi.value='';fi.click()}break}
     case 'rmphoto':S.prPhoto='';photoBox('');$('#phmsg').textContent='عکس برداشته شد؛ «ذخیره» را بزن.';break;
     case 'stmt':case 'summ':{var pp=partyById(id),ty=a==='stmt'?'detail':'summary';if(pp)choose((ty==='detail'?'ریز حساب ':'کلیات حساب ')+pp.name+' را با چه قالبی می‌خواهی؟',[['اکسل',function(){exportParty(id,ty,'xlsx')}],['PDF',function(){exportParty(id,ty,'pdf')}]]);break}
