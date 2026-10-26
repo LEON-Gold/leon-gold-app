@@ -1,0 +1,24 @@
+# Every few minutes, copy the Tehran gold union 18k price into price.json on the "price" branch.
+# The app reads it from raw.githubusercontent.com (CORS-open) and falls back to tgju if it is missing or stale.
+name: gold price
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: price
+jobs:
+  price:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir out && cd out
+          python3 ../.github/scripts/price.py
+          git init -q -b price
+          git config user.name "leon-gold price"
+          git config user.email "actions@users.noreply.github.com"
+          git add price.json && git commit -qm "price $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" price
