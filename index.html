@@ -490,7 +490,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 16:43</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 17:18</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1200,8 +1200,19 @@ body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:c
 @media (prefers-reduced-motion:reduce){.livep.flash b{animation:none}}.livep span{display:grid;gap:1px}.livep b{font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}.livep small{font-size:11.5px}
 /* home: today at a glance */
 .sec h2 small{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);margin-inline-start:8px}
-.tday{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.tday div{background:#fff;border:1px solid #ece2c9;border-radius:12px;padding:10px;display:grid;gap:1px;min-width:0}
+.tday{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:#fff;border:1px solid #ece2c9;border-radius:12px;overflow:hidden}
+.tday div{padding:10px 12px;display:grid;gap:1px;min-width:0;align-content:start}.tday div+div{border-inline-start:1px solid #ece2c9}
+/* figures that are not the screen's answer: one light container split by hairlines; the dark guilloché tile is kept
+   for the lead figure only (today's gold price on home, the balance on a party page) */
+.kpis.flat{gap:0;background:#fff;border:1px solid #ece2c9;border-radius:12px;overflow:hidden}
+.kpis.flat .kpi{background:none;border:0;border-radius:0;box-shadow:none;color:var(--ink);padding:10px 12px}
+.kpis.flat .kpi::after{display:none}
+.kpis.flat .kpi:nth-child(odd){border-inline-end:1px solid #ece2c9}.kpis.flat .kpi:nth-child(n+3){border-top:1px solid #ece2c9}
+.kpis.flat .kpi small{color:var(--muted);opacity:1;font-size:12px}.kpis.flat .kpi .sub{color:var(--muted);opacity:1}
+.kpis.flat .kpi b{color:var(--ink);font-size:20px;font-weight:700}
+.kpis.flat .kpi .bal.dr{color:#b3392a}.kpis.flat .kpi .bal.cr{color:#1f7a45}.kpis.flat .kpi .bal.z{color:var(--muted)}
+.badge.g{background:#e8f0ea;color:var(--green);border-color:#cfdfd4}
+.pdocs{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.pdocs .btn{font-size:13px;padding:8px 4px;min-height:44px}
 .tday small{font-size:11.5px;color:var(--muted)}.tday b{font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.tday span{font-size:11.5px;color:var(--muted)}
 .tgmini{display:grid;gap:7px;width:100%;font:inherit;text-align:right;color:inherit;background:#fff;border:1px solid var(--gold);border-radius:12px;padding:10px 12px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out)}
 .tgmini:active{transform:scale(.985)}
@@ -1694,7 +1705,7 @@ function pendRow(r){var d=daysAgo(r.inv.ts);return '<button class="row" data-act
   +'<span class="s">فاکتور '+esc(toFa(r.inv.no||''))+' · '+esc(r.inv.date||'')+(r.g.lab?' · '+esc(r.g.lab):'')+(r.g.ang?' · انگ '+esc(toFa(r.g.ang)):'')+' · '+(r.sg>0?'دریافتی':'پرداختی')+'</span><span class="v">'+fmt(r.w,3)+' گرم<span class="d">تعیین عیار</span></span></button>'}
 function rawSec(){var R=rawGold(),T=R.tot,used=usedSrc(),av=availPieces();if(!R.rows.length)return '';
   var k=function(lbl,x){return '<div class="kpi"><small>'+lbl+'</small><b>'+fmt(x.w,3)+' گرم</b><span class="sub">'+fmt(x.g,3)+' گرم ۷۵۰</span></div>'};
-  return '<section class="sec"><h2>آبشده و متفرقه</h2><div class="kpis">'+k('آبشده',T.ab)+k('متفرقه',T.mt)+k('آبشده شرطی (عیار نشده)',T.sh)+k('جمع (۷۵۰)',{w:T.ab.w+T.mt.w+T.sh.w,g:T.ab.g+T.mt.g+T.sh.g})+'</div>'
+  return '<section class="sec"><h2>آبشده و متفرقه</h2><div class="kpis flat">'+k('آبشده',T.ab)+k('متفرقه',T.mt)+k('آبشده شرطی (عیار نشده)',T.sh)+k('جمع (۷۵۰)',{w:T.ab.w+T.mt.w+T.sh.w,g:T.ab.g+T.mt.g+T.sh.g})+'</div>'
   +(R.pend.length?'<div class="warn">'+fmt(R.pend.length)+' آبشده شرطی هنوز عیار ندارد و فعلاً ۷۵۰ حساب شده است. هرچه زودتر عیارش را تعیین کن تا حساب طرف‌حساب درست شود.</div><div class="list">'+R.pend.map(pendRow).join('')+'</div>':'')
   +(av.length?'<p class="note">'+fmt(av.length)+' تکه در موجودی: '+esc(av.slice(0,6).map(pieceLabel).join('، '))+(av.length>6?' …':'')+'. برای دادن به کسی، در فاکتور عمده بخش «آبشده و متفرقه» آن را از «انتخاب از موجودی» بردار.</p>':'')
   +'<details><summary>ریز ورود و خروج ('+fmt(R.rows.length)+')</summary><div class="list">'+R.rows.slice(0,100).map(function(r){return '<button class="row" data-act="inv" data-id="'+esc(r.inv.id)+'" type="button"><span class="t">'+esc(GXT[r.g.type]||'آبشده')+(r.a?'<span class="badge">عیار شد '+esc(toFa(r.a.purity))+'</span>':'')+(r.sg>0&&used[r.inv.id+':'+r.idx]?'<span class="badge">داده شد به '+esc(used[r.inv.id+':'+r.idx].partyName||'')+'</span>':'')+'</span>'
@@ -1718,7 +1729,7 @@ function vProducts(){
   var tq=0,tg=0,lo=0;S.products.forEach(function(p){var s=S.stock[p.id]||{q:0,g:0};tq+=s.q;tg+=s.g;if(isLow(p))lo++});
   setTop('کالاها',fmt(S.products.length)+' کالا',false);
   main.innerHTML='<button class="btn pri" data-act="newprod" type="button">+ کالای جدید</button>'
-  +'<div class="kpis"><div class="kpi"><small>موجودی کل</small><b>'+fmt(tg,3)+' گرم</b><span class="sub">'+fmt(tq)+' عدد</span></div><div class="kpi"><small>کم‌موجودی</small><b>'+fmt(lo)+'</b><span class="sub">کالا زیر حداقل</span></div></div>'
+  +'<div class="kpis flat"><div class="kpi"><small>موجودی کل</small><b>'+fmt(tg,3)+' گرم</b><span class="sub">'+fmt(tq)+' عدد</span></div><div class="kpi"><small>کم‌موجودی</small><b>'+fmt(lo)+'</b><span class="sub">کالا زیر حداقل</span></div></div>'
   +negSec()+rawSec()
   +'<input id="q" class="srch" type="search" placeholder="جستجو: کد، نام یا دسته" value="'+esc(S.q)+'" aria-label="جستجو در کالاها">'
   +'<div class="chips" id="chips">'+[['all','همه'],['in','موجود'],['out','ناموجود'],['low','کم‌موجودی']].map(function(c){return '<button class="chip" data-act="filter" data-f="'+c[0]+'" aria-pressed="'+((S.filter||'all')===c[0]||(c[0]==='all'&&['in','out','low'].indexOf(S.filter)<0))+'">'+c[1]+'</button>'}).join('')+'</div>'
@@ -1729,7 +1740,7 @@ function vProducts(){
 function vProduct(){
   var p=prodById(S.param);if(!p){back();return}var s=S.stock[p.id]||{q:0,g:0},m=S.mv[p.id]||[];
   setTop(p.name,[p.code?'کد '+toFa(fanum(p.code)):'',p.cat].filter(Boolean).join(' · '),true);
-  main.innerHTML='<div class="kpis"><div class="kpi"><small>موجودی (عدد)</small><b>'+fmt(s.q)+'</b>'+(p.minQ?'<span class="sub">حداقل '+fmt(p.minQ)+'</span>':'')+'</div><div class="kpi"><small>موجودی (گرم)</small><b>'+fmt(s.g,3)+'</b>'+((p.carat||p.ajrat)?'<span class="sub">'+[p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')+'</span>':'')+'</div></div>'
+  main.innerHTML='<div class="kpis flat"><div class="kpi"><small>موجودی (عدد)</small><b>'+fmt(s.q)+'</b>'+(p.minQ?'<span class="sub">حداقل '+fmt(p.minQ)+'</span>':'')+'</div><div class="kpi"><small>موجودی (گرم)</small><b>'+fmt(s.g,3)+'</b>'+((p.carat||p.ajrat)?'<span class="sub">'+[p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')+'</span>':'')+'</div></div>'
   +(p.photo?'<img class="pimg" src="'+esc(photoURL(p.photo))+'" alt="'+esc(p.name)+'">':'')
   +(isLow(p)?'<div class="warn">موجودی این کالا به حداقل رسیده است.</div>':'')
   +'<div class="btns"><button class="btn" data-act="editprod" data-id="'+esc(p.id)+'" type="button">ویرایش کالا</button></div>'
@@ -1753,7 +1764,7 @@ function vOrders(){var f=S.ofilter||'open',all=S.orders.slice().sort(function(a,
   var open=all.filter(isOpenOrder),late=open.filter(isLate),list=f==='open'?open:f==='done'?all.filter(function(o){return !isOpenOrder(o)}):all,sl=shopList();
   setTop('سفارشات',fmt(open.length)+' سفارش باز',false);
   main.innerHTML='<button class="btn pri" data-act="neworder" type="button">+ سفارش جدید</button>'
-  +'<div class="kpis"><div class="kpi"><small>سفارش باز</small><b>'+fmt(open.length)+'</b><span class="sub">'+fmt(open.filter(function(o){return o.status==='ready'}).length)+' آماده تحویل</span></div><div class="kpi"><small>دیر شده</small><b>'+fmt(late.length)+'</b><span class="sub">موعد گذشته</span></div></div>'
+  +'<div class="kpis flat"><div class="kpi"><small>سفارش باز</small><b>'+fmt(open.length)+'</b><span class="sub">'+fmt(open.filter(function(o){return o.status==='ready'}).length)+' آماده تحویل</span></div><div class="kpi"><small>دیر شده</small><b>'+fmt(late.length)+'</b><span class="sub">موعد گذشته</span></div></div>'
   +(sl.length?'<section class="sec"><h2>لیست خرید (سفارش‌های ثبت‌شده و در حال تهیه)</h2><div class="list">'+sl.map(function(x,i){var st=x.p?S.stock[x.p.id]:null,hd=i===0||sl[i-1].sup!==x.sup;
     return (hd?'<p class="note" style="margin:6px 0 0;font-weight:800;color:var(--green)">'+(x.sup?'از '+esc(x.sup):'تأمین‌کننده مشخص نشده')+'</p>':'')+'<div class="row"><span class="t">'+esc(toFa(x.desc))+(st&&st.q>0?'<span class="badge">'+fmt(st.q)+' عدد در موجودی</span>':'')+'</span><span class="s">برای '+esc(x.who.join('، '))+'</span><span class="v"><span class="qty">'+fmt(x.q)+' عدد</span>'+(x.w?'<span class="d">حدود '+fmt(x.w,3)+' گرم</span>':'')+'</span></div>'}).join('')+'</div></section>':'')
   +'<div class="chips" id="ochips">'+[['open','باز'],['done','تحویل‌شده و لغو'],['all','همه']].map(function(c){return '<button class="chip" data-act="ofilter" data-f="'+c[0]+'" aria-pressed="'+(f===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'
@@ -1912,7 +1923,7 @@ function vHome(){
   var rec=S.invoices.slice().sort(function(a,b){return a.ts<b.ts?1:-1}).slice(0,5);
   var oo=S.orders.filter(isOpenOrder),ol=oo.filter(isLate),low=S.products.filter(isLow),pend=rawGold().pend,nsrc=S.products.filter(isNeg).length+orphans().length;
   main.innerHTML=priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
-  +'<div class="kpis"><div class="kpi"><small>طلب گرمی از طرف‌حساب‌ها</small><b>'+fmt(gp,3)+' گرم</b><span class="sub">جمع بدهکارها</span></div>'
+  +'<div class="kpis flat"><div class="kpi"><small>طلب گرمی از طرف‌حساب‌ها</small><b>'+fmt(gp,3)+' گرم</b><span class="sub">جمع بدهکارها</span></div>'
   +'<div class="kpi"><small>بدهی گرمی من</small><b>'+fmt(gn,3)+' گرم</b><span class="sub">جمع بستانکارها</span></div>'
   +'<div class="kpi"><small>طلب ریالی</small><b>'+fmt(rp,0)+'</b><span class="sub">ریال</span></div>'
   +'<div class="kpi"><small>بدهی ریالی من</small><b>'+fmt(rn,0)+'</b><span class="sub">ریال</span></div></div>'
@@ -2254,8 +2265,8 @@ function listInvoices(){
 function vInvoices(){
   setTop('فاکتورها',fmt(S.invoices.length)+' فاکتور',false);
   var fl=[['all','همه'],['retail','خرده'],['whole','عمده پرداختی'],['rc','عمده دریافتی']];
-  main.innerHTML='<div class="qa" style="grid-template-columns:1fr 1fr"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button></div>'
-  +'<input id="q" class="srch" type="search" placeholder="جستجو: نام، شماره یا تاریخ" value="'+esc(S.q)+'" aria-label="جستجو در فاکتورها">'
+  // new invoices come from the gold «+» on this page; no second pair of buttons above the list
+  main.innerHTML='<input id="q" class="srch" type="search" placeholder="جستجو: نام، شماره یا تاریخ" value="'+esc(S.q)+'" aria-label="جستجو در فاکتورها">'
   +'<div class="chips" id="chips">'+fl.map(function(c){return '<button class="chip" data-act="filter" data-f="'+c[0]+'" aria-pressed="'+(S.filter===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'
   +'<div class="list" id="lst">'+listInvoices()+'</div>';
 }
@@ -2272,7 +2283,7 @@ function vParty(){
   setTop(p.name,[p.shop,phoneTxt(p.phone)].filter(Boolean).join(' · '),true);
   var b=S.bal[p.id]||{g:0,r:0},es=(S.ent[p.id]||[]).slice().reverse();
   main.innerHTML='<div class="kpis"><div class="kpi"><small>مانده گرمی</small><b>'+balHTML(b.g,'g')+'</b></div><div class="kpi"><small>مانده ریالی</small><b>'+balHTML(b.r,'r')+'</b></div>'+'</div>'
-  +'<div class="btns"><button class="btn pri" data-act="new" data-k="retail" data-p="'+esc(p.id)+'">فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole" data-p="'+esc(p.id)+'">فاکتور عمده</button><button class="btn" data-act="newset" data-p="'+esc(p.id)+'">سند تسویه</button><button class="btn" data-act="neworder" data-pid="'+esc(p.id)+'">سفارش</button></div><div class="chips pacts"><button class="chip" data-act="editparty" data-id="'+esc(p.id)+'">ویرایش مشخصات</button><button class="chip" data-act="stmt" data-id="'+esc(p.id)+'">ریز حساب</button><button class="chip" data-act="summ" data-id="'+esc(p.id)+'">کلیات حساب</button></div>'
+  +'<div class="btns pdocs"><button class="btn" data-act="new" data-k="retail" data-p="'+esc(p.id)+'">فاکتور خرده</button><button class="btn" data-act="new" data-k="whole" data-p="'+esc(p.id)+'">فاکتور عمده</button><button class="btn" data-act="newset" data-p="'+esc(p.id)+'">سند تسویه</button><button class="btn" data-act="neworder" data-pid="'+esc(p.id)+'">سفارش</button></div><div class="chips pacts"><button class="chip" data-act="editparty" data-id="'+esc(p.id)+'">ویرایش مشخصات</button><button class="chip" data-act="stmt" data-id="'+esc(p.id)+'">ریز حساب</button><button class="chip" data-act="summ" data-id="'+esc(p.id)+'">کلیات حساب</button></div>'
   +'<section class="sec"><h2>صورت‌حساب</h2>'+(es.length?'<div class="stm">'+es.map(function(e){
     var lk=e.kind==='inv'?'<button class="lk" data-act="inv" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':e.kind==='set'?'<button class="lk" data-act="set" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':'<span>'+esc(e.label)+'</span>';
     return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div></div><div class="a">'+balHTML(e.d,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
@@ -2335,7 +2346,7 @@ function vReport(){var R=S.rp||(S.rp={k:'w',off:0}),P=period(R.k,R.off),M=metric
   var pl=M.profit>=0?'سود خالص':'ضرر خالص';
   main.innerHTML='<div class="chips" role="group" aria-label="بازه"><button class="chip" data-act="rpk" data-k="w" aria-pressed="'+(R.k==='w')+'">هفتگی</button><button class="chip" data-act="rpk" data-k="m" aria-pressed="'+(R.k==='m')+'">ماهانه</button></div>'
    +'<div class="pnav"><button class="btn sm" data-act="rpoff" data-n="-1" type="button">قبلی</button><b>'+esc(P.label)+'</b><button class="btn sm" data-act="rpoff" data-n="1" type="button"'+(R.off>=0?' disabled':'')+'>بعدی</button></div>'
-   +'<section class="sec"><h2>فروش عمده</h2><div class="kpis">'
+   +'<section class="sec"><h2>فروش عمده</h2><div class="kpis flat">'
    +kpiT('فروش',gr(M.sale)+' گرم','عیار ۷۵۰، از '+fmt(M.inv)+' سند')+kpiT('مرجوعی مشتری',gr(M.ret)+' گرم',M.sale>0.0005?fmt(M.ret/M.sale*100,1)+'٪ از فروش':'—')
    +kpiT('فروش خالص',gr(M.net)+' گرم',chg(M.net,N.net,pw)||'فروش منهای مرجوعی')+kpiT(pl,gr(Math.abs(M.profit))+' گرم','اختلاف اجرت فروش و خرید')+'</div></section>'
    +'<section class="sec"><h2>سود و ضرر (گرم ۷۵۰)</h2><div class="stm">'+stRow('سود فروش‌ها',gr(M.gain),'گرم')+stRow('ضرر (فروش زیر اجرت خرید)',gr(M.loss),'گرم')+stRow('سود برگشتی مرجوعی‌ها',gr(M.retM),'گرم')
@@ -2372,7 +2383,7 @@ function vEval(){var E=S.ev||(S.ev={k:'w'}),n=E.k==='w'?8:6,rows=[],T={sale:0,re
   var pf=function(v){return v>=0?'#2b7a4b':'#d98a2b'};
   main.innerHTML='<div class="chips" role="group" aria-label="بازه"><button class="chip" data-act="evk" data-k="w" aria-pressed="'+(E.k==='w')+'">هفتگی</button><button class="chip" data-act="evk" data-k="m" aria-pressed="'+(E.k==='m')+'">ماهانه</button></div>'
    +'<div class="status '+st+'" role="status"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic+'</svg><div>'+esc(msg)+(tr?'<br>'+esc(tr):'')+'</div></div>'
-   +'<section class="sec"><h2>جمع بازه (گرم ۷۵۰)</h2><div class="kpis">'+kpiT('سود',gr(T.gain)+' گرم','از فروش‌ها')+kpiT('ضرر و برگشتی',gr(T.loss+T.retM)+' گرم','فروش زیر اجرت خرید و مرجوعی')
+   +'<section class="sec"><h2>جمع بازه (گرم ۷۵۰)</h2><div class="kpis flat">'+kpiT('سود',gr(T.gain)+' گرم','از فروش‌ها')+kpiT('ضرر و برگشتی',gr(T.loss+T.retM)+' گرم','فروش زیر اجرت خرید و مرجوعی')
    +kpiT(T.profit>=0?'سود خالص':'ضرر خالص',gr(Math.abs(T.profit))+' گرم','سود منهای ضرر')+kpiT('نرخ مرجوعی',fmt(rate*100,1)+'٪',gr(T.ret)+' از '+gr(T.sale)+' گرم')+'</div>'
    +(T.noCost?'<p class="note">'+fmt(T.noCost)+' قلم فروش اجرت خرید ندارد و در سود و ضرر حساب نشده.</p>':'')+'</section>'
    +'<section class="sec"><h2>سود خالص هر '+(E.k==='w'?'هفته':'ماه')+'</h2><div class="lgd"><span><i style="background:#2b7a4b"></i>سود</span><span><i style="background:#d98a2b"></i>ضرر</span></div>'+barSvg(rows,['profit'],[pf],['سود خالص'])+'</section>'
