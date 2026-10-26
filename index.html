@@ -490,7 +490,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 14:57</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 16:43</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2153,8 +2153,11 @@ function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<55000)return Pro
   var get=function(kind){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
     return fetch('https://api.tgju.org/v1/market/indicator/'+kind+'/geram18?length=1&start=0',{cache:'no-store',signal:c.signal})
       .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).then(function(j){return j&&j.data&&j.data[0]||null})};
-  var union=function(){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
-    return fetch('https://raw.githubusercontent.com/LEON-Gold/leon-gold-app/price/price.json?t='+Math.floor(Date.now()/60000),{cache:'no-store',signal:c.signal})
+  // two mirrors of the same file, in case one is filtered on the phone's network
+  var union=function(){return feed('https://raw.githubusercontent.com/LEON-Gold/leon-gold-app/price/price.json?t=')
+    .then(function(p){return p||feed('https://cdn.jsdelivr.net/gh/LEON-Gold/leon-gold-app@price/price.json?t=')})};
+  var feed=function(u){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+    return fetch(u+Math.floor(Date.now()/60000),{cache:'no-store',signal:c.signal})
       .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()})
       .then(function(j){return j&&j.gp&&Date.now()-Date.parse(j.fetched)<2400000?{gp:+j.gp,day:String(j.day||''),at:String(j.time||''),src:'union'}:null})
       .catch(function(){return null})};
