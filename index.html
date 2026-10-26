@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 11:55</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 12:42</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -994,7 +994,7 @@ body.noact{padding-bottom:24px}
 .kpi b{font-size:17px;font-weight:800;color:#fff6dd;font-variant-numeric:tabular-nums}
 .kpi .sub{font-size:11px;opacity:.8}
 .bal{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
-.bal .n{direction:ltr;display:inline-block}
+.bal .n{direction:rtl;unicode-bidi:isolate;display:inline-block}
 .bal em{font-style:normal;font-size:11px;margin-inline-start:4px;font-weight:700}
 .bal.dr{color:#b3392a}.bal.cr{color:#1f7a45}.bal.z{color:var(--muted)}
 .kpi .bal.dr{color:#ffb4a6}.kpi .bal.cr{color:#a8e6bd}.kpi .bal.z{color:#e0b862}
@@ -1175,6 +1175,11 @@ body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:c
 @keyframes glTurn{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @keyframes glLeaf{from{background-position:100% 0}to{background-position:0 0}}
 @media (prefers-reduced-motion:reduce){.gate::before,.gate .wm{animation:none}}
+/* long balances (e.g. ۸۰۹٬۶۱۴٬۰۵۰ ریال بستانکار) must never widen the page: columns may shrink, and inside a tile the
+   balance word can drop under the number, which itself stays whole */
+#main{grid-template-columns:minmax(0,1fr)}
+.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.kpi{min-width:0}.kpi .bal{white-space:normal}.kpi .bal .n{white-space:nowrap}
 /* only real buttons look pressable; plain rows are information */
 div.row{cursor:default}div.row:active{transform:none;background:#fff}
 /* reduced motion: fewer and gentler, not zero — fades stay, movement goes */
@@ -1189,7 +1194,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
 .sheet[hidden]{display:none!important}
 </style>
 
-<header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot"></span></div></header>
+<header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
 <main id="main"></main>
 <div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
@@ -1570,6 +1575,8 @@ function prodMatch(desc){var d=fanum(desc);if(!d)return null;var hit=null;
   S.products.forEach(function(p){var c=fanum(p.code);if(!hit&&c&&(d===c||d.indexOf(c+' ')===0))hit=p});
   if(!hit)S.products.forEach(function(p){if(!hit&&p.name&&d===fanum(p.name))hit=p});return hit}
 function toFa(s){return String(s==null?'':s).replace(/[0-9]/g,function(d){return FA[d]})}
+// phone numbers read left to right inside Persian lines: an LTR isolate stops «+98 912 421 0712» from showing as «0712 421 912 98+»
+function phoneTxt(s){return s?'⁦'+toFa(s)+'⁩':''}
 function prodLabel(p){return (p.code?toFa(fanum(p.code))+' ':'')+p.name}
 // retail sales and wholesale "paid" docs take goods out; wholesale "received" docs bring goods in
 function computeStock(){var st={},mv={};
@@ -1813,7 +1820,7 @@ async function initDb(){
 function setTop(title,sub,backBtn){
   $('#topTitle').innerHTML=esc(title)+(sub?'<small>'+esc(sub)+'</small>':'');
   $('#topBack').hidden=!backBtn;
-  $('#dot').className='dot'+(S.db?'':' off');$('#dot').title=S.db?'متصل':'ذخیره‌سازی غیرفعال';
+  $('#dot').className='dot'+(S.db?'':' off');$('#dot').title=S.db?'متصل':'ذخیره‌سازی غیرفعال';$('#dot').setAttribute('aria-label',S.db?'ذخیره‌سازی فعال است':'ذخیره‌سازی غیرفعال است');
 }
 var lastVK='',vinT=0;
 function render(){
@@ -1833,10 +1840,12 @@ function render(){
 function totalR(b){return null}   // gram balances are never converted to rial at today's price
 function partyRow(p,sub){var b=S.bal[p.id]||{g:0,r:0};
   return '<button class="row" data-act="party" data-id="'+esc(p.id)+'"><span class="t">'+esc(p.name)+(p.kind==='supplier'?'<span class="badge g">تأمین‌کننده</span>':p.kind==='both'?'<span class="badge">مشتری و تأمین‌کننده</span>':'')+'</span>'
-  +'<span class="s">'+esc(sub||[p.shop,p.phone].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+balHTML(b.g,'g')+balHTML(b.r,'r')+(Math.abs(b.g)>=0.0005&&totalR(b)!==null?'<span class="d">کل ریالی: '+balHTML(totalR(b),'r')+'</span>':'')+'</span></button>'}
-function invRow(i){var u=unitOf(i),amt=i.amount||0;
+  +'<span class="s">'+esc(sub||[p.shop,phoneTxt(p.phone)].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+balHTML(b.g,'g')+balHTML(b.r,'r')+(Math.abs(b.g)>=0.0005&&totalR(b)!==null?'<span class="d">کل ریالی: '+balHTML(totalR(b),'r')+'</span>':'')+'</span></button>'}
+// a wholesale doc with no goods total (a gold-for-rial trade) shows what it moved, not a misleading «۰ گرم تسویه»
+function invRow(i){var u=unitOf(i),amt=i.amount||0,v=balHTML(amt,u);
+  if(i.kind==='whole'&&Math.abs(amt)<0.0005&&(Math.abs(i.deltaG||0)>=0.0005||Math.abs(i.deltaR||0)>=0.5))v=(Math.abs(i.deltaG||0)>=0.0005?balHTML(i.deltaG,'g'):'')+(Math.abs(i.deltaR||0)>=0.5?balHTML(i.deltaR,'r'):'');
   return '<button class="row" data-act="inv" data-id="'+esc(i.id)+'"><span class="t">'+esc(i.partyName||'—')+'<span class="badge'+(i.kind==='whole'?' g':'')+'">'+esc(invLabel(i))+'</span></span>'
-  +'<span class="s">شماره '+esc(i.no||'')+' · '+esc(i.date||'')+'</span><span class="v">'+balHTML(amt,u)+'</span></button>'}
+  +'<span class="s">شماره '+esc(i.no||'')+' · '+esc(i.date||'')+'</span><span class="v">'+v+'</span></button>'}
 function vHome(){
   setTop('دفتر لئون گلد','خلاصه حساب‌ها',false);
   var gp=0,gn=0,rp=0,rn=0;S.parties.forEach(function(p){var b=S.bal[p.id];if(!b)return;if(b.g>0)gp+=b.g;else gn+=-b.g;if(b.r>0)rp+=b.r;else rn+=-b.r});
@@ -2141,10 +2150,10 @@ function vParties(){
 }
 function vParty(){
   var p=partyById(S.param);if(!p){back();return}
-  setTop(p.name,[p.shop,p.phone].filter(Boolean).join(' · '),true);
+  setTop(p.name,[p.shop,phoneTxt(p.phone)].filter(Boolean).join(' · '),true);
   var b=S.bal[p.id]||{g:0,r:0},es=(S.ent[p.id]||[]).slice().reverse();
   main.innerHTML='<div class="kpis"><div class="kpi"><small>مانده گرمی</small><b>'+balHTML(b.g,'g')+'</b></div><div class="kpi"><small>مانده ریالی</small><b>'+balHTML(b.r,'r')+'</b></div>'+'</div>'
-  +'<div class="btns"><button class="btn pri" data-act="new" data-k="retail" data-p="'+esc(p.id)+'">فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole" data-p="'+esc(p.id)+'">فاکتور عمده</button><button class="btn" data-act="newset" data-p="'+esc(p.id)+'">سند تسویه</button><button class="btn" data-act="neworder" data-pid="'+esc(p.id)+'">سفارش</button><button class="btn" data-act="editparty" data-id="'+esc(p.id)+'">ویرایش مشخصات</button><button class="btn" data-act="stmt" data-id="'+esc(p.id)+'">ریز حساب</button><button class="btn" data-act="summ" data-id="'+esc(p.id)+'">کلیات حساب</button></div>'
+  +'<div class="btns"><button class="btn pri" data-act="new" data-k="retail" data-p="'+esc(p.id)+'">فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole" data-p="'+esc(p.id)+'">فاکتور عمده</button><button class="btn" data-act="newset" data-p="'+esc(p.id)+'">سند تسویه</button><button class="btn" data-act="neworder" data-pid="'+esc(p.id)+'">سفارش</button></div><div class="chips pacts"><button class="chip" data-act="editparty" data-id="'+esc(p.id)+'">ویرایش مشخصات</button><button class="chip" data-act="stmt" data-id="'+esc(p.id)+'">ریز حساب</button><button class="chip" data-act="summ" data-id="'+esc(p.id)+'">کلیات حساب</button></div>'
   +'<section class="sec"><h2>صورت‌حساب</h2>'+(es.length?'<div class="stm">'+es.map(function(e){
     var lk=e.kind==='inv'?'<button class="lk" data-act="inv" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':e.kind==='set'?'<button class="lk" data-act="set" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':'<span>'+esc(e.label)+'</span>';
     return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div></div><div class="a">'+balHTML(e.d,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
