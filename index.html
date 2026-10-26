@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0a1f15"></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"></head><body>
 <title>دفتر لئون گلد</title>
 <script>
 /** @license
@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 01:18</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 11:55</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -972,7 +972,7 @@ body.menu .nav{transform:none}
 .nav .grp{font-size:11px;color:var(--gold);opacity:.8;margin:14px 6px 4px;letter-spacing:.02em}
 .nav button.it{font:inherit;font-size:14.5px;font-weight:700;border:0;background:transparent;color:#f3ead0;padding:11px 12px;border-radius:12px;cursor:pointer;min-height:46px;display:flex;align-items:center;gap:12px;text-align:right;width:100%}
 .nav button.it svg{width:20px;height:20px;flex:none;stroke:var(--gold-lt);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.nav button.it:hover{background:rgba(232,207,142,.08)}
+@media (hover:hover) and (pointer:fine){.nav button.it:hover{background:rgba(232,207,142,.08)}}
 .nav button[aria-current="page"]{background:var(--gold-lt);color:#0a1f15}.nav button[aria-current="page"] svg{stroke:#0a1f15}
 .scrim{position:fixed;inset:0;z-index:59;background:rgba(3,15,10,.55);opacity:0;pointer-events:none;transition:opacity .25s}
 body.menu .scrim{opacity:1;pointer-events:auto}
@@ -1091,20 +1091,22 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webki
 .row:active{transform:scale(.985);background:#faf5e6}
 .nav button.it:active,.nav .pf:active{transform:scale(.98);background:rgba(232,207,142,.14)}
 /* drawer: decelerating slide, items arrive in order */
-.nav{transition:transform var(--t-slow) var(--ease-out)}
-.scrim{transition:opacity var(--t-slow) ease}
-body.menu .nav .in>*{animation:navIn .42s var(--ease-out) both;animation-delay:calc(var(--i,0) * 24ms + 70ms)}
-@keyframes navIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+/* drawer and page change are frequent: iOS drawer curve, short budgets, a capped stagger */
+.nav{transition:transform .32s cubic-bezier(.32,.72,0,1);overscroll-behavior:contain}
+.scrim{transition:opacity .28s ease}
+body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:calc(min(var(--i,0),8) * 16ms + 40ms)}
+@keyframes navIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 /* a new page settles in; data refreshes on the same page stay still */
-#main.vin>*{animation:viewIn .34s var(--ease-out) both}
-#main.vin>*:nth-child(2){animation-delay:35ms}#main.vin>*:nth-child(3){animation-delay:70ms}#main.vin>*:nth-child(n+4){animation-delay:100ms}
-@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.modal{animation:fadeIn var(--t-med) ease-out}
+#main.vin>*{animation:viewIn .2s var(--ease-out) both}
+#main.vin>*:nth-child(2){animation-delay:30ms}#main.vin>*:nth-child(n+3){animation-delay:50ms}
+@keyframes viewIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.modal{animation:fadeIn var(--t-med) ease-out;overscroll-behavior:contain}
 .modal .box{animation:popIn .3s var(--ease-out);box-shadow:0 24px 60px -20px rgba(0,0,0,.55),0 0 0 4px rgba(197,154,80,.12)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
-.toast{animation:toastIn .32s var(--ease-out);box-shadow:0 12px 30px -12px rgba(0,0,0,.55)}
-@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translateX(-50%)}}
+/* toasts reappear often: a transition from @starting-style retargets instead of restarting like keyframes */
+.toast{transition:opacity .2s ease-out,transform .24s var(--ease-out);box-shadow:0 12px 30px -12px rgba(0,0,0,.55)}
+@starting-style{.toast{opacity:0;transform:translate(-50%,12px)}}
 /* wholesale returns: the form toggle, and a stamp on the printed row (Persian in sheets keeps letter-spacing 0) */
 .retck{display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px dashed rgba(197,154,80,.6);border-radius:12px;cursor:pointer;margin-top:4px}
 .retck input{width:20px;height:20px;margin:2px 0 0;accent-color:#b3392a;flex:none;color-scheme:light}
@@ -1132,11 +1134,11 @@ body.menu .nav .in>*{animation:navIn .42s var(--ease-out) both;animation-delay:c
 .tg.done{border-color:#9cc2a5}.tg.missed{opacity:.8}
 .tgh{display:flex;align-items:center;justify-content:space-between;gap:8px}.tgh b{font-size:15px;color:var(--green)}
 .tgbar{height:10px;border-radius:99px;background:#efe7d3;overflow:hidden}
-.tgbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(270deg,#b88a3e,#e8cf8e);transition:width .7s var(--ease-out)}
+.tgbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(270deg,#b88a3e,#e8cf8e)}
 .tg.done .tgbar i{background:#2b7a4b}
 .tgn{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}.tgn b{color:var(--ink);font-variant-numeric:tabular-nums}
 .tgb{display:flex;gap:8px;flex-wrap:wrap}.tgb .btn{flex:1;min-width:96px}
-@media (prefers-reduced-motion:reduce){.tgbar i{transition:none}}
+
 
 /* ===== Assay Ledger: guilloché engraving (patterns drawn by script into --gl-*), Naskh display titles, emerald vault =====
    LG Naskh is Amiri limited to Arabic letters: digits fall through to Vazirmatn, so numbers always keep Persian forms */
@@ -1173,8 +1175,14 @@ body.menu .nav .in>*{animation:navIn .42s var(--ease-out) both;animation-delay:c
 @keyframes glTurn{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @keyframes glLeaf{from{background-position:100% 0}to{background-position:0 0}}
 @media (prefers-reduced-motion:reduce){.gate::before,.gate .wm{animation:none}}
+/* only real buttons look pressable; plain rows are information */
+div.row{cursor:default}div.row:active{transform:none;background:#fff}
+/* reduced motion: fewer and gentler, not zero — fades stay, movement goes */
 @media (prefers-reduced-motion:reduce){
-  body.menu .nav .in>*,#main.vin>*,.modal,.modal .box,.toast{animation:none}
+  body.menu .nav .in>*{animation:none}
+  #main.vin>*,.modal .box{animation:fadeIn .16s ease-out both}
+  .toast{transition:opacity .2s ease-out}
+  @starting-style{.toast{opacity:0;transform:translateX(-50%)}}
   .btn,.row,.chip,.kindbar button,.nav button.it,.nav .pf{transition:none}
   .btn:active:not([disabled]),.chip:active,.row:active,.nav button.it:active,.nav .pf:active{transform:none}}
 
