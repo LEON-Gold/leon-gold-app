@@ -482,7 +482,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<div hidden style="margin-top:6px;background:#fff;color:#12241b;border:1px solid #d9c9a0;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);overflow:hidden">'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 12:57</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-26 13:42</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1183,6 +1183,9 @@ body.menu .nav .in>*{animation:navIn .24s var(--ease-out) both;animation-delay:c
 /* outline buttons sitting straight on the page (not on a card) need gold ink once the page goes dark */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(#main>.btns,#main>.qa,#main>.pnav) .btn:not(.pri),:root:not([data-theme="light"]) #main>.btn:not(.pri){color:var(--gold-lt);border-color:rgba(232,207,142,.55)}}
 :root[data-theme="dark"] :is(#main>.btns,#main>.qa,#main>.pnav) .btn:not(.pri),:root[data-theme="dark"] #main>.btn:not(.pri){color:var(--gold-lt);border-color:rgba(232,207,142,.55)}
+/* market price suggestion: a quiet line, never louder than the saved price above it */
+.livep{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px dashed rgba(197,154,80,.5);padding-top:10px;font-size:12.5px;color:var(--muted)}
+.livep[hidden]{display:none}.livep span{display:grid;gap:1px}.livep b{font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}.livep small{font-size:11.5px}
 /* home: today at a glance */
 .sec h2 small{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);margin-inline-start:8px}
 .tday{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -1905,6 +1908,7 @@ function vHome(){
   +(top.length?top.map(function(p){return partyRow(p)}).join(''):'<div class="empty">هنوز مانده‌ای ثبت نشده. اول یک طرف‌حساب اضافه کن.</div>')+'</div></section>'
   +'<section class="sec"><h2>آخرین فاکتورها<span class="sp"></span><button class="lnk" data-act="tab" data-t="invoices">همه</button></h2><div class="list">'
   +(rec.length?rec.map(invRow).join(''):'<div class="empty">هنوز فاکتوری ذخیره نشده.</div>')+'</div></section>';
+  var ps=$('.sec.price');if(ps){ps.insertAdjacentHTML('beforeend','<div class="livep" id="liveP" hidden></div>');livePrice().then(fillLive)}
 }
 function vBackup(){setTop('پشتیبان و خروجی‌ها','',true);main.innerHTML='<section class="sec"><h2>پشتیبان و سوابق</h2><p class="note">هر ثبت و حذف در سوابق می‌ماند و چیزی که حذف شده، از همان‌جا برمی‌گردد.</p><div class="btns"><button class="btn sm" data-act="log" type="button">سوابق تغییرات</button><button class="btn sm" data-act="backup" type="button">پشتیبان کامل</button><button class="btn sm" data-act="csvinv" type="button">اکسل اقلام فاکتورها</button><button class="btn sm" data-act="csvbal" type="button">اکسل مانده‌ها</button><button class="btn sm" data-act="csvstock" type="button">اکسل موجودی کالا</button></div></section>'}
 function vUsers(){setTop('ورود و کاربران','',true);main.innerHTML=secHTML()}
@@ -2120,15 +2124,38 @@ function priceCard(){var pr=todayPrice();
   +'<div class="kpis"><div class="kpi"><small>هر گرم طلای ۱۸ عیار</small><b>'+fmt(pr.gp)+'</b><span class="sub">ریال · '+fmt(Math.round(pr.gp/10))+' تومان</span></div>'
   +'<div class="kpi"><small>مثقال طلای ۱۸ عیار</small><b>'+fmt(mithqal(pr.gp))+'</b><span class="sub">ریال · '+fmt(Math.round(mithqal(pr.gp)/10))+' تومان</span></div></div>'
   +'<p class="note">'+(old?'<span class="stale">این قیمت مال '+esc(jdate(pr.ts))+' است؛ قیمت امروز را به‌روز کن.</span>':'به‌روزشده امروز ساعت '+esc(jtime(pr.ts))+ch)+'</p></section>'}
-function priceDialog(){var pr=todayPrice(),m=document.createElement('div');m.className='modal';
+/* market price from tgju (CORS-open): today's latest 18k gram tick in rial, else the last daily close; a suggestion the
+   owner confirms, never saved on its own. Cached 5 minutes; any failure (offline, holiday, odd value) just means no suggestion. */
+var LIVE={at:0,p:null,busy:null};
+function livePrice(force){if(!force&&LIVE.p&&Date.now()-LIVE.at<300000)return Promise.resolve(LIVE.p);if(LIVE.busy)return LIVE.busy;
+  var get=function(kind){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+    return fetch('https://api.tgju.org/v1/market/indicator/'+kind+'/geram18?length=1&start=0',{cache:'no-store',signal:c.signal})
+      .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).then(function(j){return j&&j.data&&j.data[0]||null})};
+  LIVE.busy=get('today-table-data').then(function(r){if(r)return {gp:num(r[0]),at:String(r[1]||'').slice(0,5),today:true};
+      return get('summary-table-data').then(function(x){return x?{gp:num(x[3]),day:String(x[7]||''),today:false}:null})})
+    .then(function(p){LIVE.busy=null;if(!p||!(p.gp>1e6&&p.gp<1e12))return null;LIVE.p=p;LIVE.at=Date.now();return p})
+    .catch(function(){LIVE.busy=null;return null});
+  return LIVE.busy}
+function liveWhen(p){return p.today?'امروز ساعت '+toFa(p.at):'بسته‌شدن '+toFa(p.day)}
+// home: one quiet line under the saved price, filled in when the market answers
+function fillLive(p){var el=$('#liveP');if(!el||!p)return;var pr=todayPrice(),d=pr&&pr.gp?(p.gp-pr.gp)/pr.gp*100:null;
+  el.innerHTML='<span><b>بازار الان: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+(d!=null&&Math.abs(d)>=0.01?'، '+(d>0?'▲ ':'▼ ')+fmt(Math.abs(d),2)+'٪ نسبت به قیمت ثبت‌شده':'')+' · منبع tgju</small></span>'
+    +'<button class="btn sm" data-act="uselive" type="button">ثبت این قیمت</button>';el.hidden=false}
+function priceDialog(pre){var pr=todayPrice(),m=document.createElement('div');m.className='modal';
   m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>قیمت امروز را وارد کن. می‌توانی قیمت یک گرم ۱۸ عیار یا یک مثقال ۱۸ عیار را بنویسی؛ دیگری خودکار حساب می‌شود.</p>'
   +'<div class="pin"><select id="pp_kind" aria-label="نوع قیمت"><option value="g">گرم ۱۸ عیار</option><option value="m">مثقال ۱۸ عیار</option></select><select id="pp_unit" aria-label="واحد"><option value="t">تومان</option><option value="r">ریال</option></select></div>'
   +'<input id="pp_val" class="srch" inputmode="decimal" style="direction:ltr;text-align:right" placeholder="'+(pr&&pr.gp?esc(plain(Math.round(pr.gp/10))):'مثلاً ۷٬۸۰۰٬۰۰۰')+'" aria-label="قیمت"><p class="note" id="pp_hint"></p>'
+  +'<div class="livep" id="pp_live" role="status">در حال گرفتن قیمت بازار…</div>'
   +'<div class="btns"><button class="btn pri" data-y type="button">ذخیره</button><button class="btn" data-n type="button">انصراف</button></div></div>';
-  document.body.appendChild(m);var inp=$('#pp_val',m),hint=$('#pp_hint',m);
+  document.body.appendChild(m);var inp=$('#pp_val',m),hint=$('#pp_hint',m),lv=$('#pp_live',m);
   var calc=function(){var v=num(inp.value)*($('#pp_unit',m).value==='t'?10:1);if(!v){hint.textContent='';return 0}var gp=$('#pp_kind',m).value==='g'?v:Math.round(v/4.3318);
     hint.textContent='گرم ۱۸: '+fmt(gp)+' ریال · مثقال ۱۸: '+fmt(mithqal(gp))+' ریال';return gp};
-  m.addEventListener('input',calc);m.addEventListener('change',calc);inp.focus();
+  var use=function(p){$('#pp_kind',m).value='g';$('#pp_unit',m).value='r';inp.value=plain(p.gp);calc()};
+  m.addEventListener('input',calc);m.addEventListener('change',calc);
+  if(pre)use(pre);else inp.focus();
+  livePrice().then(function(p){if(!lv.isConnected)return;if(!p){lv.textContent='قیمت آنلاین در دسترس نیست؛ اینترنت را بررسی کن یا قیمت را دستی بنویس.';return}
+    lv.innerHTML='<span><b>بازار: '+fmt(p.gp)+' ریال</b><small>'+liveWhen(p)+' · منبع tgju</small></span><button class="btn sm" data-live type="button">استفاده از این قیمت</button>';
+    lv.querySelector('[data-live]').addEventListener('click',function(){use(p)})});
   m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){var gp=calc();if(!(gp>0)){toast('قیمت را بنویس');return}
       var p0=todayPrice();if(p0&&p0.gp&&Math.abs(gp-p0.gp)/p0.gp>0.15&&!m.dataset.ok){m.dataset.ok=1;hint.textContent='این قیمت بیش از ۱۵٪ با قیمت قبلی ('+fmt(p0.gp)+' ریال) فرق دارد. اگر درست است دوباره «ذخیره» را بزن.';return}
       var d={gp:gp,ts:new Date().toISOString()};if(await setPrice(d)){m.remove();toast('قیمت امروز ثبت شد')}}
@@ -2689,6 +2716,7 @@ document.addEventListener('click',function(e){
     case 'csvbal':csvBalances();break;
     case 'csvstock':csvStock();break;
     case 'setprice':priceDialog();break;
+    case 'uselive':priceDialog(LIVE.p);break;
     case 'pickphoto':{var fi=$('#pr_photo');if(fi){fi.value='';fi.click()}break}
     case 'rmphoto':S.prPhoto='';photoBox('');$('#phmsg').textContent='عکس برداشته شد؛ «ذخیره» را بزن.';break;
     case 'stmt':case 'summ':{var pp=partyById(id),ty=a==='stmt'?'detail':'summary';if(pp)choose((ty==='detail'?'ریز حساب ':'کلیات حساب ')+pp.name+' را با چه قالبی می‌خواهی؟',[['اکسل',function(){exportParty(id,ty,'xlsx')}],['PDF',function(){exportParty(id,ty,'pdf')}]]);break}
