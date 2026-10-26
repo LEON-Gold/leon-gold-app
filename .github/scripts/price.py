@@ -23,6 +23,13 @@ gp = num(m.group(1)) * 10  # the board is in toman
 if not 1e7 < gp < 1e11:
     sys.exit('implausible price %d' % gp)
 
+# the whole board (gold and coins, toman) for the public site's price section; the ounce is in dollars
+board = []
+for name in ['طلا ۱۸ عیار', 'طلای ۲۴ عیار', 'مظنه تهران', 'سکه طرح جدید', 'سکه طرح قدیم', 'نیم سکه', 'ربع سکه', 'سکه گرمی', 'انس طلا']:
+    b = re.search(re.escape(name) + r' (\$ )?([۰-۹٫,]+)', text)
+    if b:
+        board.append({'name': name, 'value': num(b.group(2)) if b.group(1) else num(b.group(2)) * 10, 'unit': 'usd' if b.group(1) else 'rial'})
+
 out = {
     'source': 'estjt',
     'gp': gp,
@@ -30,6 +37,7 @@ out = {
     'day': up.group(1).strip() if up else '',
     'time': up.group(2).translate(FA)[:5] if up else '',
     'fetched': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+    'board': board,
 }
 json.dump(out, open('price.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print(out)

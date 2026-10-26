@@ -1,6 +1,6 @@
 # Copies the Tehran gold union 18k price into price.json on the "price" branch every 2 minutes.
 # GitHub's own schedule fires late or not at all, so one run keeps looping for ~5h50m and the schedule only
-# restarts it (a second run waits in the queue until the first ends). The app reads price.json from
+# restarts it (a new run replaces the running one, so a changed script takes effect within ~30 minutes). The app reads price.json from
 # raw.githubusercontent.com or jsDelivr (both CORS-open) and falls back to tgju if it is missing or stale.
 name: gold price
 on:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 concurrency:
   group: price
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   price:
     runs-on: ubuntu-latest
