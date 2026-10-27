@@ -549,7 +549,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     await ready;
     for(var c in docs)if(full||col[c])for(var id in docs[c])await put(c,id,undefined);
     for(c in col)for(id in col[c])await put(c,id,col[c][id]);
-    if(j.photos)for(var k in j.photos){try{var bl=await (await fetch(j.photos[k])).blob();blobs[k]=bl;await write('blobs',k,bl)}catch(e){}}
+    if(j.photos)for(var k in j.photos){try{var bl=await (await fetch(j.photos[k])).blob();blobs[k]=bl;await write('blobs',k,bl);if(S.on)await queue('b/'+k,{b:k})}catch(e){}}
     alert('بازگردانی انجام شد.');location.reload()}
   function badge(){document.title+=' · آفلاین';var t=document.createElement('meta');t.name='apple-mobile-web-app-title';t.content='لئون گلد';document.head.appendChild(t);var b=document.createElement('div');b.id='offBadge';
     b.style.cssText='position:fixed;left:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:99999;font:12px Vazirmatn,Tahoma,sans-serif;direction:rtl;letter-spacing:0';
@@ -558,7 +558,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 00:08</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 12:26</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
