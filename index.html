@@ -514,13 +514,17 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       for(c in docs)for(id in docs[c])await put(c,id,undefined,true);
       for(c in subs)emit(c)}
     S.on=true;await saveS();await syncNow();return true}
+  // an expired login (a new password, or 180 days) signs in again and keeps the outbox and the data as they are
+  async function relogin(u,p){
+    var r=await api('/api/login',{method:'POST',json:{u:u,p:p,device:navigator.platform+' '+(navigator.maxTouchPoints?'touch':'')}});
+    S.token=r.token;S.user=r.user;await saveS();await syncNow();return true}
   async function disconnect(){try{if(S.token)await api('/api/logout',{method:'POST',json:{}})}catch(e){}
     for(var k in obox)await write('outbox',k,undefined);obox={};S={};await saveS();setState('off')}
   setInterval(function(){if(S.on&&document.visibilityState==='visible')syncNow()},20000);
   addEventListener('online',function(){if(S.on)syncNow()});
   document.addEventListener('visibilitychange',function(){if(S.on&&document.visibilityState==='visible')syncNow()});
   ready.then(function(){if(S.on)syncNow();else setState('off')});
-  window.__leonSync={now:syncNow,connect:connect,disconnect:disconnect,info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
+  window.__leonSync={now:syncNow,connect:connect,relogin:relogin,disconnect:disconnect,info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
   var NOPHOTO='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="240" height="160" fill="#f5f0e3"/><text x="120" y="88" font-family="Tahoma" font-size="16" fill="#9c7433" text-anchor="middle">عکس آفلاین موجود نیست</text></svg>');
   window.__leonBlobURL=function(id){if(!blobs[id])return NOPHOTO;return urls[id]=urls[id]||URL.createObjectURL(blobs[id])};
   window.claude={use:async function(name){await ready;return name==='db'?db:name==='user'?user:name==='downloads'?downloads:name==='assets'?assets:null}};
@@ -558,7 +562,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 12:26</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 16:53</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -585,7 +589,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         '<p style="margin:0 0 12px;color:#4a5a50;font-size:13px;line-height:1.8">اطلاعات همه‌ی دستگاه‌ها روی یک سرور نگه داشته می‌شود و هر تغییر خودکار به بقیه می‌رسد. بدون اینترنت هم کار می‌کند.</p>'+
         (i.on
           ?'<div style="background:#f5f0e3;border-radius:10px;padding:10px 12px;line-height:2;font-size:14px">وضعیت: <b>'+st+'</b><br>کاربر: '+esc(i.user)+(when?'<br>آخرین همگام‌سازی: '+when:'')+(i.waiting?'<br>در صف ارسال: '+fa(i.waiting):'')+'</div>'+
-            '<div style="display:flex;gap:8px;margin-top:14px"><button data-s="now" style="'+btS+';flex:1;background:#0d3a2a;color:#f3ead0">همگام‌سازی الان</button>'+
+            (i.state==='login'
+              ?'<div style="margin-top:12px"><label style="font-size:13px">نام کاربری<input id="syN" autocapitalize="off" style="'+inS+'" value="'+esc(i.user)+'"></label>'+
+                '<label style="font-size:13px">رمز<input id="syP" type="password" inputmode="numeric" style="'+inS+'"></label>'+
+                '<p id="syE" style="color:#8a3b22;font-size:13px;margin:0 0 8px;min-height:1em"></p>'+
+                '<button data-s="re" style="'+btS+';display:block;width:100%;background:#0d3a2a;color:#f3ead0">ورود دوباره</button></div>'
+              :'')+
+            '<div style="display:flex;gap:8px;margin-top:14px">'+(i.state==='login'?'':'<button data-s="now" style="'+btS+';flex:1;background:#0d3a2a;color:#f3ead0">همگام‌سازی الان</button>')+
             '<button data-s="off" style="'+btS+';background:#fff;color:#8a3b22;border:1px solid #e2c3b5">قطع اتصال</button></div>'
           :'<label style="font-size:13px">آدرس سرور<input id="syU" dir="ltr" inputmode="url" autocapitalize="off" style="'+inS+'" value="'+esc(i.url)+'" placeholder="https://…"></label>'+
             '<label style="font-size:13px">نام کاربری<input id="syN" autocapitalize="off" style="'+inS+'"></label>'+
@@ -601,7 +611,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     w.onclick=async function(e){if(e.target===w)return close();var s=e.target.getAttribute('data-s');if(!s)return;
       if(s==='x')return close();
       if(s==='now')return window.__leonSync.now();
-      if(s==='off'){if(confirm('این دستگاه از سرور جدا شود؟ اطلاعات روی همین دستگاه می‌ماند.'))await window.__leonSync.disconnect();return paint()}
+      if(s==='off'){var wt=window.__leonSync.info().waiting;
+        if(confirm('این دستگاه از سرور جدا شود؟ اطلاعات روی همین دستگاه می‌ماند.'+(wt?'\n\n'+fa(wt)+' تغییر هنوز به سرور نرسیده و دیگر فرستاده نمی‌شود. اگر ورود منقضی شده، به‌جای قطع اتصال «ورود دوباره» را بزنید.':'')))await window.__leonSync.disconnect();return paint()}
+      if(s==='re'){var rn=box.querySelector('#syN').value,rp=box.querySelector('#syP').value,re=box.querySelector('#syE');
+        if(!rn||!rp){re.textContent='نام کاربری و رمز را بنویسید.';return}
+        e.target.textContent='در حال ورود…';
+        try{await window.__leonSync.relogin(rn,rp);return paint()}
+        catch(x){re.textContent=x.login?'نام کاربری یا رمز درست نیست.':'به سرور وصل نشد. اینترنت را بررسی کنید.';e.target.textContent='ورود دوباره'}}
       if(s==='go'){var u=box.querySelector('#syU').value,nm=box.querySelector('#syN').value,p=box.querySelector('#syP').value,er=box.querySelector('#syE');
         if(!/^https?:\/\/\S+$/.test(u.trim())||!nm||!p){er.textContent='آدرس سرور، نام کاربری و رمز را بنویسید.';return}
         e.target.textContent='در حال اتصال…';
