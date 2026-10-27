@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06140e">
+<title>قیمت امروز · استوری</title>
+<!-- The daily price story: reads the union board from price.json (the site's feed), draws a 1080×1920 story on a canvas,
+     and hands it to the phone as an image to save or share. No number here is typed by hand. -->
+<style>
+@font-face { font-family: "LG Naskh"; font-weight: 700; src: url(../fonts/amiri-700-arabic.woff2) format("woff2"); }
+@font-face { font-family: "Vazirmatn"; font-weight: 100 900; src: url(../fonts/vazirmatn-5.woff2) format("woff2"); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Vazirmatn"; font-weight: 100 900; src: url(../fonts/vazirmatn-4.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+:root { --vault: #06140e; --emerald: #0d3a2a; --cream: #f3ead0; --gold-lt: #e8cf8e; --gold: #c59a50;
+  --leaf: linear-gradient(100deg, #b0843d 0%, #f6e7b4 34%, #d8b46a 52%, #fff3cf 66%, #b0843d 100%); }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--vault); color: var(--cream); font: 400 16px/1.7 Vazirmatn, Tahoma, sans-serif;
+  padding: max(16px, env(safe-area-inset-top)) 16px 40px; }
+a { color: var(--gold-lt); }
+.top { display: flex; justify-content: space-between; align-items: center; max-width: 520px; margin: 0 auto 12px; }
+.top b { font: 700 26px "LG Naskh", serif; background: var(--leaf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+main { max-width: 520px; margin: 0 auto; }
+#img { display: block; width: 100%; aspect-ratio: 9 / 16; border: 1px solid rgba(232,207,142,.45); background: #0b2a1f; -webkit-touch-callout: default; }
+.msg { min-height: 1.7em; margin: 12px 0; text-align: center; font-size: 15px; }
+.msg.warn { color: #ffcf8a; }
+button { display: block; width: 100%; margin: 10px 0; padding: 15px; border-radius: 14px; font: 700 17px Vazirmatn, Tahoma, sans-serif; cursor: pointer;
+  background: var(--leaf); background-size: 180% 100%; color: #0a1f15; border: 1px solid #f3dfa4; }
+button.line { background: transparent; color: var(--gold-lt); border-color: rgba(232,207,142,.55); }
+button:disabled { opacity: .5; }
+.help { font-size: 14px; color: rgba(243,234,208,.75); }
+</style>
+</head>
+<body>
+<div class="top"><b>لئون گلد</b><a href="../">← برنامه‌ی پست‌ها</a></div>
+<main>
+  <img id="img" alt="استوری قیمت امروز">
+  <div id="msg" class="msg">در حال گرفتن نرخ اتحادیه…</div>
+  <button id="share" disabled>ذخیره یا ارسال به اینستاگرام</button>
+  <button id="again" class="line">دوباره بگیر</button>
+  <p class="help">دکمه‌ی بالا را بزنید و «Save Image» یا «Instagram» را انتخاب کنید. یا انگشت را روی عکس نگه دارید و «ذخیره در Photos» را بزنید. بهترین ساعت: بعد از باز شدن بازار، حدود ۱۱:۳۰.</p>
+</main>
+<script>
+const FEEDS = [
+  "https://raw.githubusercontent.com/LEON-Gold/leon-gold-app/price/price.json",
+  "https://cdn.jsdelivr.net/gh/LEON-Gold/leon-gold-app@price/price.json",
+];
+const FRESH = 40 * 60e3;
+const W = 1080, H = 1920;
+const fa = (n) => Math.round(n).toLocaleString("fa-IR");
+const faD = (s) => String(s || "").replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+const $ = (id) => document.getElementById(id);
+let blob = null;
+
+async function getFeed() {
+  let stale = null;
+  for (const u of FEEDS) {
+    try {
+      const r = await fetch(u + "?t=" + Date.now(), { cache: "no-store" });
+      const j = r.ok ? await r.json() : null;
+      if (!j || !(j.gp > 0) || !j.board) continue;
+      const age = Date.now() - Date.parse(j.fetched || "");
+      if (age < FRESH) return { feed: j, stale: false };
+      if (!stale) stale = j;
+    } catch {}
+  }
+  return stale ? { feed: stale, stale: true } : null;
+}
+
+// guilloché rosette, the site's formula, as an image for the canvas
+function rosette(op) {
+  const ring = (c, R, A, N, a, M, L, n) => { let o = ""; for (let j = 0; j < L; j++) { const ph = ((j / L) * Math.PI * 2) / N; let p = "";
+    for (let i = 0; i <= n; i++) { const t = (i / n) * Math.PI * 2, r = R + A * Math.sin(N * (t + ph)) + a * Math.sin(M * (t - ph));
+      p += (c + r * Math.cos(t)).toFixed(1) + "," + (c + r * Math.sin(t)).toFixed(1) + " "; } o += `<polyline points='${p}'/>`; } return o; };
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200' viewBox='0 0 400 400' fill='none' stroke='#e8cf8e' stroke-width='.55' stroke-opacity='${op}'>${ring(200, 150, 22, 24, 8, 72, 12, 520) + ring(200, 95, 16, 18, 5, 54, 10, 400) + ring(200, 48, 10, 12, 3, 36, 8, 260)}</svg>`;
+  return loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
+}
+const CORNER = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 40 40' fill='none' stroke='#c59a50'><path d='M2 39V12Q2 2 12 2H39' stroke-width='1.3'/><path d='M7 39V15Q7 7 15 7H39' stroke-width='.5'/><path d='M12 12q5-1 8 3-4 1-8-3zM12 12q-1 5 3 8 1-4-3-8z' fill='#c59a50' stroke='none'/><circle cx='24' cy='2' r='1.3' fill='#c59a50' stroke='none'/><circle cx='2' cy='24' r='1.3' fill='#c59a50' stroke='none'/></svg>`);
+function loadImg(src) { return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }
+
+function leaf(ctx, x0, x1) {
+  const g = ctx.createLinearGradient(x0, 0, x1, 0);
+  [[0, "#b0843d"], [.34, "#f6e7b4"], [.52, "#d8b46a"], [.66, "#fff3cf"], [1, "#b0843d"]].forEach(([o, c]) => g.addColorStop(o, c));
+  return g;
+}
+
+async function draw(feed) {
+  await document.fonts.load('700 100px "LG Naskh"'); await document.fonts.load('400 40px Vazirmatn'); await document.fonts.load('700 40px Vazirmatn');
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"); x.direction = "rtl";
+  const bg = x.createRadialGradient(540, 560, 0, 540, 700, 1500);
+  bg.addColorStop(0, "#12503a"); bg.addColorStop(.45, "#0d3a2a"); bg.addColorStop(1, "#06140e");
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  x.drawImage(await rosette(.32), -60, -120);
+  // frame and corners
+  x.strokeStyle = "rgba(232,207,142,.55)"; x.lineWidth = 1.5; x.strokeRect(34, 34, W - 68, H - 68);
+  x.strokeStyle = "rgba(232,207,142,.22)"; x.lineWidth = 1; x.strokeRect(43, 43, W - 86, H - 86);
+  const cn = await loadImg(CORNER);
+  [[22, 22, 1, 1], [W - 22, 22, -1, 1], [22, H - 22, 1, -1], [W - 22, H - 22, -1, -1]].forEach(([cx, cy, sx, sy]) => {
+    x.save(); x.translate(cx, cy); x.scale(sx, sy); x.drawImage(cn, 0, 0, 74, 74); x.restore(); });
+
+  x.textAlign = "center";
+  x.fillStyle = leaf(x, 300, 780); x.font = '700 130px "LG Naskh"'; x.fillText("لئون گلد", 540, 300);
+  x.fillStyle = "#e8cf8e"; x.font = '600 44px Vazirmatn'; x.fillText("نرخ طلا و سکه", 540, 400);
+  x.fillStyle = "#f3ead0"; x.font = '400 40px Vazirmatn'; x.fillText(faD(feed.day || "امروز") + (feed.time ? " · ساعت " + faD(feed.time) : ""), 540, 470);
+
+  // the board: one ivory card, a row per item
+  const rows = (feed.board || []).filter((r) => r.value > 0);
+  const top = 540, rh = Math.min(118, Math.floor(900 / Math.max(rows.length, 1))), cardH = rows.length * rh + 80;
+  x.fillStyle = "#fffdf6"; x.fillRect(96, top, W - 192, cardH);
+  x.strokeStyle = "rgba(197,154,80,.5)"; x.lineWidth = 1.5; x.strokeRect(110, top + 14, W - 220, cardH - 28);
+  rows.forEach((r, i) => {
+    const y = top + 40 + i * rh + rh / 2 + 14;
+    if (i) { x.strokeStyle = "#ece2c6"; x.lineWidth = 1; x.beginPath(); x.moveTo(150, y - rh / 2 - 14); x.lineTo(W - 150, y - rh / 2 - 14); x.stroke(); }
+    x.textAlign = "right"; x.fillStyle = "#12241b"; x.font = '600 42px Vazirmatn';
+    x.fillText(r.name, W - 150, y);
+    x.textAlign = "left"; x.fillStyle = "#0d3a2a"; x.font = '700 48px Vazirmatn';
+    const v = r.unit === "usd" ? fa(r.value) : fa(r.value / 10);
+    const unit = r.unit === "usd" ? " دلار" : " تومان";
+    x.font = '400 30px Vazirmatn'; const uw = x.measureText(unit).width;
+    x.fillStyle = "#9c7433"; x.fillText(unit, 150, y);
+    x.font = '700 48px Vazirmatn'; x.fillStyle = "#0d3a2a"; x.direction = "ltr"; x.fillText(v, 150 + uw + 8, y); x.direction = "rtl";
+  });
+
+  const fy = top + cardH + 90;
+  x.textAlign = "center"; x.fillStyle = "rgba(243,234,208,.85)"; x.font = '400 34px Vazirmatn';
+  x.fillText("منبع: اتحادیه‌ی طلا و جواهر تهران", 540, fy);
+  x.fillText("قیمت هر کار با وزن و اجرت خودش؛ در دایرکت بپرسید.", 540, fy + 60);
+  x.fillStyle = leaf(x, 380, 700); x.font = '700 60px "LG Naskh"'; x.fillText("لئون گلد", 540, H - 150);
+  x.fillStyle = "rgba(243,234,208,.7)"; x.font = '500 30px Vazirmatn'; x.direction = "ltr"; x.fillText("@___leongold___", 540, H - 95); x.direction = "rtl";
+  return new Promise((ok) => c.toBlob(ok, "image/jpeg", 0.92));
+}
+
+async function run() {
+  $("share").disabled = true; $("msg").className = "msg"; $("msg").textContent = "در حال گرفتن نرخ اتحادیه…";
+  const got = await getFeed();
+  if (!got) { $("msg").className = "msg warn"; $("msg").textContent = "نرخ اتحادیه گرفته نشد. اینترنت را بررسی کنید و «دوباره بگیر» را بزنید."; return; }
+  blob = await draw(got.feed);
+  $("img").src = URL.createObjectURL(blob);
+  $("share").disabled = false;
+  if (got.stale) { $("msg").className = "msg warn"; $("msg").textContent = "این نرخ تازه نیست (آخرین نرخ: " + faD(got.feed.day) + " ساعت " + faD(got.feed.time) + "). اگر بازار باز است چند دقیقه بعد دوباره بگیرید."; }
+  else $("msg").textContent = "نرخ " + faD(got.feed.day) + "، ساعت " + faD(got.feed.time) + ". آماده است.";
+}
+$("again").onclick = run;
+$("share").onclick = async () => {
+  const file = new File([blob], "leon-price.jpg", { type: "image/jpeg" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); } catch {} }
+  else { const a = document.createElement("a"); a.href = $("img").src; a.download = "leon-price.jpg"; a.click(); }
+};
+if (location.hash === "#big") document.querySelector("main").style.maxWidth = "1080px";
+run();
+</script>
+</body>
+</html>

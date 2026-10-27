@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06140e">
+<meta name="robots" content="noindex">
+<title>اینستاگرام لئون</title>
+<!-- The owner's phone page: each day of the plan with its images (save or share), the caption to copy, stories and reel shots. -->
+<style>
+@font-face { font-family: "LG Naskh"; font-weight: 700; src: url(fonts/amiri-700-arabic.woff2) format("woff2"); }
+@font-face { font-family: "Vazirmatn"; font-weight: 100 900; src: url(fonts/vazirmatn-5.woff2) format("woff2"); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Vazirmatn"; font-weight: 100 900; src: url(fonts/vazirmatn-4.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+:root { --bg: #e9e5da; --paper: #fffdf6; --ink: #12241b; --muted: #5f6a5e; --line: #d9c9a0; --gold: #c59a50; --gold-d: #9c7433; --gold-lt: #e8cf8e;
+  --emerald: #0d3a2a; --vault: #06140e; --cream: #f3ead0;
+  --leaf: linear-gradient(100deg, #b0843d 0%, #f6e7b4 34%, #d8b46a 52%, #fff3cf 66%, #b0843d 100%); }
+* { box-sizing: border-box; }
+html { background: var(--vault); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.75 Vazirmatn, Tahoma, sans-serif; -webkit-text-size-adjust: 100%; }
+header { background: radial-gradient(120% 90% at 50% 0%, #12503a, var(--emerald) 50%, var(--vault)); color: var(--cream);
+  padding: max(22px, env(safe-area-inset-top)) 16px 26px; text-align: center; border-bottom: 1px solid var(--gold); }
+header h1 { margin: 0; font: 700 40px/1.3 "LG Naskh", serif; background: var(--leaf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+header p { margin: 4px 0 16px; font-size: 15px; opacity: .85; }
+.btn { display: inline-block; padding: 12px 20px; border-radius: 14px; font: 700 16px Vazirmatn, Tahoma, sans-serif; text-decoration: none; cursor: pointer;
+  background: var(--leaf); background-size: 180% 100%; color: #0a1f15; border: 1px solid #f3dfa4; }
+.btn.ink { background: var(--emerald); color: var(--gold-lt); border-color: var(--emerald); }
+.btn.line { background: transparent; color: var(--emerald); border-color: var(--line); }
+main { max-width: 640px; margin: 0 auto; padding: 16px; }
+details.tips { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 4px 16px; margin-bottom: 18px; }
+details.tips summary { font-weight: 700; color: var(--emerald); padding: 10px 0; cursor: pointer; }
+details.tips li { margin-bottom: 6px; }
+.day { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; margin-bottom: 18px; position: relative; }
+.day::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(197,154,80,.35); pointer-events: none; }
+.day.today { outline: 2px solid var(--gold); }
+.day.done { opacity: .6; }
+.dh { padding: 16px 16px 6px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.dh .d { font-size: 14px; color: var(--gold-d); font-weight: 700; }
+.dh h2 { margin: 2px 0 0; font: 700 26px/1.35 "LG Naskh", serif; color: var(--emerald); }
+.dh .k { font-size: 13px; color: var(--muted); }
+.dh label { font-size: 13px; color: var(--muted); white-space: nowrap; display: flex; gap: 4px; align-items: center; }
+.badge { display: inline-block; font-size: 12px; background: var(--emerald); color: var(--gold-lt); padding: 1px 8px; border-radius: 99px; margin-inline-start: 6px; vertical-align: middle; }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.strip a { flex: 0 0 auto; scroll-snap-align: start; }
+.strip img { display: block; height: 220px; width: auto; border: 1px solid var(--line); background: #0b2a1f; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 16px 12px; }
+.row .btn { flex: 1 1 auto; text-align: center; padding: 11px 12px; font-size: 15px; }
+.cap { margin: 0 16px 12px; white-space: pre-wrap; font-size: 15px; background: #faf6e9; border: 1px solid #ece2c6; padding: 12px; max-height: 210px; overflow: auto; }
+.sub { padding: 0 16px 14px; font-size: 15px; }
+.sub h3 { margin: 8px 0 4px; font-size: 15px; color: var(--emerald); }
+.sub ul, .sub ol { margin: 0; padding-inline-start: 20px; }
+.sub li { margin-bottom: 4px; }
+.shot b { color: var(--gold-d); }
+.toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: var(--emerald); color: var(--gold-lt);
+  padding: 10px 18px; border-radius: 99px; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.on { opacity: 1; }
+footer { text-align: center; font-size: 13px; color: var(--muted); padding: 10px 16px 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>اینستاگرام لئون گلد</h1>
+  <p>برنامه‌ی دو هفته: ۶ تا ۱۹ آبان ۱۴۰۵</p>
+  <a class="btn" href="price/">استوری قیمت امروز</a>
+</header>
+<main>
+  <details class="tips">
+    <summary>راهنما: هر روز چه کنم؟</summary>
+    <ol>
+      <li>روز امروز با قاب طلایی مشخص است. «ذخیره‌ی تصویرها» را بزنید و «Save Images» را انتخاب کنید؛ همه در Photos می‌روند.</li>
+      <li>در اینستاگرام پست بسازید، تصویرها را به همان ترتیب انتخاب کنید (برای کاروسل: Select multiple).</li>
+      <li>«کپی متن و هشتگ‌ها» را بزنید و در کپشن بچسبانید.</li>
+      <li>کار انجام شد؟ تیک «انجام شد» را بزنید تا بدانید کجا هستید.</li>
+      <li>هر روز کاری (شنبه تا پنجشنبه) حدود ۱۱:۳۰ «استوری قیمت امروز» را بگذارید.</li>
+    </ol>
+  </details>
+  <details class="tips">
+    <summary>چه چیزی در اینستاگرام جواب می‌دهد؟</summary>
+    <ul>
+      <li><b>ریلز</b> برای دیده شدن توسط آدم‌های تازه است؛ <b>کاروسل</b> برای ذخیره و اعتماد؛ <b>استوری</b> برای نگه داشتن دنبال‌کننده‌ها.</li>
+      <li>«ارسال برای دوست» و «ذخیره» از لایک مهم‌ترند؛ برای همین آخر کاروسل‌ها می‌گوییم «بفرستید» یا «ذخیره کنید».</li>
+      <li>سه ثانیه‌ی اول ریلز همه‌چیز است: کار از نزدیک و برق، بی‌مقدمه.</li>
+      <li>اینستاگرام حداکثر ۵ هشتگ می‌پذیرد؛ کلمه‌های اول کپشن از هشتگ مهم‌ترند.</li>
+      <li>ساعت پیشنهادی: پست‌های آموزشی صبح (۱۱)، کارهای ویترین شب (۲۱)؛ پنجشنبه روز خوبی است. بعد از دو هفته در Insights ببینید دنبال‌کننده‌ها کی آنلاین‌اند و ساعت را عوض کنید.</li>
+      <li>به کامنت و دایرکت در همان یک ساعت اول جواب دهید.</li>
+      <li>قیمت و وزن را فقط در دایرکت بگویید، با نرخ همان ساعت.</li>
+    </ul>
+  </details>
+  <div id="days"></div>
+</main>
+<footer>این صفحه فقط برای شماست. چیزی خودکار پست نمی‌شود.</footer>
+<div class="toast" id="toast"></div>
+<script src="plan.js"></script>
+<script>
+const START = Date.UTC(2026, 9, 28); // d01 = چهارشنبه ۶ آبان ۱۴۰۵
+const tehranDay = () => { const t = new Date(Date.now() + 3.5 * 3600e3); return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()); };
+const todayIdx = Math.round((tehranDay() - START) / 864e5);
+const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} } };
+const fullText = (d) => d.caption + (d.tags.length ? "\n\n" + d.tags.join(" ") : "");
+const imgs = (d) => d.slides.map((_, i) => `out/${d.id}-${i + 1}.jpg`);
+
+function toast(t) { const e = document.getElementById("toast"); e.textContent = t; e.classList.add("on"); setTimeout(() => e.classList.remove("on"), 1800); }
+
+document.getElementById("days").innerHTML = PLAN.map((d, i) => {
+  const r = d.reel && REELS[d.reel];
+  return `<section class="day${i === todayIdx ? " today" : ""}${store.get("done-" + d.id) ? " done" : ""}" id="${d.id}">
+    <div class="dh"><div><div class="d">${esc(d.date)} · ساعت ${esc(d.time)}${i === todayIdx ? `<span class="badge">امروز</span>` : ""}</div>
+      <h2>${esc(d.title)}</h2><div class="k">${esc(d.kind)}</div></div>
+      <label><input type="checkbox" data-done="${d.id}"${store.get("done-" + d.id) ? " checked" : ""}> انجام شد</label></div>
+    <div class="strip">${imgs(d).map((s) => `<a href="${s}" target="_blank"><img src="${s}" loading="lazy" alt=""></a>`).join("")}</div>
+    <div class="row"><button class="btn ink" data-save="${d.id}">ذخیره‌ی ${d.slides.length > 1 ? "تصویرها" : "تصویر"}</button>
+      ${d.caption ? `<button class="btn" data-copy="${d.id}">کپی متن و هشتگ‌ها</button>` : ""}</div>
+    ${d.caption ? `<div class="cap">${esc(fullText(d))}</div>` : ""}
+    <div class="sub"><h3>استوری‌های امروز</h3><ul>${d.stories.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+    ${r ? `<h3>ریلز: ${esc(r.title)} (${esc(r.len)})</h3><ol>${r.shots.map(([t, a, txt]) => `<li class="shot"><b>${esc(t)}:</b> ${esc(a)}${txt ? `<br>${esc(txt)}` : ""}</li>`).join("")}</ol>
+      <ul>${[ "صدا: " + r.sound, ...r.tips ].map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : ""}</div>
+  </section>`;
+}).join("");
+
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = PLAN.find((x) => x.id === (b.dataset.copy || b.dataset.save)); if (!d) return;
+  if (b.dataset.copy) {
+    try { await navigator.clipboard.writeText(fullText(d)); toast("کپی شد"); }
+    catch { const t = document.createElement("textarea"); t.value = fullText(d); document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); toast("کپی شد"); }
+  } else {
+    b.disabled = true;
+    try {
+      const files = await Promise.all(imgs(d).map(async (u, i) => new File([await (await fetch(u)).blob()], `leon-${d.id}-${i + 1}.jpg`, { type: "image/jpeg" })));
+      if (navigator.canShare && navigator.canShare({ files })) await navigator.share({ files });
+      else imgs(d).forEach((u) => window.open(u, "_blank"));
+    } catch {}
+    b.disabled = false;
+  }
+});
+document.addEventListener("change", (e) => { const id = e.target.dataset.done; if (!id) return;
+  store.set("done-" + id, e.target.checked ? "1" : ""); document.getElementById(id).classList.toggle("done", e.target.checked); });
+const t = document.querySelector(".today"); if (t) t.scrollIntoView({ block: "start" });
+</script>
+</body>
+</html>
