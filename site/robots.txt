@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://leon-gold.github.io/leon-gold-app/site/sitemap.xml
