@@ -1,6 +1,6 @@
 /* Keeps the app on the phone: network first so updates arrive when online, cache when offline.
    build.ps1 stamps VERSION so each build replaces the old cache. */
-var VERSION='951D7D975723',CACHE='leon-gold-'+VERSION,FILES=['./','index.html','manifest.webmanifest?v=2','icon-180.png?v=2','icon-512.png'];
+var VERSION='7FD662D509C4',CACHE='leon-gold-'+VERSION,FILES=['./','index.html','manifest.webmanifest?v=2','icon-180.png?v=2','icon-512.png'];
 self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});
 /* the public site's preview lives under site/ inside this scope: leave it to the network, so its photos and video

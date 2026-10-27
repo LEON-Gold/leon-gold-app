@@ -536,8 +536,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     saveAs('leon-gold-offline-'+day+'.json',new Blob([JSON.stringify({app:'leon-gold-offline',format:1,at:d.toISOString(),docs:docs,photos:ph})],{type:'application/json'}))}
   /* the app's «پشتیبان کامل» reads product photos through this (id -> data URL) */
   window.__leonPhotos=async function(){await ready;var ph={};for(var k in blobs)ph[k]=await b64(blobs[k]);return ph};
-  var COLS=['parties','invoices','settlements','products','orders','targets','prices','settings','log'];
-  var CNAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
+  var COLS=['parties','invoices','settlements','products','orders','targets','expenses','prices','settings','log'];
+  var CNAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',expenses:'هزینه',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
   // a full file (offline export, or «پشتیبان کامل» format 3+) replaces everything; an old format-2 file replaces only what it holds
   async function importAll(file){var j;try{j=JSON.parse(await file.text())}catch(e){alert('این فایل JSON معتبر نیست.');return}
     var col={};
@@ -562,7 +562,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 16:53</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 23:04</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1373,7 +1373,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
 <header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
 <main id="main"></main><button class="fab" id="fab" data-act="fab" type="button" aria-label="سند جدید" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
+<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
 <div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش A4</button></div></div></div>
 <div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A4)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
 <div class="pvfoot" id="pvfoot"><p class="msg" id="pvmsg" role="status"></p><button class="btn pri" id="pvPdf" type="button">ذخیره PDF</button><button class="btn pri" id="pvSave" type="button" hidden>ذخیره تصویر</button><button class="btn ghost" id="pvBack" type="button">بازگشت</button></div>
@@ -1723,7 +1723,7 @@ function fire(t,type){t.dispatchEvent(new Event(type,{bubbles:true}))}
 })();
 
 /* ---------- state ---------- */
-var S={db:null,nodb:false,err:'',noaccess:false,me:null,loaded:{},parties:[],invoices:[],targets:[],settlements:[],log:[],products:[],stock:{},mv:{},settings:[],prices:[],orders:[],bal:{},ent:{},
+var S={db:null,nodb:false,err:'',noaccess:false,me:null,loaded:{},parties:[],invoices:[],targets:[],settlements:[],log:[],products:[],stock:{},mv:{},settings:[],prices:[],orders:[],expenses:[],bal:{},ent:{},
   view:'home',param:null,kind:'retail',partyId:'',editId:'',editTs:'',dirty:false,q:'',filter:'all',stack:[],ret:null,saving:false};
 var main=$('#main');
 
@@ -1966,13 +1966,13 @@ async function put(col,id,data){if(!S.db){toast('ذخیره‌سازی در ای
 async function del(col,id){var old=null;(S[col]||[]).forEach(function(x){if(x.id===id)old=x});
   try{await S.db.collection(col).doc(id).delete();if(old){var snap=Object.assign({},old);delete snap.id;logAct('delete',col,id,snap)}return true}catch(e){toast(dberr(e));return false}}
 /* audit log: every save and delete leaves a row; a delete keeps the whole document so it can be restored */
-function logLabel(col,d){return col==='invoices'?invLabel(d)+' '+(d.no||'')+' · '+(d.partyName||'—'):col==='parties'?'طرف‌حساب · '+(d.name||''):col==='products'?'کالا · '+(d.name||''):col==='orders'?'سفارش · '+(d.partyName||'—'):col==='targets'?'تارگت · '+(d.title||TGT[d.type]&&TGT[d.type][0]||''):'سند تسویه · '+(d.partyName||'—')}
+function logLabel(col,d){return col==='invoices'?invLabel(d)+' '+(d.no||'')+' · '+(d.partyName||'—'):col==='parties'?'طرف‌حساب · '+(d.name||''):col==='products'?'کالا · '+(d.name||''):col==='orders'?'سفارش · '+(d.partyName||'—'):col==='targets'?'تارگت · '+(d.title||TGT[d.type]&&TGT[d.type][0]||''):col==='expenses'?'هزینه · '+xcatName(d.cat)+(d.note?' · '+d.note:''):'سند تسویه · '+(d.partyName||'—')}
 function logAct(op,col,id,data){if(!S.db)return;var e={ts:new Date().toISOString(),op:op,col:col,docId:id,label:logLabel(col,data)};if(curUser())e.by=curUser();if(op==='delete'||op==='edit')e.data=data;
   S.db.collection('log').doc().set(e).catch(function(){})}
 function newId(col){return S.db.collection(col).doc().id}
 
 /* ---------- navigation ---------- */
-var EDITING={inv:1,set:1,pform:1,prform:1,oform:1,tform:1};
+var EDITING={inv:1,set:1,pform:1,prform:1,oform:1,tform:1,xform:1};
 function go(view,param,opts){opts=opts||{};if(!opts.noPush)S.stack.push({view:S.view,param:S.param});S.view=view;S.param=param==null?null:param;S.q='';render();window.scrollTo(0,0)}
 function back(){var p=S.stack.pop();if(!p){S.view='home';S.param=null}else{S.view=p.view;S.param=p.param}S.q='';render();window.scrollTo(0,0)}
 function tab(view){S.stack=[];S.view=view;S.param=null;S.q='';S.filter='all';render();window.scrollTo(0,0)}
@@ -1986,7 +1986,7 @@ async function initDb(){
   if(!db){S.nodb=true;render();return}
   S.db=db;
   try{var us=await window.claude.use('user');if(us){S.me=await us.me();var cw=await us.can('data.write');if(cw===false&&!S.me.isOwner)S.noaccess=true}}catch(e){}
-  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets']].forEach(function(c){
+  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses']].forEach(function(c){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
   render();
@@ -2002,14 +2002,14 @@ var lastVK='',vinT=0;
 function render(){
   var v=S.view,editing=EDITING[v];$('#fab').hidden=true;
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();menuProf();
-  $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets'))?'page':'false')});
+  $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets')||(v==='xform'&&b.dataset.tab==='expenses'))?'page':'false')});
   if(S.nodb){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="warn">ذخیره‌سازی در این نمایش فعال نیست. صفحه را داخل حساب Claude خودت و با همان مرورگر یا برنامه‌ای که وارد آن هستی باز کن.</div>';return}
   if(!S.db){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   if(S.noaccess){setTop('دفتر لئون گلد','',false);$('#nav').hidden=true;$('#menuBtn').hidden=true;main.innerHTML='<div class="warn">به این دفتر دسترسی نداری. برای ورود، از مالک دفتر بخواه تو را با سطح «Contributor» یا «Editor» به این صفحه اضافه کند.</div>';return}
   if(!S.loaded.settings){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   gateCheck();if(isLocked()){main.innerHTML='';return}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
-  ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform})[v]();if(v==='prform')prformReady();
+  ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform})[v]();if(v==='prform')prformReady();
   $('#fab').hidden=!!editing||v==='home';
   var vk=v+'|'+(S.param||'');if(vk!==lastVK){lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
@@ -2037,7 +2037,7 @@ function fabSheet(){var pid=S.view==='party'&&S.param?String(S.param):'',p=pid?p
   var m=document.createElement('div');m.className='modal asheet';
   m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-label="سند جدید"><p>سند جدید'+(p?' برای <b>'+esc(p.name)+'</b>':'')+'</p><div class="asg">'
     +'<button class="btn pri" data-act="new" data-k="retail"'+dp+' type="button">فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole"'+dp+' type="button">فاکتور عمده</button>'
-    +'<button class="btn" data-act="newset"'+dp+' type="button">سند تسویه</button><button class="btn ghost" data-x type="button">انصراف</button></div></div>';
+    +'<button class="btn" data-act="newset"'+dp+' type="button">سند تسویه</button>'+(p?'':'<button class="btn" data-act="newx" type="button">هزینه</button>')+'<button class="btn ghost" data-x type="button">انصراف</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-x],[data-act]'))setTimeout(function(){m.remove()},0)});
   var f=m.querySelector('.btn');if(f)f.focus({preventScroll:true})}
 function vHome(){
@@ -2352,15 +2352,15 @@ async function saveFile(name,text,type){var d=null;try{d=await window.claude.use
 function day(){return new Date().toISOString().slice(0,10)}
 function strip(o){var c=Object.assign({},o);return c}
 /* the lock button asks for a backup when the backed-up collections changed (per the audit log) after this device's last backup */
-var BK_COLS=['parties','invoices','settlements','products','orders','targets'];
+var BK_COLS=['parties','invoices','settlements','products','orders','targets','expenses'];
 function lastChange(){var t='';S.log.forEach(function(e){if(BK_COLS.indexOf(e.col)>=0&&e.ts>t)t=e.ts});return t}
 function lockAsk(){var lc=lastChange(),lb=lsGet('leon_lastbk')||'';if(!lc||(lb.length>10&&lc<=lb))return lockNow();
   var m=document.createElement('div');m.className='modal';m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>از آخرین پشتیبان، اطلاعات دفتر تغییر کرده. قبل از قفل، پشتیبان کامل بگیرم؟</p><div class="btns"><button class="btn pri" data-y>پشتیبان و قفل</button><button class="btn" data-l>فقط قفل</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){m.remove();await backupJson();lockNow()}else if(e.target.closest('[data-l]')){m.remove();lockNow()}else if(e.target===m)m.remove()})}
 /* a full backup carries every collection (logins and price included) plus product photos when the runtime can read them;
    format 2 files held only parties, invoices and settlements */
-var BK_ALL=['parties','invoices','settlements','products','orders','targets','prices','settings','log'];
-var BK_NAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
+var BK_ALL=['parties','invoices','settlements','products','orders','targets','expenses','prices','settings','log'];
+var BK_NAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',expenses:'هزینه',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
 function bkSummary(c){return BK_ALL.filter(function(k){return c[k]}).map(function(k){return fmt(c[k])+' '+BK_NAME[k]}).join('، ')}
 async function backupJson(){var d={app:'leon-gold',format:3,at:new Date().toISOString()},cnt={};
   BK_ALL.forEach(function(k){d[k]=(S[k]||[]).map(strip);cnt[k]=d[k].length});
@@ -2465,7 +2465,7 @@ function stRow(l,v,u,strong){return '<div class="r"><span>'+esc(l)+'</span><span
 function kpiT(l,v,sub){return '<div class="kpi"><small>'+esc(l)+'</small><b>'+v+'</b><span class="sub">'+sub+'</span></div>'}
 function chg(a,b,word){if(!(b>0.0005))return '';var d=(a-b)/b*100;if(Math.abs(d)<0.5)return 'مثل '+word;return (d>0?'▲ ':'▼ ')+fmt(Math.abs(d))+'٪ '+(d>0?'بیشتر از ':'کمتر از ')+word}
 
-function vReport(){var R=S.rp||(S.rp={k:'w',off:0}),P=period(R.k,R.off),M=metrics(P.s,P.e),Q=period(R.k,R.off-1),N=metrics(Q.s,Q.e),pw=R.k==='w'?'هفته قبل':'ماه قبل';
+function vReport(){var R=S.rp||(S.rp={k:'w',off:0}),P=period(R.k,R.off),M=metrics(P.s,P.e),Q=period(R.k,R.off-1),N=metrics(Q.s,Q.e),X=expSum(P.s,P.e),pw=R.k==='w'?'هفته قبل':'ماه قبل';
   setTop('گزارش فروش',P.label,false);
   var pl=M.profit>=0?'سود خالص':'ضرر خالص';
   main.innerHTML='<div class="chips" role="group" aria-label="بازه"><button class="chip" data-act="rpk" data-k="w" aria-pressed="'+(R.k==='w')+'">هفتگی</button><button class="chip" data-act="rpk" data-k="m" aria-pressed="'+(R.k==='m')+'">ماهانه</button></div>'
@@ -2478,7 +2478,8 @@ function vReport(){var R=S.rp||(S.rp={k:'w',off:0}),P=period(R.k,R.off),M=metric
    +(M.noCost?'<p class="note">'+fmt(M.noCost)+' قلم فروش اجرت خرید ندارد و در سود حساب نشده. «اجرت خرید» را در کارت آن کالا بنویس؛ از سند دریافتی تأمین‌کننده هم خودکار پر می‌شود.</p>':'')+'</section>'
    +'<section class="sec"><h2>خرید عمده</h2><div class="stm">'+stRow('خرید از تأمین‌کننده',gr(M.buy),'گرم')+stRow('مرجوعی به تأمین‌کننده',gr(M.retSup),'گرم')+'</div></section>'
    +'<section class="sec"><h2>خرده‌فروشی</h2><div class="stm">'+stRow('تعداد فاکتور',fmt(M.retailN),'')+stRow('فروش',fmt(M.saleR),'ریال')+stRow('سود (درصد سود فاکتورها)',fmt(M.profR),'ریال')+'</div></section>'
-   +'<section class="sec"><h2>طرف‌حساب‌ها</h2><div class="stm">'+stRow('طرف‌حساب جدید (اولین سند در این بازه)',fmt(M.newP),'نفر')+'</div></section>';
+   +'<section class="sec"><h2>طرف‌حساب‌ها</h2><div class="stm">'+stRow('طرف‌حساب جدید (اولین سند در این بازه)',fmt(M.newP),'نفر')+'</div></section>'
+   +(X.n?'<section class="sec"><h2>هزینه‌های مغازه</h2><div class="stm">'+stRow('هزینه‌ی طلایی',gr(X.g),'گرم')+stRow('سود عمده بعد از هزینه‌ی طلایی',gr(M.profit-X.g),'گرم',1)+stRow('هزینه‌ی ریالی',fmt(X.r),'ریال')+stRow('سود خرده بعد از هزینه‌ی ریالی',fmt(M.profR-X.r),'ریال',1)+'</div><p class="note">گرم و ریال جدا کم می‌شوند؛ هیچ‌کدام به دیگری تبدیل نمی‌شود. <button class="btn sm" data-act="tabto" data-t="expenses" type="button">ریز هزینه‌ها</button></p></section>':'');
 }
 
 /* ---------- evaluation: one validated pair (green #2b7a4b gain/sales, amber #d98a2b loss/returns), values always printed too ---------- */
@@ -2555,6 +2556,51 @@ async function saveTarget(id){var s=parseJ(val('tg_s')),e=parseJ(val('tg_e')),go
   var d={title:val('tg_title'),type:type,goal:goal,s:s,e:e,done:old&&old.type==='manual'&&type==='manual'?+old.done||0:0,ts:old&&old.ts?old.ts:new Date().toISOString()};
   if(await put('targets',id||newId('targets'),d)){toast('تارگت ذخیره شد');back()}}
 async function tgAdd(id,n){var t=null;S.targets.forEach(function(x){if(x.id===id)t=x});if(!t)return;var d=Object.assign({},t);delete d.id;d.done=Math.max(0,(+d.done||0)+n);await put('targets',id,d)}
+
+/* ---------- shop expenses: rial and gold kept apart, never converted; they touch no party balance ----------
+   expenses/{id}: {date, cat, note, r (rial), w (grams as weighed), lab (purity, lab number), g (750-equivalent), ts, by} */
+var XCAT=[['rent','اجاره'],['wage','حقوق و دستمزد'],['bills','قبض‌ها'],['work','اجرت کارگاه و تعمیر'],['melt','ذوب، ری‌گیری و انگ'],['tools','ابزار و تجهیزات'],['pack','جعبه و بسته‌بندی'],['ship','پیک و حمل'],['ads','تبلیغات'],['safe','بیمه و حفاظت'],['tax','مالیات و عوارض صنفی'],['bank','کارمزد بانک و کارتخوان'],['hosp','پذیرایی و ملزومات'],['other','سایر']];
+function xcatName(k){for(var i=0;i<XCAT.length;i++)if(XCAT[i][0]===k)return XCAT[i][1];return 'سایر'}
+function xg(x){return x.g!=null?+x.g:(+x.w||0)*labOf(+x.lab||750)/750}
+function expSum(s,e){var T={r:0,g:0,n:0,by:{}};S.expenses.forEach(function(x){var d=invDay(x);if(d<s||d>e)return;var c=T.by[x.cat]||(T.by[x.cat]={r:0,g:0,n:0});
+  T.n++;c.n++;T.r+=+x.r||0;c.r+=+x.r||0;T.g+=xg(x);c.g+=xg(x)});return T}
+function xAmt(r,g){return [r>=0.5?fmt(r)+' <small>ریال</small>':'',g>=0.0005?gr(g)+' <small>گرم</small>':''].filter(Boolean).join(' + ')||'—'}
+function vExpenses(){var off=S.xoff||0,P=period('m',off),T=expSum(P.s,P.e),Q=period('m',off-1),N=expSum(Q.s,Q.e);
+  setTop('هزینه‌های مغازه',P.label,false);
+  var L=S.expenses.filter(function(x){var d=invDay(x);return d>=P.s&&d<=P.e}).sort(function(a,b){return invDay(b)-invDay(a)||(a.ts<b.ts?1:-1)});
+  var cats=XCAT.filter(function(c){return T.by[c[0]]});
+  main.innerHTML='<button class="btn pri" data-act="newx" type="button">+ ثبت هزینه</button>'
+   +'<div class="pnav"><button class="btn sm" data-act="xoff" data-n="-1" type="button">ماه قبل</button><b>'+esc(P.label)+'</b><button class="btn sm" data-act="xoff" data-n="1" type="button"'+(off>=0?' disabled':'')+'>ماه بعد</button></div>'
+   +'<div class="kpis flat">'+kpiT('هزینه‌ی ریالی',fmt(T.r)+' <small>ریال</small>',chg(T.r,N.r,'ماه قبل')||fmt(T.n)+' قلم')+kpiT('هزینه‌ی طلایی',gr(T.g)+' <small>گرم</small>','عیار ۷۵۰'+(chg(T.g,N.g,'ماه قبل')?'، '+chg(T.g,N.g,'ماه قبل'):''))+'</div>'
+   +(cats.length?'<section class="sec"><h2>به تفکیک</h2><div class="stm">'+cats.map(function(c){var b=T.by[c[0]];return stRow(c[1]+' ('+fmt(b.n)+')',xAmt(b.r,b.g),'')}).join('')+'</div></section>':'')
+   +(L.length?'<div class="list">'+L.map(function(x){return '<button class="row" data-act="x" data-id="'+esc(x.id)+'"><span class="t">'+esc(xcatName(x.cat))+'</span><span class="s">'+esc(x.date||'')+(x.note?' · '+esc(x.note):'')+'</span><span class="v">'+xAmt(+x.r||0,xg(x))+'</span></button>'}).join('')+'</div>'
+     :'<div class="empty">در '+esc(P.label)+' هزینه‌ای ثبت نشده. اجاره، حقوق، قبض‌ها، اجرت کارگاه و ذوب را این‌جا بنویس؛ ریال و گرم جدا جمع می‌شوند و به مانده‌ی هیچ طرف‌حسابی دست نمی‌زنند.</div>')
+   +'<p class="note">هزینه‌ی طلایی (مثل افت ذوب یا اجرت گرمی کارگاه) به گرم ۷۵۰ جمع می‌شود و هیچ‌وقت به ریال تبدیل نمی‌شود.</p>';
+}
+function vXform(){var p=S.param||{},ex=null;S.expenses.forEach(function(x){if(x.id===p.id)ex=x});var x=ex||{},cat=x.cat||p.cat||'';
+  setTop(ex?'ویرایش هزینه':'ثبت هزینه','',true);
+  main.innerHTML='<section class="sec"><h2>نوع هزینه</h2><div class="chips xcats" role="group" aria-label="نوع هزینه">'+XCAT.map(function(c){return '<button class="chip" data-act="xcat" data-k="'+c[0]+'" aria-pressed="'+(c[0]===cat)+'" type="button">'+c[1]+'</button>'}).join('')+'</div><input type="hidden" id="x_cat" value="'+esc(cat)+'"></section>'
+   +'<section class="sec"><h2>مبلغ</h2><div class="grid">'+fld('ریال','x_r',x.r?plain(x.r):'',{num:1,w2:1,ph:'مثلاً ۵۰۰۰۰۰۰۰۰'})+'<p class="note w2" id="x_rw" aria-live="polite"></p>'
+   +fld('طلا (گرم)','x_w',x.w?plain(x.w,3):'',{num:1,ph:'اختیاری'})+fld('عیار','x_lab',plain(+x.lab||750),{num:1})+'</div>'
+   +'<p class="note">ریال یا طلا یا هر دو. عیار به عدد آزمایشگاه است (۷۵۰ = ۱۸ عیار).</p></section>'
+   +'<section class="sec"><h2>تاریخ و توضیح</h2><div class="grid">'+fld('تاریخ','x_date',x.date||jdate(Date.now()),{num:1,w2:1})
+   +'<div class="chips w2"><button class="chip" data-act="xday" data-n="0" type="button">امروز</button><button class="chip" data-act="xday" data-n="1" type="button">دیروز</button></div>'
+   +fld('توضیحات','x_note',x.note,{w2:1,ph:'مثلاً قبض برق آبان'})+'</div></section>'
+   +'<div class="btns"><button class="btn pri" data-act="savex" data-id="'+esc(ex?ex.id:'')+'" type="button">ذخیره</button>'+(ex?'<button class="btn dng" data-act="delx" data-id="'+esc(ex.id)+'" type="button">حذف</button>':'')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
+  xRial();
+}
+function xRial(){var o=$('#x_rw');if(!o)return;var r=num(val('x_r'));o.textContent=r>0?fmt(r)+' ریال = '+fmt(r/10)+' تومان':''}
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='x_r')xRial()});
+// picking a type on a new expense fills last time's amounts for that type (rent and wages repeat every month)
+function xPick(k){$('#x_cat').value=k;$$('.xcats .chip').forEach(function(c){c.setAttribute('aria-pressed',String(c.dataset.k===k))});
+  if(S.param&&S.param.id||val('x_r')||val('x_w'))return;var last=null;S.expenses.forEach(function(x){if(x.cat===k&&(!last||invDay(x)>invDay(last)||invDay(x)===invDay(last)&&x.ts>last.ts))last=x});
+  if(!last)return;if(last.r)$('#x_r').value=plain(+last.r);if(last.w){$('#x_w').value=plain(+last.w,3);$('#x_lab').value=plain(+last.lab||750)}xRial();toast('مبلغ دفعه‌ی قبل گذاشته شد؛ اگر فرق دارد عوضش کن')}
+async function saveExpense(id){var cat=val('x_cat'),r=Math.round(num(val('x_r'))),w=num(val('x_w')),lab=labOf(num(val('x_lab'))||750),date=val('x_date');
+  if(!cat){toast('نوع هزینه را انتخاب کن');return}if(!(r>0)&&!(w>0)){toast('مبلغ ریالی یا وزن طلا را بنویس');return}if(parseJ(date)==null){toast('تاریخ را به شکل ۱۴۰۵/۰۸/۰۴ بنویس');return}
+  if(w>0&&!(lab>0&&lab<=1000)){toast('عیار درست نیست');return}
+  var old=null;S.expenses.forEach(function(x){if(x.id===id)old=x});
+  var d={date:date,cat:cat,note:val('x_note'),r:r>0?r:0,w:w>0?w:0,lab:lab,g:w>0?w*lab/750:0,ts:old&&old.ts?old.ts:new Date().toISOString()};if(curUser())d.by=curUser();
+  if(await put('expenses',id||newId('expenses'),d)){toast('هزینه ثبت شد');var j=parseJ(date);if(!old&&j!=null){var c=period('m',0);S.xoff=0;while(j<c.s&&S.xoff>-240){S.xoff--;c=period('m',S.xoff)}}back()}}
 
 function vPform(){
   var p=S.param&&S.param.id?partyById(S.param.id):null,isNew=!p;p=p||{};
@@ -2877,6 +2923,13 @@ document.addEventListener('click',function(e){
     case 'nexttg':go('tform',{next:id});break;
     case 'savetg':saveTarget(id);break;
     case 'deltg':ask('این تارگت حذف شود؟ از «سوابق تغییرات» قابل برگرداندن است.',async function(){if(await del('targets',id)){toast('تارگت حذف شد');back()}},'حذف');break;
+    case 'newx':go('xform',null);break;
+    case 'x':go('xform',{id:id});break;
+    case 'xcat':xPick(b.dataset.k);break;
+    case 'xday':{var dd=todayD()-(+b.dataset.n);$('#x_date').value=jstr(dd);break}
+    case 'xoff':S.xoff=Math.min(0,(S.xoff||0)+(+b.dataset.n));render();break;
+    case 'savex':saveExpense(id);break;
+    case 'delx':ask('این هزینه حذف شود؟ از «سوابق تغییرات» قابل برگرداندن است.',async function(){if(await del('expenses',id)){toast('هزینه حذف شد');back()}},'حذف');break;
     case 'tgadd':tgAdd(id,+b.dataset.n);break;
     case 'tgdur':{var s0=parseJ(val('tg_s'));if(s0==null)s0=todayD();$('#tg_e').value=jstr(s0+(+b.dataset.n)-1);break}
     case 'newparty':S.ret=b.dataset.ret||null;go('pform',null);break;
