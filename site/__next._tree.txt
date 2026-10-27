@@ -1,4 +1,4 @@
-:HL["/leon-gold-app/site/_next/static/chunks/1-0a9bs39uwmi.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/41963i1p6wsrp.css","style"]
 :HL["leaf.png","image"]
 1:[["children",{"s":"__PAGE__","h":128}]]
-0:{"b":"hq0jovJF-tuPtPLvdko21","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
+0:{"b":"Gf46u1-3bXcftyhTQSMA1","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
