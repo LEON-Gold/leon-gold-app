@@ -1,6 +1,5 @@
-:HL["/leon-gold-app/site/_next/static/css/1130954eb2430e98.css","style"]
-:HL["/leon-gold-app/site/_next/static/css/797a61fefa7393f5.css","style"]
-:HL["/leon-gold-app/site/_next/static/css/9ba92982a897f99f.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/0ci_zixvo4478.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/0geb2_rh_ijrt.css","style"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"hesab","h":96,"c":"$Q2"}]]
-0:{"b":"FXP6zVCwNZ48wLflJk1oG","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"8TfPUku_hSru91zrgY9Qq","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
