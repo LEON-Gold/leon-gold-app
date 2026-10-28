@@ -109,7 +109,8 @@ document.getElementById("days").innerHTML = PLAN.map((d, i) => {
       <label><input type="checkbox" data-done="${d.id}"${store.get("done-" + d.id) ? " checked" : ""}> انجام شد</label></div>
     <div class="strip">${imgs(d).map((s) => `<a href="${s}" target="_blank"><img src="${s}" loading="lazy" alt=""></a>`).join("")}</div>
     <div class="row"><button class="btn ink" data-save="${d.id}">ذخیره‌ی ${d.slides.length > 1 ? "تصویرها" : "تصویر"}</button>
-      ${d.caption ? `<button class="btn" data-copy="${d.id}">کپی متن و هشتگ‌ها</button>` : ""}</div>
+      ${d.caption ? `<button class="btn" data-copy="${d.id}">کپی متن و هشتگ‌ها</button>` : ""}
+      ${d.link ? `<button class="btn line" data-link="${d.id}">کپی لینک صفحه‌ی کار</button>` : ""}</div>
     ${d.caption ? `<div class="cap">${esc(fullText(d))}</div>` : ""}
     <div class="sub"><h3>استوری‌های امروز</h3><ul>${d.stories.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
     ${r ? `<h3>ریلز: ${esc(r.title)} (${esc(r.len)})</h3><ol>${r.shots.map(([t, a, txt]) => `<li class="shot"><b>${esc(t)}:</b> ${esc(a)}${txt ? `<br>${esc(txt)}` : ""}</li>`).join("")}</ol>
@@ -119,10 +120,11 @@ document.getElementById("days").innerHTML = PLAN.map((d, i) => {
 
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  const d = PLAN.find((x) => x.id === (b.dataset.copy || b.dataset.save)); if (!d) return;
-  if (b.dataset.copy) {
-    try { await navigator.clipboard.writeText(fullText(d)); toast("کپی شد"); }
-    catch { const t = document.createElement("textarea"); t.value = fullText(d); document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); toast("کپی شد"); }
+  const d = PLAN.find((x) => x.id === (b.dataset.copy || b.dataset.save || b.dataset.link)); if (!d) return;
+  if (b.dataset.copy || b.dataset.link) {
+    const text = b.dataset.link ? d.link : fullText(d);
+    try { await navigator.clipboard.writeText(text); toast("کپی شد"); }
+    catch { const t = document.createElement("textarea"); t.value = text; document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); toast("کپی شد"); }
   } else {
     b.disabled = true;
     try {
