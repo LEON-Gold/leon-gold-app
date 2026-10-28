@@ -139,7 +139,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-27 23:18</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 04:38</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1178,7 +1178,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     var paid=$$('.rp').reduce(function(a,e){return a+parse(e.value)*(e.parentNode.querySelector('select').value==='dr'?-1:1)},0);
     $('#s_gold').textContent=fmt(Math.round(S.g));$('#s_as').textContent=fmt(Math.round(S.as));
     $('#s_tax').textContent=fmt(Math.round(rtax));$('#s_final').textContent=fmt(Math.round(fin));
-    var reff=fin*($('#r_deliv').value==='nd'?-1:1),rprev=parse($('#r_prev').value)*sgn('#r_prev_t'),rall=reff+rprev;showBal('#s_final',Math.round(reff),0);showBal('#s_all',Math.round(rall),0);$('#s_paid').textContent=fmt(Math.round(paid));showBal('#s_bal',Math.round(rall-paid),0);window.LGR={eff:reff,delta:reff-paid};
+    var reff=fin*($('#r_deliv').value==='nd'?-1:1),rprev=parse($('#r_prev').value)*sgn('#r_prev_t'),rall=reff+rprev;showBal('#s_final',Math.round(reff),0);showBal('#s_all',Math.round(rall),0);$('#s_paid').textContent=fmt(Math.round(paid));showBal('#s_bal',Math.round(rall-paid),0);window.LGR={eff:Math.round(reff),delta:Math.round(reff-paid)};
 
     // wholesale (all weights normalised to 750)
     var W={q:0,w:0,p:0,a:0,t:0}, wgp=parse($('#whole .gp').value);
@@ -1209,7 +1209,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     var ci=Math.round(parse($('#tx_ci').value)),co=Math.round(parse($('#tx_co').value)),rb=tR-ci+co,tc2=ci||co;
     if(tc2)tc.textContent=(tt?tc.textContent+'  |  ':'')+(ci?'دریافت نقدی '+fmt(ci)+' ریال ':'')+(co?'پرداخت نقدی '+fmt(co)+' ریال ':'')+'←  مانده ریالی این سند '+fmt(Math.abs(rb))+' ریال '+(Math.abs(rb)<0.5?'تسویه':rb>0?'بدهکار':'بستانکار');
     $('#tx_rb').textContent=(tt||tc2)?fmt(Math.abs(rb))+(Math.abs(rb)<0.5?' تسویه':rb>0?' بدهکار':' بستانکار'):'';
-    var got=recv+gxG+cashG, bal=all+0-got+tG;window.LGW={eff:weff,delta:weff-got+tG,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
+    var got=recv+gxG+cashG, bal=all+0-got+tG;window.LGW={eff:Math.round(weff*1000)/1000,delta:Math.round((weff-got+tG)*1000)/1000,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
     showBal('#x_trg',tG,3);showBal('#x_trr',rb,0);
     var gf=0;$$('#wg tbody tr').forEach(function(tr,i){if(parse($('.gw',tr).value))gf=i+1});$$('#wg tbody tr').forEach(function(tr,i){tr.classList.toggle('hr',i>=Math.max(gf,1))});
     $('#wg').parentNode.classList.toggle('empty',!gf);$('#wtr').parentNode.classList.toggle('empty',!tt&&!tc2);
@@ -1933,7 +1933,7 @@ async function backupJson(){var d={app:'leon-gold',format:3,at:new Date().toISOS
 function csv(rows){var q=function(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};return '\ufeff'+rows.map(function(r){return r.map(q).join(',')}).join('\r\n')}
 function csvInvoices(){var rows=[['تاریخ','شماره','نوع','طرف‌حساب','شرح کالا','تعداد','وزن (گرم)','عیار','اجرت ٪','سود ٪','مبلغ ردیف (ریال)','وزن ۷۵۰ (گرم)','جمع ردیف (گرم)','مبلغ کل سند']];
   S.invoices.slice().sort(function(a,b){return a.ts<b.ts?-1:1}).forEach(function(i){var base=[i.date||'',num(i.no),invLabel(i),i.partyName||''],u=unitOf(i),tot=u==='g'?(+(i.amount||0).toFixed(3))+' گرم':Math.round(i.amount||0)+' ریال';
-    if(i.items&&i.items.length)i.items.forEach(function(it){rows.push(base.concat([it.desc,it.qty,it.weight,it.carat,it.ajrat,it.profit==null?'':it.profit,it.amount==null?'':it.amount,it.w750==null?'':it.w750,it.totalG==null?'':it.totalG,tot]))});
+    if(i.items&&i.items.length)i.items.forEach(function(it){rows.push(base.concat([it.desc,it.qty,it.weight,it.carat,it.ajrat,it.profit==null?'':it.profit,it.amount==null?'':it.amount,it.w750==null?'':+(+it.w750).toFixed(3),it.totalG==null?'':+(+it.totalG).toFixed(3),tot]))});
     else rows.push(base.concat(['(اقلام این فاکتور قدیمی جدا ذخیره نشده)','','','','','','','','',tot]))});
   saveFile('leon-gold-invoice-items-'+day()+'.csv',csv(rows),'text/csv')}
 function csvBalances(){var rows=[['نام','نوع','فروشگاه','تلفن','مانده گرمی (+ بدهکار / - بستانکار)','مانده ریالی (+ بدهکار / - بستانکار)']];
@@ -2142,7 +2142,7 @@ function vXform(){var p=S.param||{},ex=null;S.expenses.forEach(function(x){if(x.
   setTop(ex?'ویرایش هزینه':'ثبت هزینه','',true);
   main.innerHTML='<section class="sec"><h2>نوع هزینه</h2><div class="chips xcats" role="group" aria-label="نوع هزینه">'+XCAT.map(function(c){return '<button class="chip" data-act="xcat" data-k="'+c[0]+'" aria-pressed="'+(c[0]===cat)+'" type="button">'+c[1]+'</button>'}).join('')+'</div><input type="hidden" id="x_cat" value="'+esc(cat)+'"></section>'
    +'<section class="sec"><h2>مبلغ</h2><div class="grid">'+fld('ریال','x_r',x.r?plain(x.r):'',{num:1,w2:1,ph:'مثلاً ۵۰۰۰۰۰۰۰۰'})+'<p class="note w2" id="x_rw" aria-live="polite"></p>'
-   +fld('طلا (گرم)','x_w',x.w?plain(x.w,3):'',{num:1,ph:'اختیاری'})+fld('عیار','x_lab',plain(+x.lab||750),{num:1})+'</div>'
+   +fld('طلا (گرم)','x_w',x.w?plain(x.w,3):'',{num:1,ph:'اختیاری'})+fld('عیار','x_lab',plain(+x.lab||750,2),{num:1})+'</div>'
    +'<p class="note">ریال یا طلا یا هر دو. عیار به عدد آزمایشگاه است (۷۵۰ = ۱۸ عیار).</p></section>'
    +'<section class="sec"><h2>تاریخ و توضیح</h2><div class="grid">'+fld('تاریخ','x_date',x.date||jdate(Date.now()),{num:1,w2:1})
    +'<div class="chips w2"><button class="chip" data-act="xday" data-n="0" type="button">امروز</button><button class="chip" data-act="xday" data-n="1" type="button">دیروز</button></div>'
@@ -2155,11 +2155,12 @@ document.addEventListener('input',function(e){if(e.target&&e.target.id==='x_r')x
 // picking a type on a new expense fills last time's amounts for that type (rent and wages repeat every month)
 function xPick(k){$('#x_cat').value=k;$$('.xcats .chip').forEach(function(c){c.setAttribute('aria-pressed',String(c.dataset.k===k))});
   if(S.param&&S.param.id||val('x_r')||val('x_w'))return;var last=null;S.expenses.forEach(function(x){if(x.cat===k&&(!last||invDay(x)>invDay(last)||invDay(x)===invDay(last)&&x.ts>last.ts))last=x});
-  if(!last)return;if(last.r)$('#x_r').value=plain(+last.r);if(last.w){$('#x_w').value=plain(+last.w,3);$('#x_lab').value=plain(+last.lab||750)}xRial();toast('مبلغ دفعه‌ی قبل گذاشته شد؛ اگر فرق دارد عوضش کن')}
+  if(!last)return;if(last.r)$('#x_r').value=plain(+last.r);if(last.w){$('#x_w').value=plain(+last.w,3);$('#x_lab').value=plain(+last.lab||750,2)}xRial();toast('مبلغ دفعه‌ی قبل گذاشته شد؛ اگر فرق دارد عوضش کن')}
 async function saveExpense(id){var cat=val('x_cat'),r=Math.round(num(val('x_r'))),w=num(val('x_w')),lab=labOf(num(val('x_lab'))||750),date=val('x_date');
   if(!cat){toast('نوع هزینه را انتخاب کن');return}if(!(r>0)&&!(w>0)){toast('مبلغ ریالی یا وزن طلا را بنویس');return}if(parseJ(date)==null){toast('تاریخ را به شکل ۱۴۰۵/۰۸/۰۴ بنویس');return}
   if(w>0&&!(lab>0&&lab<=1000)){toast('عیار درست نیست');return}
   var old=null;S.expenses.forEach(function(x){if(x.id===id)old=x});
+  if(old&&+old.lab>0&&Math.abs(num(val('x_lab'))-old.lab)<0.01)lab=+old.lab;  // the form shows the lab number to 2 decimals; untouched, keep the exact one
   var d={date:date,cat:cat,note:val('x_note'),r:r>0?r:0,w:w>0?w:0,lab:lab,g:w>0?w*lab/750:0,ts:old&&old.ts?old.ts:new Date().toISOString()};if(curUser())d.by=curUser();
   if(await put('expenses',id||newId('expenses'),d)){toast('هزینه ثبت شد');var j=parseJ(date);if(!old&&j!=null){var c=period('m',0);S.xoff=0;while(j<c.s&&S.xoff>-240){S.xoff--;c=period('m',S.xoff)}}back()}}
 
@@ -2216,7 +2217,7 @@ function itemsOf(k){var s=sheet(k),gp=num($('.gp',s).value),out=[];
   $$('#rt tbody tr,#wt tbody tr',s).forEach(function(tr){var d=$('td:nth-child(2) input',tr).value.trim(),q=num($('.q',tr).value),w=num($('.w',tr).value);if(!d&&!w)return;
     var c=k==='retail'?num($('.c',tr).value)||18:Math.round(labOf(num($('.c',tr).value))*10)/10,aj=num($('.aj',tr).value),it={desc:d,qty:q,weight:w,carat:c,ajrat:aj};
     if(k==='retail'){var pf=num($('.pf',tr).value),gold=w*gp,ajr=gold*aj/100,prof=(gold+ajr)*pf/100;it.profit=pf;it.gold=Math.round(gold);it.ajratProfit=Math.round(ajr+prof);it.amount=Math.round(gold+ajr+prof)}
-    else{var pure=w*labOf(num($('.c',tr).value))/750,ajg=pure*aj/100;it.w750=+pure.toFixed(3);it.ajratG=+ajg.toFixed(3);it.totalG=+(pure+ajg).toFixed(3)}
+    else{var pure=w*labOf(num($('.c',tr).value))/750,ajg=pure*aj/100;it.w750=+pure.toFixed(6);it.ajratG=+ajg.toFixed(6);it.totalG=+(pure+ajg).toFixed(6)}
     var pm=prodMatch(d);if(pm){it.pid=pm.id;it.code=fanum(pm.code)}
     if(k==='whole'){if(tr.dataset.ret)it.ret=true;if(pm&&pm.buyAjrat!=null)it.costAj=+pm.buyAjrat}
     out.push(it)});return out}
@@ -2293,7 +2294,7 @@ function applyAi(r){
   while($$('#rt tbody tr,#wt tbody tr',s).length<start+items.length)$('.addrow',s).click();
   trs=$$('#rt tbody tr,#wt tbody tr',s);
   items.forEach(function(it,j){var tr=trs[start+j];setv($('td:nth-child(2) input',tr),it.desc||'');setv($('.q',tr),P(+it.qty));setv($('.w',tr),P(+it.weight,3));
-    setv($('.c',tr),!(+it.carat>0)?'':k==='whole'?(Math.round(labOf(+it.carat))!==750?plain(Math.round(labOf(+it.carat))):''):(+it.carat!==18?plain(+it.carat,2):''));var pp=prodMatch(it.desc);setv($('.aj',tr),P(+it.ajrat||(pp&&pp.ajrat)||0,2));if(k==='retail')setv($('.pf',tr),P(+it.profit,2))});
+    setv($('.c',tr),!(+it.carat>0)?'':k==='whole'?(Math.round(labOf(+it.carat)*10)/10!==750?plain(labOf(+it.carat),1):''):(+it.carat!==18?plain(+it.carat,2):''));var pp=prodMatch(it.desc);setv($('.aj',tr),P(+it.ajrat||(pp&&pp.ajrat)||0,2));if(k==='retail')setv($('.pf',tr),P(+it.profit,2))});
   if(k==='retail'){if(r.discount>0)setv($('#r_disc'),plain(r.discount));var pm=r.payments||{},rp=$$('#retail .rp');[pm.cash,pm.card,pm.cheque,pm.gold].forEach(function(v,i){if(v>0&&rp[i])setv(rp[i],plain(v))})}
   else{if(r.receivedGold>0)setv($('#w_recv'),plain(r.receivedGold,3));if(r.cashRial>0)setv($('#w_cash'),plain(r.cashRial))}
   if(r.notes){var nt=$('.notes .free input',s);if(nt&&!nt.value)setv(nt,r.notes)}
@@ -2631,6 +2632,8 @@ exportBtn('#pvPdf','در حال ساخت PDF…',async function(dl){
 /* ---------- boot ---------- */
 render();initDb();
 $('#lockBtn').addEventListener('click',function(){leaveGuard(lockAsk)});
+// tests open index.html as a file and reach the ledger's own sums through this; the published app never has it
+if(location.protocol==='file:')window.__leon={S:S,compute:compute,expSum:expSum,metrics:metrics,openNewInvoice:openNewInvoice,todayD:todayD,jdate:jdate};
 })();
 
 </script>
