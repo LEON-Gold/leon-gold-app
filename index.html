@@ -60,10 +60,11 @@
       for(var i=0;i<dk.length;i+=300){var part=dk.slice(i,i+300),sent=part.map(function(k){return obox[k]});
         await api('/api/push',{method:'POST',json:{changes:sent.map(function(v){return {c:v.c,id:v.id,d:v.d}})}});
         for(var j=0;j<part.length;j++)if(obox[part[j]]&&obox[part[j]].q===sent[j].q){delete obox[part[j]];await write('outbox',part[j],undefined)}}
+      // a blob the server refuses (too large) must not stop the push/pull below from running for everything else
       var bk=keys.filter(function(k){return k[0]==='b'});
       for(i=0;i<bk.length;i++){var bid=obox[bk[i]].b;
-        if(blobs[bid])await api('/api/blob/'+encodeURIComponent(bid),{method:'PUT',headers:{'Content-Type':blobs[bid].type||'image/jpeg'},body:blobs[bid]});
-        delete obox[bk[i]];await write('outbox',bk[i],undefined)}
+        try{if(blobs[bid])await api('/api/blob/'+encodeURIComponent(bid),{method:'PUT',headers:{'Content-Type':blobs[bid].type||'image/jpeg'},body:blobs[bid]});
+          delete obox[bk[i]];await write('outbox',bk[i],undefined)}catch(e){if(e.login)throw e}}
       // 2. bring back everything after the last number this device saw
       var touched={},more=true;
       while(more){var r=await api('/api/pull?since='+(S.rev||0));
@@ -128,7 +129,8 @@
     var when=j.at?new Intl.DateTimeFormat('fa-IR',{dateStyle:'medium',timeStyle:'short'}).format(new Date(j.at)):'';
     if(!confirm('بازگردانی پشتیبان'+(when?' '+when:'')+':\n'+cnt+'\n\n'+(full?'همه‌ی اطلاعات این دستگاه با این فایل جایگزین می‌شود.':'این فایل پشتیبان قدیمی است و فقط همین بخش‌ها را دارد؛ فقط همین‌ها جایگزین می‌شوند و بقیه دست نمی‌خورد.')+'\n\nادامه می‌دهی؟'))return;
     await ready;
-    for(var c in docs)if(full||col[c])for(var id in docs[c])await put(c,id,undefined);
+    // only ledger collections are ever cleared; a backup never touches other apps' data sharing this sync (the CRM panel's crm_*)
+    for(var c in docs)if(COLS.indexOf(c)>-1&&(full||col[c]))for(var id in docs[c])await put(c,id,undefined);
     for(c in col)for(id in col[c])await put(c,id,col[c][id]);
     if(j.photos)for(var k in j.photos){try{var bl=await (await fetch(j.photos[k])).blob();blobs[k]=bl;await write('blobs',k,bl);if(S.on)await queue('b/'+k,{b:k})}catch(e){}}
     alert('بازگردانی انجام شد.');location.reload()}
@@ -139,7 +141,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 04:41</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 11:27</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -147,6 +149,7 @@
     m.onclick=function(e){var o=e.target.getAttribute('data-o');m.hidden=true;if(o==='exp')exportAll();if(o==='imp')inp.click();if(o==='sync')syncPanel()};
     inp.onchange=function(){if(inp.files[0])importAll(inp.files[0]);inp.value=''};
     window.__leonImportPick=function(){inp.click()};
+    window.__leonImport=importAll;  // tests restore a file without the picker
     var LBL={off:'آفلاین',busy:'↻ همگام‌سازی',ok:'● همگام',wait:'○ بدون اینترنت',err:'! خطای همگام‌سازی',login:'! ورود دوباره'};
     window.__leonSyncPaint=function(){var i=window.__leonSync.info();b.children[0].textContent=LBL[i.state]+' ▾';
       b.children[0].style.color=i.state==='ok'?'#9fe0b0':i.state==='err'||i.state==='login'?'#f2b8a0':'#f3ead0';
