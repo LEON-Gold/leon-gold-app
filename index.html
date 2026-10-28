@@ -54,6 +54,7 @@
     if(!r.ok)throw new Error('server '+r.status);return o.raw?r:r.json()}
   async function syncNow(){
     if(!S.on)return;if(busy){again=true;return}busy=true;setState('busy');
+    var touched={};
     try{
       // 1. send what is waiting here
       var keys=Object.keys(obox),dk=keys.filter(function(k){return k[0]==='d'});
@@ -66,7 +67,7 @@
         try{if(blobs[bid])await api('/api/blob/'+encodeURIComponent(bid),{method:'PUT',headers:{'Content-Type':blobs[bid].type||'image/jpeg'},body:blobs[bid]});
           delete obox[bk[i]];await write('outbox',bk[i],undefined)}catch(e){if(e.login)throw e}}
       // 2. bring back everything after the last number this device saw
-      var touched={},more=true;
+      var more=true;
       while(more){var r=await api('/api/pull?since='+(S.rev||0));
         for(i=0;i<r.changes.length;i++){var ch=r.changes[i];if(obox['d/'+ch.c+'/'+ch.id])continue;
           var cur=docs[ch.c]&&docs[ch.c][ch.id];if(JSON.stringify(cur===undefined?null:cur)===JSON.stringify(ch.d))continue;
@@ -74,9 +75,10 @@
         for(i=0;i<r.blobs.length;i++){var id=r.blobs[i];if(blobs[id])continue;
           try{var bl=await (await api('/api/blob/'+encodeURIComponent(id),{raw:true})).blob();blobs[id]=bl;await write('blobs',id,bl);touched.products=1}catch(e){}}
         S.rev=r.rev;more=r.more;await saveS()}
-      Object.keys(touched).forEach(emit);
       S.at=new Date().toISOString();await saveS();setState('ok')
     }catch(e){setState(e.login?'login':navigator.onLine===false?'wait':'err',String(e.message||e))}
+    // pages already applied stay on screen even when a later page or the connection fails
+    Object.keys(touched).forEach(emit);
     busy=false;if(again){again=false;soon()}}
   function count(){var t=0;for(var c in docs)t+=Object.keys(docs[c]).length;return t}
   // first connection: an empty server takes this device's data; otherwise this device takes the server's (after saving a backup file)
@@ -141,7 +143,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 11:27</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 11:30</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
