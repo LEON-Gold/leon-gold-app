@@ -110,7 +110,7 @@ document.getElementById("days").innerHTML = PLAN.map((d, i) => {
     <div class="strip">${imgs(d).map((s) => `<a href="${s}" target="_blank"><img src="${s}" loading="lazy" alt=""></a>`).join("")}</div>
     <div class="row"><button class="btn ink" data-save="${d.id}">ذخیره‌ی ${d.slides.length > 1 ? "تصویرها" : "تصویر"}</button>
       ${d.caption ? `<button class="btn" data-copy="${d.id}">کپی متن و هشتگ‌ها</button>` : ""}
-      ${d.link ? `<button class="btn line" data-link="${d.id}">کپی لینک صفحه‌ی کار</button>` : ""}</div>
+      ${d.link ? `<button class="btn line" data-link="${d.id}">کپی لینک سایت</button>` : ""}</div>
     ${d.caption ? `<div class="cap">${esc(fullText(d))}</div>` : ""}
     <div class="sub"><h3>استوری‌های امروز</h3><ul>${d.stories.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
     ${r ? `<h3>ریلز: ${esc(r.title)} (${esc(r.len)})</h3><ol>${r.shots.map(([t, a, txt]) => `<li class="shot"><b>${esc(t)}:</b> ${esc(a)}${txt ? `<br>${esc(txt)}` : ""}</li>`).join("")}</ol>
