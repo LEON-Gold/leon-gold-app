@@ -1,5 +1,5 @@
-:HL["/leon-gold-app/site/_next/static/chunks/3g12_vggu1ixm.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/212byi4vewh1c.css","style"]
 :HL["/leon-gold-app/site/_next/static/chunks/0geb2_rh_ijrt.css","style"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"hesab","h":96,"c":"$Q2"}]]
-0:{"b":"yIUsNoI4uwW2g3Zmg8_sL","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"UuptQH2RqaXh-yRUAW4GJ","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
