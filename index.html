@@ -146,7 +146,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 20:39</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 20:55</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1916,7 +1916,7 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   g.innerHTML='<form class="card" id="gateForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
     +'<div class="rule">دفتر حساب طلا و جواهر</div>'
     +'<input id="gateUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="30">'
-    +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
+    +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
     +'<button type="submit" hidden></button><div class="err" id="gateErr" role="status">نام کاربری و رمز را وارد کن</div>'
     +'<div class="ft">بعد از '+fmt(IDLE_MIN)+' دقیقه بی‌کاری دفتر خودش قفل می‌شود</div></form>';
   document.body.appendChild(g);document.body.style.overflow='hidden';
@@ -1987,11 +1987,11 @@ function entryGate(){
   var sp=document.getElementById('splash');if(sp)sp.remove(); // render() normally clears it, and render() has not run yet
   var g=document.createElement('div');g.id='entry';g.className='gate';
   var i=window.__leonSync.info(),needUrl=!i.url;
-  g.innerHTML='<form class="card" id="entryForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
+  g.innerHTML='<form class="card" id="entryForm" autocomplete="off" novalidate><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
     +'<div class="rule">ورود به دفتر</div>'
     +(needUrl?'<input id="enUrl" class="uname" type="url" dir="ltr" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="آدرس سرور" aria-label="آدرس سرور" value="'+esc(i.url)+'">':'')
     +'<input id="enUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="40">'
-    +'<input id="enPass" class="uname pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
+    +'<input id="enPass" class="uname pin" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" maxlength="64" placeholder="رمز" aria-label="رمز ورود">'
     +'<button class="btn pri" type="submit">ورود</button><div class="err" id="enErr" role="status">نام کاربری و رمز دفتر را از مالک بگیر</div>'
     +'<div class="ft">بعد از اولین ورود موفق، این دستگاه بدون اینترنت هم باز می‌شود</div></form>';
   document.body.appendChild(g);document.body.style.overflow='hidden';
@@ -2006,7 +2006,7 @@ function entryGate(){
     try{var ok=await window.__leonSync.connect(url,u,p);
       if(ok===false){btn.disabled=false;btn.textContent='ورود';return} // the owner's own "replace this device" confirm was declined
       g.remove();document.body.style.overflow='';render();initDb()}
-    catch(x){btn.disabled=false;btn.textContent='ورود';bad(x&&x.login?'نام کاربری یا رمز درست نیست.':'به سرور وصل نشد. اینترنت را بررسی کن.')}});
+    catch(x){btn.disabled=false;btn.textContent='ورود';var c=x&&x.body&&x.body.error;bad(x&&x.login?'نام کاربری یا رمز درست نیست.':c==='too_many'?'چند بار اشتباه شد؛ ربع ساعت دیگر دوباره امتحان کن.':navigator.onLine===false?'اینترنت وصل نیست.':'به سرور وصل نشد. چند لحظه‌ی دیگر دوباره بزن.')}});
 }
 
 /* ---------- party statements: detail (every entry, with invoice lines) and summary, as Excel or PDF ---------- */
