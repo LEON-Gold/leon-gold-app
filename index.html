@@ -143,7 +143,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-28 11:30</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 08:31</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2592,7 +2592,10 @@ $$('#nav button[data-tab]').forEach(function(b){b.addEventListener('click',funct
 $('#saveInv').addEventListener('click',saveInvoice);
 
 /* ---------- preview + image (A4 sheet) ---------- */
-function fit(){var s=sheet(S.kind),w=s.offsetWidth||794,k=Math.min(window.innerWidth,900)/w;ex.style.setProperty('--k',k.toFixed(4));
+function fit(){var s=sheet(S.kind),w=s.offsetWidth||794,
+    /* document.documentElement.clientWidth is the layout viewport: unlike window.innerWidth it does not
+       change while the user pinch-zooms the preview on iOS Safari, so a pinch no longer re-triggers this fit */
+    k=Math.min(document.documentElement.clientWidth,900)/w;ex.style.setProperty('--k',k.toFixed(4));
   // preview shrinks the sheet with a transform; pull the space below up by its real height (it can be taller than A4)
   $$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});if(ex.classList.contains('pvon')&&s.offsetHeight)s.style.marginBottom=(-s.offsetHeight*(1-k))+'px'}
 function setMsg(t){$('#pvmsg').textContent=t||''}
