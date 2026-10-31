@@ -51,7 +51,8 @@
     if(o.json!==undefined){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
     var r=await fetch(S.url.replace(/\/+$/,'')+p,{method:o.method||'GET',headers:h,body:o.body,cache:'no-store'});
     if(r.status===401){var e=new Error('login');e.login=true;throw e}
-    if(!r.ok)throw new Error('server '+r.status);return o.raw?r:r.json()}
+    if(!r.ok){var e2=new Error('server '+r.status);try{e2.body=await r.json()}catch(x){}throw e2}
+    return o.raw?r:r.json()}
   async function syncNow(){
     if(!S.on)return;if(busy){again=true;return}busy=true;setState('busy');
     var touched={};
@@ -85,7 +86,7 @@
   async function connect(url,u,p){
     S={url:url.trim().replace(/\/+$/,''),rev:0};
     var r=await api('/api/login',{method:'POST',json:{u:u,p:p,device:navigator.platform+' '+(navigator.maxTouchPoints?'touch':'')}});
-    S.token=r.token;S.user=r.user;var st=await api('/api/state');
+    S.token=r.token;S.user=r.user;S.owner=!!r.isOwner;var st=await api('/api/state');
     if(!st.docs){for(var c in docs)for(var id in docs[c])await queue('d/'+c+'/'+id,{c:c,id:id,d:docs[c][id]});
       for(var b in blobs)await queue('b/'+b,{b:b})}
     else if(count()){
@@ -97,14 +98,15 @@
   // an expired login (a new password, or 180 days) signs in again and keeps the outbox and the data as they are
   async function relogin(u,p){
     var r=await api('/api/login',{method:'POST',json:{u:u,p:p,device:navigator.platform+' '+(navigator.maxTouchPoints?'touch':'')}});
-    S.token=r.token;S.user=r.user;await saveS();await syncNow();return true}
+    S.token=r.token;S.user=r.user;S.owner=!!r.isOwner;await saveS();await syncNow();return true}
   async function disconnect(){try{if(S.token)await api('/api/logout',{method:'POST',json:{}})}catch(e){}
     for(var k in obox)await write('outbox',k,undefined);obox={};S={};await saveS();setState('off')}
   setInterval(function(){if(S.on&&document.visibilityState==='visible')syncNow()},20000);
   addEventListener('online',function(){if(S.on)syncNow()});
   document.addEventListener('visibilitychange',function(){if(S.on&&document.visibilityState==='visible')syncNow()});
   ready.then(function(){if(S.on)syncNow();else setState('off')});
-  window.__leonSync={now:syncNow,connect:connect,relogin:relogin,disconnect:disconnect,info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
+  window.__leonSync={now:syncNow,connect:connect,relogin:relogin,disconnect:disconnect,ready:ready,api:api,
+    info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',owner:!!S.owner,at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
   var NOPHOTO='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="240" height="160" fill="#f5f0e3"/><text x="120" y="88" font-family="Tahoma" font-size="16" fill="#9c7433" text-anchor="middle">عکس آفلاین موجود نیست</text></svg>');
   window.__leonBlobURL=function(id){if(!blobs[id])return NOPHOTO;return urls[id]=urls[id]||URL.createObjectURL(blobs[id])};
   window.claude={use:async function(name){await ready;return name==='db'?db:name==='user'?user:name==='downloads'?downloads:name==='assets'?assets:null}};
@@ -143,7 +145,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 08:31</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 14:44</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -726,6 +728,13 @@ body.noact{padding-bottom:24px}
 .chip{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--gold);background:#fff;color:var(--green);border-radius:99px;padding:6px 14px;cursor:pointer;min-height:36px}
 .chip[aria-pressed="true"]{background:var(--green);color:var(--gold-lt)}
 .srch{font:inherit;font-size:16px;width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:12px;height:44px;background:#fff;color:var(--ink)}
+.sutabs{display:flex;gap:4px;background:#183323;padding:3px;border-radius:10px;margin:16px 0 10px}
+.sutabs button{flex:1;font:inherit;font-size:12.5px;font-weight:500;line-height:1.3;border:0;background:transparent;color:var(--bar-dim);padding:8px 4px;border-radius:7px;cursor:pointer;min-height:40px}
+.sutabs button[aria-selected="true"]{background:var(--gold-lt);color:#0a1f15}
+.sutabs button:focus-visible{outline:2px solid var(--gold-lt);outline-offset:2px}
+#supane .srch{margin-bottom:8px}
+.rcimg{margin:0 0 10px;max-height:60vh;overflow:auto;border-radius:10px;border:1px solid var(--line);background:#f5f0e3}
+.rcimg img{display:block;width:100%;height:auto}
 .btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 #aiText{font:inherit;font-size:16px;width:100%;box-sizing:border-box;min-height:88px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical;line-height:1.8}
 #aiText:focus{border-color:var(--gold-d);outline:none}
@@ -961,7 +970,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
 <header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
 <main id="main"></main><button class="fab" id="fab" data-act="fab" type="button" aria-label="سند جدید" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
+<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-act="panelgo" type="button" id="menuPanel" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg><span>پنل مدیریت</span></button><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
 <div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش A4</button></div></div></div>
 <div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A4)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
 <div class="pvfoot" id="pvfoot"><p class="msg" id="pvmsg" role="status"></p><button class="btn pri" id="pvPdf" type="button">ذخیره PDF</button><button class="btn pri" id="pvSave" type="button" hidden>ذخیره تصویر</button><button class="btn ghost" id="pvBack" type="button">بازگشت</button></div>
@@ -1568,7 +1577,7 @@ var lastVK='',vinT=0;
 function render(){
   var sp=document.getElementById('splash');if(sp)sp.remove();
   var v=S.view,editing=EDITING[v];$('#fab').hidden=true;
-  $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();menuProf();
+  $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();var mp=$('#menuPanel');if(mp)mp.hidden=!panelOK();menuProf();
   $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets')||(v==='xform'&&b.dataset.tab==='expenses'))?'page':'false')});
   if(S.nodb){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="warn">ذخیره‌سازی در این نمایش فعال نیست. صفحه را داخل حساب Claude خودت و با همان مرورگر یا برنامه‌ای که وارد آن هستی باز کن.</div>';return}
   if(!S.db){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
@@ -1634,7 +1643,105 @@ function vBackup(){setTop('پشتیبان و خروجی‌ها','',true);
    +'<div class="btns"><button class="btn pri" data-act="backup" type="button">گرفتن پشتیبان کامل</button>'+(window.__leonImportPick?'<button class="btn" data-act="restorebk" type="button">بازگردانی از فایل</button>':'')+'</div>'
    +(window.__leonImportPick?'<p class="note">بازگردانی، اطلاعات این دستگاه را با محتوای فایل جایگزین می‌کند و قبلش تعداد هر بخش را نشان می‌دهد تا تأیید کنی. فایل‌های پشتیبان قدیمی هم قابل بازگردانی‌اند.</p>':'')+'</section>'
    +'<section class="sec"><h2>سوابق و خروجی اکسل</h2><p class="note">هر ثبت و حذف در سوابق می‌ماند و چیزی که حذف شده، از همان‌جا برمی‌گردد.</p><div class="btns"><button class="btn sm" data-act="log" type="button">سوابق تغییرات</button><button class="btn sm" data-act="csvinv" type="button">اکسل اقلام فاکتورها</button><button class="btn sm" data-act="csvbal" type="button">اکسل مانده‌ها</button><button class="btn sm" data-act="csvstock" type="button">اکسل موجودی کالا</button></div></section>'}
-function vUsers(){setTop('ورود و کاربران','',true);main.innerHTML=secHTML()}
+function vUsers(){setTop('ورود و کاربران','',true);main.innerHTML=serverAcctHTML()+secHTML();suLoad()}
+/* ---------- server account: the identity this device signed in with, and (owner only) who else may sign in ---------- */
+function serverAcctHTML(){if(!window.__leonSync)return '';var i=window.__leonSync.info();if(!i.on)return '';
+  return '<section class="sec" id="secServer"><h2>حساب سرور</h2>'
+    +'<p class="note">این دستگاه با نام کاربری <b>'+esc(i.user)+'</b> به سرور همگام‌سازی وارد شده'+(i.owner?' (مالک دفتر)':'')+'. خروج این دستگاه را به صفحه‌ی ورود برمی‌گرداند؛ اطلاعات همین دستگاه دست‌نخورده می‌ماند.</p>'
+    +'<div class="btns"><button class="btn sm" data-act="serverlogout" type="button">خروج از حساب سرور</button></div>'
+    +(i.owner?serverUsersHTML():'')+'</section>'}
+/* «پنل مدیریت» (the CRM panel) opens already signed in: the ledger asks the server for a one-time code and the panel
+   redeems it for a session of its own, so no token ever sits in a URL. Owner only, and only in the published app. */
+function panelOK(){if(!window.__leonSync||!/^https?:$/.test(location.protocol))return false;var i=window.__leonSync.info();return i.on&&i.owner}
+// on GitHub Pages the panel sits beside the app (site/panel/); on the shop's own domain the ledger is /daftar/ and the panel /panel/
+function panelURL(){var p=location.pathname;if(/\/daftar\//.test(p))return location.origin+p.replace(/\/daftar\/.*$/,'/panel/');return new URL('site/panel/',location.href).href}
+async function panelGo(){var w=window.open('about:blank','_blank');if(w)try{w.opener=null}catch(e){} // opened now, while the tap still counts, or Safari blocks it
+  try{var r=await srvApi('/api/handoff',{method:'POST',json:{}}),u=panelURL()+'#h='+encodeURIComponent(r.code);if(w&&!w.closed)w.location.href=u;else location.href=u}
+  catch(e){if(w)w.close();toast(e&&e.body&&e.body.error==='forbidden'?'پنل مدیریت فقط برای مالک است.':'پنل باز نشد. اینترنت را بررسی کن.')}}
+/* the owner defines every access here: staff sign-ins, each party's «حساب من», and the receipts parties send in */
+var SUTAB='staff',SUQ='';
+function serverUsersHTML(){
+  var t=[['staff','کارکنان'],['parties','مشتریان و تأمین‌کنندگان'],['receipts','رسیدها']];
+  return '<div class="sutabs" role="tablist">'+t.map(function(x){return '<button type="button" role="tab" data-act="sutab" data-k="'+x[0]+'" aria-selected="'+(SUTAB===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'
+    +'<div id="supane">'+supaneHTML()+'</div>'}
+function supaneHTML(){
+  if(SUTAB==='parties')return '<p class="note">هر طرف‌حسابی که روشن باشد با لینک یک‌بارمصرفی که از اینجا می‌فرستی (یا با کد پیامکی به موبایلش) وارد «حساب من» می‌شود و فقط حساب خودش را می‌بیند.</p>'
+    +'<input id="supq" class="srch" type="search" placeholder="جستجوی نام یا موبایل" aria-label="جستجوی طرف‌حساب" value="'+esc(SUQ)+'"><div class="list" id="suparties">'+supartiesHTML()+'</div>';
+  if(SUTAB==='receipts')return '<p class="note">رسید کارت‌به‌کارتی که مشتری از «حساب من» فرستاده به هیچ مانده‌ای دست نمی‌زند. بازش کن، سند واقعی را در دفتر ثبت کن، بعد «انجام شد».</p><div class="list" id="surcList"><div class="empty">در حال دریافت…</div></div>';
+  return '<p class="note">هر کس اینجا باشد و غیرفعال نباشد، می‌تواند با نام کاربری و رمزش وارد دفتر شود.</p>'
+    +'<div class="list" id="susersList"><div class="empty">در حال دریافت…</div></div>'
+    +'<div class="btns" style="margin-top:8px"><button class="btn sm" data-act="srvuseradd" type="button">+ کاربر جدید</button></div>'}
+function suLoad(){if($('#susersList'))loadSrvUsers();if($('#surcList'))loadReceipts()}
+function suTab(k){SUTAB=k;$$('.sutabs button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.k===k))});var p=$('#supane');if(p){p.innerHTML=supaneHTML();suLoad()}}
+function supartiesHTML(){var q=normU(SUQ),L=S.parties.filter(function(p){return !q||normU(p.name).indexOf(q)>=0||fanum(String(p.phone||'')).replace(/\D/g,'').indexOf(q.replace(/\D/g,'')||'~')>=0})
+    .sort(function(a,b){return String(a.name||'').localeCompare(String(b.name||''),'fa')});
+  if(!L.length)return '<div class="empty">'+(S.parties.length?'طرف‌حسابی با این جستجو نیست.':'هنوز طرف‌حسابی ثبت نشده.')+'</div>';
+  return L.map(function(p){var off=!!p.portalOff;
+    return '<div class="row"><span class="t">'+esc(p.name||'—')+(off?'<span class="badge lo">خاموش</span>':'')+'</span><span class="s">'+(p.phone?phoneTxt(p.phone):'بدون موبایل؛ فقط با لینک')+'</span><span class="v">'
+      +(off?'<button class="btn sm" data-act="pton" data-id="'+esc(p.id)+'" type="button">روشن کن</button>'
+        :'<button class="btn sm" data-act="ptinv" data-id="'+esc(p.id)+'" type="button">لینک ورود</button> <button class="btn sm" data-act="ptout" data-id="'+esc(p.id)+'" type="button">خروج از همه‌جا</button> <button class="btn sm" data-act="ptoff" data-id="'+esc(p.id)+'" type="button">خاموش کن</button>')
+      +'</span></div>'}).join('')}
+// 09121234567 → 989121234567 for a WhatsApp link; null when it is not an Iranian mobile
+function waPhone(s){var d=fanum(String(s||'')).replace(/\D/g,'');if(d.indexOf('0098')===0)d=d.slice(4);else if(d.indexOf('98')===0&&d.length===12)d=d.slice(2);if(d.length===10&&d[0]==='9')d='0'+d;return /^09\d{9}$/.test(d)?'98'+d.slice(1):null}
+async function ptInvite(id){var p=partyById(id);if(!p)return;
+  try{var r=await srvApi('/api/portal/invite',{method:'POST',json:{partyId:id}})}catch(e){toast(srvErrMsg(e));return}
+  var msg='سلام '+(p.name||'')+'، این لینک ورود شما به «حساب من» لئون گلد است. یک بار باز می‌شود و تا '+fmt(r.days||7)+' روز اعتبار دارد:\n'+r.link,wa=waPhone(p.phone);
+  var m=document.createElement('div');m.className='modal';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p><b>لینک ورود «'+esc(p.name||'')+'»</b><br>یک‌بارمصرف، تا '+fmt(r.days||7)+' روز. لینک قبلی این طرف‌حساب باطل شد.</p>'
+    +'<input class="srch" id="ptLink" readonly dir="ltr" value="'+esc(r.link)+'">'
+    +'<div class="btns">'+(wa?'<a class="btn pri" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(msg)+'">فرستادن با واتساپ</a>':'')
+    +'<button class="btn'+(wa?'':' pri')+'" data-c type="button">کپی پیام و لینک</button><button class="btn" data-n type="button">بستن</button></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',async function(e){if(e.target===m||e.target.closest('[data-n]')){m.remove();return}
+    if(e.target.closest('[data-c]')){try{await navigator.clipboard.writeText(msg);toast('کپی شد.')}catch(x){var i=$('#ptLink');i.focus();i.select();toast('لینک را انتخاب کردم؛ کپی کن.')}}})}
+async function ptRevoke(id,quiet){try{await srvApi('/api/portal/revoke',{method:'POST',json:{partyId:id}});if(!quiet)toast('از همه‌ی دستگاه‌هایش بیرون رفت.');return true}catch(e){toast(srvErrMsg(e));return false}}
+async function ptSet(id,off){var p=partyById(id);if(!p)return;var d=Object.assign({},p);delete d.id;if(off)d.portalOff=true;else delete d.portalOff;
+  if(!await put('parties',id,d))return;
+  if(off)await ptRevoke(id,true);toast(off?'«حساب من» برای «'+(p.name||'')+'» خاموش شد.':'«حساب من» برای «'+(p.name||'')+'» روشن شد.');
+  var L=$('#suparties');if(L)L.innerHTML=supartiesHTML()}
+var RC=[];
+async function loadReceipts(){var box=$('#surcList');if(!box)return;
+  try{RC=(await srvApi('/api/portal/receipts')).receipts||[]}catch(e){box.innerHTML='<div class="warn">رسیدها دریافت نشد.</div>';return}
+  var pend=RC.filter(function(r){return r.status!=='done'}),done=RC.filter(function(r){return r.status==='done'}).slice(0,10);
+  var row=function(r){return '<button class="row" data-act="rcopen" data-id="'+esc(r.id)+'" type="button"><span class="t">'+esc(r.partyName||'طرف‌حساب حذف‌شده')+(r.status==='done'?'<span class="badge g">انجام شد</span>':'<span class="badge lo">در انتظار</span>')+'</span>'
+    +'<span class="s">'+(r.date?esc(toFa(r.date))+' · ':'')+'رسیده '+esc(jdate(r.ts))+'</span><span class="v">'+(r.amount!=null?fmt(r.amount)+' <small>ریال</small>':'مبلغ ننوشته')+'</span></button>'};
+  box.innerHTML=(pend.length?pend.map(row).join(''):'<div class="empty">رسید تازه‌ای نیست.</div>')+(done.length?'<h3 style="margin:14px 0 6px;font-size:13px;color:var(--muted)">انجام‌شده‌های اخیر</h3>'+done.map(row).join(''):'')}
+async function rcOpen(id){var r=RC.filter(function(x){return x.id===id})[0];if(!r)return;
+  var m=document.createElement('div');m.className='modal';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p><b>رسید «'+esc(r.partyName||'')+'»</b><br>'+(r.amount!=null?fmt(r.amount)+' ریال':'مبلغ ننوشته')+(r.date?' · تاریخ واریز به گفته‌ی مشتری: '+esc(toFa(r.date)):'')+'</p>'
+    +'<div class="rcimg" id="rcImg"><div class="empty">در حال دریافت عکس…</div></div>'
+    +'<div class="btns">'+(r.status==='done'?'':(partyById(r.party)?'<button class="btn pri" data-s type="button">ثبت سند دریافت در دفتر</button>':'')+'<button class="btn" data-d type="button">انجام شد</button>')+'<button class="btn" data-n type="button">بستن</button></div></div>';
+  document.body.appendChild(m);var url='';
+  var close=function(){m.remove();if(url)URL.revokeObjectURL(url)};
+  m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]'))return close();
+    if(e.target.closest('[data-s]')){close();go('set',{partyId:r.party,receipt:r.id,pre:{dir:'in',unit:'r',amount:r.amount||'',note:'رسید کارت‌به‌کارت از «حساب من»'+(r.date?' · '+toFa(r.date):'')}});return}
+    if(e.target.closest('[data-d]'))ask('این رسید «انجام شد» علامت بخورد؟ فقط وقتی که سندش را در دفتر ثبت کرده‌ای.',async function(){if(await rcDone(r.id)){close();toast('رسید انجام شد.');loadReceipts()}},'انجام شد')});
+  try{var res=await srvApi('/api/blob/'+encodeURIComponent(r.blob),{raw:true});url=URL.createObjectURL(await res.blob());var box=$('#rcImg');if(box)box.innerHTML='<img alt="عکس رسید" src="'+url+'">'}
+  catch(e){var b2=$('#rcImg');if(b2)b2.innerHTML='<div class="warn">عکس دریافت نشد.</div>'}}
+async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
+function srvApi(p,o){return window.__leonSync.api(p,o)}
+function srvErrMsg(e){var c=(e&&e.body&&e.body.error)||(e&&e.login&&'login');
+  return c==='bad_user'?'نام کاربری یا رمز نامعتبر است (رمز حداقل ۴ رقم).':c==='cant_disable_owner'?'نمی‌توان مالک دفتر را غیرفعال کرد.':c==='forbidden'?'اجازه نداری.':c==='no_such_user'?'این کاربر دیگر نیست.':c==='portal_off'?'«حساب من» این طرف‌حساب خاموش است؛ اول روشنش کن.':c==='no_party'?'این طرف‌حساب هنوز به سرور نرسیده؛ کمی بعد دوباره امتحان کن.':'ذخیره نشد. اینترنت را بررسی کن.'}
+async function loadSrvUsers(){var box=$('#susersList');if(!box)return;
+  try{var j=await srvApi('/api/users'),cu=window.__leonSync.info().user;
+    box.innerHTML=j.users.length?j.users.map(function(x){return '<div class="row"><span class="t">'+esc(x.name)+(x.name===cu?'<span class="badge g">شما</span>':'')+(x.disabled?'<span class="badge lo">غیرفعال</span>':'')+'</span><span class="v">'
+      +'<button class="btn sm" data-act="srvuserpass" data-u="'+esc(x.name)+'" type="button">تغییر رمز</button> '
+      +(x.isOwner?'':'<button class="btn sm" data-act="'+(x.disabled?'srvuseron':'srvuseroff')+'" data-u="'+esc(x.name)+'" type="button">'+(x.disabled?'فعال‌سازی':'غیرفعال‌سازی')+'</button>')
+      +'</span></div>'}).join(''):'<div class="empty">کاربری ساخته نشده.</div>'}
+  catch(e){box.innerHTML='<div class="warn">فهرست کاربران سرور دریافت نشد.</div>'}}
+function srvUserDialog(editName){var m=document.createElement('div');m.className='modal';
+  m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>'+(editName?'تغییر رمز «'+esc(editName)+'»':'کاربر سرور جدید')+'</b><br>رمز فقط عدد است، ۴ تا ۱۲ رقم.</p>'
+  +(editName?'':'<label class="f"><span>نام کاربری</span><input id="suU" maxlength="40" autocapitalize="off"></label>')
+  +'<label class="f"><span>رمز</span><input id="su1" type="password" inputmode="numeric" maxlength="12"></label><label class="f"><span>تکرار رمز</span><input id="su2" type="password" inputmode="numeric" maxlength="12"></label>'
+  +'<p class="err" id="suErr" style="color:#b3261e;min-height:18px"></p><div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
+  document.body.appendChild(m);setTimeout(function(){($('#suU')||$('#su1')).focus()},30);
+  m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]'))m.remove()});
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();var er=$('#suErr'),a=fanum($('#su1').value).replace(/\D/g,''),b=fanum($('#su2').value).replace(/\D/g,'');
+    var name=editName||String(($('#suU')||{}).value||'').replace(/\s+/g,' ').trim();
+    if(!name){er.textContent='نام کاربری را بنویس.';return}
+    if(a.length<4){er.textContent='رمز باید حداقل ۴ رقم باشد.';return}if(a!==b){er.textContent='دو رمز یکی نیستند.';return}
+    try{await srvApi('/api/users',{method:'POST',json:{u:name,p:a}});m.remove();toast(editName?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.');loadSrvUsers()}
+    catch(x){er.textContent=srvErrMsg(x)}})}
 /* ---------- profile: the signed-in ledger user edits own photo, username and password ---------- */
 function userRec(u){return lockUsers().filter(function(x){return x.u===u})[0]||null}
 function avHTML(u,photo){return '<span class="av">'+(photo?'<img alt="" src="'+esc(photo)+'">':esc((String(u||'?').trim()[0]||'?').toUpperCase()))+'</span>'}
@@ -1723,10 +1830,10 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
 function lockNow(){UNLOCKED=null;ssSet('leon_unlock',null);render()}
 ['pointerdown','keydown'].forEach(function(ev){document.addEventListener(ev,function(){LASTACT=Date.now()},true)});
 setInterval(function(){if(lockOn()&&!isLocked()&&Date.now()-LASTACT>IDLE_MIN*60000&&!S.dirty)lockNow()},30000);
-function secHTML(){var U=lockUsers(),own=S.me?S.me.isOwner:true,cu=curUser();
-  return '<section class="sec" id="secUsers"><h2>ورود و کاربران</h2><p class="note">'+(S.me&&S.me.name?'حساب Claude: <b class="meName"></b>. ':'')+(cu?'کاربر فعلی: <b>'+esc(cu)+'</b>. ':'')
+function secHTML(){var U=lockUsers(),own=S.me?S.me.isOwner:true,cu=curUser(),app=!!window.__leonSync; // app: the phone app, signed in through the sync server
+  return '<section class="sec" id="secUsers"><h2>'+(app?'قفل رمزی روی دستگاه':'ورود و کاربران')+'</h2><p class="note">'+(!app&&S.me&&S.me.name?'حساب Claude: <b class="meName"></b>. ':'')+(cu?'کاربر فعلی: <b>'+esc(cu)+'</b>. ':'')
   +(U.length?'ورود با نام کاربری و رمز فعال است؛ بعد از '+fmt(IDLE_MIN)+' دقیقه بی‌کاری یا با دکمه «قفل» بالای صفحه، دفتر قفل می‌شود.':'ورود با نام کاربری فعال نیست؛ با افزودن اولین کاربر فعال می‌شود.')
-  +' فقط کسانی که مالک دفتر به این صفحه اضافه کرده (Contributor یا Editor) داده‌ها را می‌بینند.</p>'
+  +(app?' این قفل فقط روی همین دستگاه‌هاست و جدا از ورود به سرور است.':' فقط کسانی که مالک دفتر به این صفحه اضافه کرده (Contributor یا Editor) داده‌ها را می‌بینند.')+'</p>'
   +(U.length?'<div class="list">'+U.map(function(x){return '<div class="row"><span class="t">'+esc(x.u)+(x.u===cu?'<span class="badge g">شما</span>':'')+'</span><span class="v">'
     +(own?'<button class="btn sm" data-act="urename" data-u="'+esc(x.u)+'" type="button">تغییر نام</button> <button class="btn sm" data-act="pinset" data-u="'+esc(x.u)+'" type="button">تغییر رمز</button> <button class="btn sm" data-act="pinoff" data-u="'+esc(x.u)+'" type="button">حذف</button>':'')+'</span></div>'}).join('')+'</div>':'')
   +(own?'<div class="btns" style="margin-top:8px"><button class="btn sm" data-act="pinset" type="button">+ افزودن کاربر</button></div>':'')+'</section>'}
@@ -1758,6 +1865,37 @@ function renameDialog(old){var m=document.createElement('div');m.className='moda
     try{await saveUsers(U);if(me){UNLOCKED=name+'\n'+hit.hash;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',name)}else if(lsGet('leon_user')===old)lsSet('leon_user',name);m.remove();toast('نام کاربری به «'+name+'» تغییر کرد.')}catch(x){er.textContent=dberr(x)}})}
 async function pinOff(u){var U=lockUsers().filter(function(x){return x.u!==u});
   ask(U.length?'کاربر «'+u+'» حذف شود؟':'«'+u+'» آخرین کاربر است؛ با حذفش ورود با نام کاربری خاموش می‌شود و دفتر بدون رمز باز می‌شود.',async function(){try{if(U.length)await saveUsers(U);else await S.db.collection('settings').doc('lock').delete();toast('حذف شد.')}catch(x){toast(dberr(x))}},'حذف کن')}
+
+/* ---------- entry gate: no tool opens before this device has signed in to the sync server at least once.
+   Reuses the server login already built for sync (window.__leonSync.connect); a device that succeeds once
+   keeps its token and boots straight in after that, online or not. Separate from the local PIN #gate above,
+   which still guards an already-trusted device between opens. */
+function entryGate(){
+  var sp=document.getElementById('splash');if(sp)sp.remove(); // render() normally clears it, and render() has not run yet
+  var g=document.createElement('div');g.id='entry';g.className='gate';
+  var i=window.__leonSync.info(),needUrl=!i.url;
+  g.innerHTML='<form class="card" id="entryForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
+    +'<div class="rule">ورود به دفتر</div>'
+    +(needUrl?'<input id="enUrl" class="uname" type="url" dir="ltr" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="آدرس سرور" aria-label="آدرس سرور" value="'+esc(i.url)+'">':'')
+    +'<input id="enUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="40">'
+    +'<input id="enPass" class="uname pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
+    +'<button class="btn pri" type="submit">ورود</button><div class="err" id="enErr" role="status">نام کاربری و رمز دفتر را از مالک بگیر</div>'
+    +'<div class="ft">بعد از اولین ورود موفق، این دستگاه بدون اینترنت هم باز می‌شود</div></form>';
+  document.body.appendChild(g);document.body.style.overflow='hidden';
+  var un=$('#enUser'),pw=$('#enPass'),er=$('#enErr'),card=g.querySelector('.card'),btn=card.querySelector('button[type=submit]');
+  un.focus();
+  function bad(msg){er.textContent=msg;er.classList.add('bad');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake')}
+  card.addEventListener('submit',async function(ev){ev.preventDefault();
+    var url=(needUrl?($('#enUrl').value||''):i.url).trim(),u=un.value.trim(),p=pw.value;
+    if(!/^https?:\/\/\S+$/.test(url)){bad('آدرس سرور را درست بنویس.');return}
+    if(!u||!p){bad('نام کاربری و رمز را بنویس.');return}
+    btn.disabled=true;btn.textContent='در حال ورود…';
+    try{var ok=await window.__leonSync.connect(url,u,p);
+      if(ok===false){btn.disabled=false;btn.textContent='ورود';return} // the owner's own "replace this device" confirm was declined
+      g.remove();document.body.style.overflow='';render();initDb()}
+    catch(x){btn.disabled=false;btn.textContent='ورود';bad(x&&x.login?'نام کاربری یا رمز درست نیست.':'به سرور وصل نشد. اینترنت را بررسی کن.')}});
+}
+
 /* ---------- party statements: detail (every entry, with invoice lines) and summary, as Excel or PDF ---------- */
 var LIBS={};
 function loadLib(key,src,get){if(get())return Promise.resolve(get());
@@ -2184,7 +2322,7 @@ function vPform(){
 }
 function vSet(){
   var s=S.param&&S.param.id?null:null,ex=null;for(var i=0;i<S.settlements.length;i++)if(S.param&&S.param.id===S.settlements[i].id)ex=S.settlements[i];
-  var isNew=!ex;ex=ex||{};
+  var isNew=!ex;ex=ex||(S.param&&S.param.pre?Object.assign({},S.param.pre):{}); // pre: a receipt from «حساب من»
   var pid=ex.partyId||(S.param&&S.param.partyId)||'';
   setTop(isNew?'سند تسویه جدید':'ویرایش سند تسویه','',true);
   var po=[['','— انتخاب —']].concat(S.parties.map(function(p){return [p.id,p.name]}));
@@ -2479,13 +2617,17 @@ function pqChips(q){var box=$('#pqc');if(!box)return;q=fanum(q).toLowerCase();va
   box.innerHTML=(!q&&L.length?'<span class="note">اخیر:</span>':'')+L.map(function(p){return '<button class="chip" data-act="pq" data-id="'+esc(p.id)+'" type="button">'+esc(p.name)+'</button>'}).join('')
     +(q&&!L.length?'<button class="chip" data-act="newparty" data-ret="inv" data-name="'+esc(raw)+'" type="button">افزودن «'+esc(raw)+'» به طرف‌حساب‌ها</button>':'')}
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='pq')pqChips(e.target.value)});
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='supq'){SUQ=e.target.value;var L=$('#suparties');if(L)L.innerHTML=supartiesHTML()}});
 function renderInvAfterParty(){if(S.view==='inv'){var ps=$('#partySel');vInv()}}
 async function saveSet(id){
   var pid=val('sf_party'),amt=num(val('sf_amt'));if(!pid){toast('طرف‌حساب را انتخاب کن');return}if(!(amt>0)){toast('مقدار را بنویس');return}
   var p=partyById(pid),old=null;S.settlements.forEach(function(s){if(s.id===id)old=s});
   var d={partyId:pid,partyName:p?p.name:'',dir:val('sf_dir'),unit:val('sf_unit'),amount:amt,date:val('sf_date'),note:val('sf_note'),ts:old&&old.ts?old.ts:new Date().toISOString()};
   if(old&&old.kind==='assay')['kind','invId','idx','purity','lab','ang','weight'].forEach(function(k){d[k]=old[k]});
-  if(await put('settlements',id||newId('settlements'),d)){toast('سند ذخیره شد');back()}
+  var rc=!id&&S.param&&S.param.receipt;
+  if(await put('settlements',id||newId('settlements'),d)){
+    // opened from a «حساب من» receipt: the real document is now in the ledger, so the receipt is done
+    if(rc)toast(await rcDone(rc)?'سند ذخیره شد و رسید انجام شد':'سند ذخیره شد؛ رسید را بعداً «انجام شد» بزن');else toast('سند ذخیره شد');back()}
 }
 
 document.addEventListener('click',function(e){
@@ -2532,6 +2674,18 @@ document.addEventListener('click',function(e){
     case 'gousers':leaveGuard(function(){tab('home');setTimeout(function(){var x=$('#secUsers');if(x)x.scrollIntoView({behavior:'smooth',block:'start'})},60)});break;
     case 'menulock':leaveGuard(lockAsk);break;
     case 'pinoff':pinOff(b.dataset.u||'');break;
+    case 'serverlogout':ask('از حساب سرور خارج شوی؟ اطلاعات همین دستگاه دست‌نخورده می‌ماند؛ برای ورود دوباره به نام کاربری و رمز نیاز است.',async function(){try{await window.__leonSync.disconnect()}catch(e){}location.reload()},'خروج');break;
+    case 'panelgo':panelGo();break;
+    case 'sutab':suTab(b.dataset.k);break;
+    case 'ptinv':ptInvite(id);break;
+    case 'ptout':ask('«'+((partyById(id)||{}).name||'')+'» از «حساب من» روی همه‌ی دستگاه‌هایش بیرون برود؟ لینک ورود قبلی هم باطل می‌شود.',function(){ptRevoke(id)},'بیرون کن');break;
+    case 'ptoff':ask('«حساب من» برای «'+((partyById(id)||{}).name||'')+'» خاموش شود؟ از همه‌ی دستگاه‌ها بیرون می‌رود و دیگر نمی‌تواند وارد شود تا دوباره روشنش کنی.',function(){ptSet(id,true)},'خاموش کن');break;
+    case 'pton':ptSet(id,false);break;
+    case 'rcopen':rcOpen(id);break;
+    case 'srvuseradd':srvUserDialog();break;
+    case 'srvuserpass':srvUserDialog(b.dataset.u||'');break;
+    case 'srvuseroff':ask('کاربر «'+(b.dataset.u||'')+'» غیرفعال شود؟ دستگاه‌های واردشده با او بیرون می‌روند.',async function(){try{await srvApi('/api/users/disable',{method:'POST',json:{u:b.dataset.u}});toast('غیرفعال شد.');loadSrvUsers()}catch(x){toast(srvErrMsg(x))}},'غیرفعال کن');break;
+    case 'srvuseron':(async function(){try{await srvApi('/api/users/enable',{method:'POST',json:{u:b.dataset.u}});toast('فعال شد.');loadSrvUsers()}catch(x){toast(srvErrMsg(x))}})();break;
     case 'urename':renameDialog(b.dataset.u||'');break;
     case 'csvinv':csvInvoices();break;
     case 'csvbal':csvBalances();break;
@@ -2639,7 +2793,11 @@ exportBtn('#pvPdf','در حال ساخت PDF…',async function(dl){
   await dl.save({filename:invFileName('pdf'),data:doc.output('blob')});setMsg('فایل PDF آماده است.')});
 
 /* ---------- boot ---------- */
-render();initDb();
+/* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
+   a device that already has a token (the phone/PC already in use) boots straight in, same as before */
+(async function boot(){
+  if(window.__leonSync){await window.__leonSync.ready;if(!window.__leonSync.info().on){entryGate();return}}
+  render();initDb()})();
 $('#lockBtn').addEventListener('click',function(){leaveGuard(lockAsk)});
 // tests open index.html as a file and reach the ledger's own sums through this; the published app never has it
 if(location.protocol==='file:')window.__leon={S:S,compute:compute,expSum:expSum,metrics:metrics,openNewInvoice:openNewInvoice,todayD:todayD,jdate:jdate};
