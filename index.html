@@ -149,7 +149,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 07:56</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 08:17</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -748,7 +748,7 @@ body.noact{padding-bottom:24px}
 .vmedia{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0}
 .vm{position:relative;display:grid;gap:4px;justify-items:center}.vm .vth,.vm video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#0f4030}
 .vm .badge{margin:0}.vmx{position:absolute;top:4px;inset-inline-start:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(6,20,14,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
-.vset{display:grid;gap:8px;margin:8px 0}.vset label{display:flex;align-items:center;gap:8px;font-size:14px;min-height:36px}.vset input{width:20px;height:20px;accent-color:var(--green)}
+.vset{display:grid;gap:8px;margin:8px 0}.vset label{display:flex;align-items:center;gap:8px;font-size:14px;min-height:36px}.vset input{width:20px;height:20px;accent-color:var(--green)}.f textarea{font:inherit;font-size:16px;letter-spacing:0;width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical;min-height:96px;line-height:1.8}.f textarea:focus{outline:none;border-color:var(--gold-d);box-shadow:0 0 0 3px rgba(197,154,80,.22)}.vset{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .creds{display:grid;gap:6px;max-height:50vh;overflow:auto}
 .cred{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .cred b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cred span{display:grid;line-height:1.3}.cred small{font-size:10.5px;color:var(--muted)}.cred i{font-style:normal;font-weight:700;color:var(--green);font-size:14px}
@@ -1847,26 +1847,29 @@ function vAParty(){var p=partyById(S.param);if(!p){back();return}
 /* ---------- «ویترین»: the pieces on show in every buyer's «حساب من» (collection vitrin). The photos and films go
    straight to the server (/api/media, kept there only, never copied onto the devices); the doc keeps their ids. ---------- */
 var VCATS=['انگشتر','گردنبند','دستبند','گوشواره','سرویس','النگو','پلاک و آویز','زنجیر'];
-var VSET=['نقد','کارت‌به‌کارت','طلا با طلا (آبشده یا ساخته)','اقساط'];
+var VSET=['نقدی پای کفه','۳ روز','۱ هفته']; // how long the buyer has to settle (wholesale terms)
+// stock: qty = in hand (with a count), order = not in hand but can be ordered, none = not available at all
+var VSTOCK=[['qty','تعداد موجودی'],['order','موجود (قابل سفارش)'],['none','ناموجود']];
+function vStock(x){return x.stock||(x.sold?'none':'order')}
 var VMEDIA={}; // media id -> object URL, fetched once with the owner's token
 async function vmURL(id){if(VMEDIA[id])return VMEDIA[id];var r=await srvApi('/api/media/'+encodeURIComponent(id),{raw:true});VMEDIA[id]=URL.createObjectURL(await r.blob());return VMEDIA[id]}
 function vmFill(root){$$('[data-vm]',root).forEach(function(el){var id=el.dataset.vm;vmURL(id).then(function(u){if(el.tagName==='VIDEO')el.src=u;else el.style.backgroundImage='url("'+u+'")'}).catch(function(){el.classList.add('miss')})})}
 function vOnline(){return window.__leonSync&&window.__leonSync.info().on}
 function vitById(id){for(var i=0;i<S.vitrin.length;i++)if(S.vitrin[i].id===id)return S.vitrin[i];return null}
 function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1}),f=S.vf||'all';
-  setTop('ویترین',fmt(L.filter(function(x){return x.show!==false&&!x.sold}).length)+' کار در «حساب من»',false);
+  setTop('ویترین',fmt(L.filter(function(x){return x.show!==false}).length)+' کار در «حساب من»',false);
   var cats=[];L.forEach(function(x){if(x.cat&&cats.indexOf(x.cat)<0)cats.push(x.cat)});
-  var shown=L.filter(function(x){return f==='all'||(f==='hid'?x.show===false:f==='sold'?x.sold:x.cat===f)});
+  var shown=L.filter(function(x){return f==='all'||(f==='hid'?x.show===false:f==='sold'?vStock(x)==='none':x.cat===f)});
   main.innerHTML='<button class="btn pri" data-act="newvit" type="button">+ کار تازه برای ویترین</button>'
     +'<p class="note">هر کاری که اینجا بگذاری، با عکس و فیلم، وزن، عیار، اجرت و قیمت تقریبیِ همان ساعت، در «حساب من» همه‌ی خریدارها دیده می‌شود. سفارشی که از آنجا بدهند در «پنل مدیریت» سایت، بخش «سفارش‌ها»، می‌آید.</p>'
     +(vOnline()?'':'<div class="warn">برای گذاشتن عکس و فیلم باید به سرور وصل باشی.</div>')
-    +(L.length?'<div class="chips" id="vchips">'+[['all','همه']].concat(cats.map(function(c){return [c,c]}),[['hid','پنهان'],['sold','فروخته‌شده']]).map(function(c){return '<button class="chip" data-act="vfilter" data-f="'+esc(c[0])+'" aria-pressed="'+(f===c[0])+'" type="button">'+esc(c[1])+'</button>'}).join('')+'</div>':'')
+    +(L.length?'<div class="chips" id="vchips">'+[['all','همه']].concat(cats.map(function(c){return [c,c]}),[['hid','پنهان'],['sold','ناموجود']]).map(function(c){return '<button class="chip" data-act="vfilter" data-f="'+esc(c[0])+'" aria-pressed="'+(f===c[0])+'" type="button">'+esc(c[1])+'</button>'}).join('')+'</div>':'')
     +'<div class="vgrid">'+(shown.length?shown.map(function(x){var m=(x.media||[]).filter(function(y){return y.type!=='video'})[0];
       return '<button class="vcard" data-act="editvit" data-id="'+esc(x.id)+'" type="button"><span class="vth"'+(m?' data-vm="'+esc(m.id)+'"':'')+'>'+((x.media||[]).some(function(y){return y.type==='video'})?'<i class="vplay" aria-label="فیلم دارد">▶</i>':'')+'</span>'
         +'<b>'+esc(x.name)+'</b><span>'+[x.cat,x.weight?fmt(x.weight,3)+' گرم':''].filter(Boolean).map(esc).join(' · ')+'</span>'
-        +(x.show===false?'<em class="badge lo">پنهان</em>':x.sold?'<em class="badge">فروخته شد</em>':'<em class="badge g">در ویترین</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+        +(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
   if(vOnline())vmFill(main)}
-function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=x||{show:true,carat:750,profit:7,settle:['نقد','کارت‌به‌کارت']};
+function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=x||{show:true,carat:750,profit:7,stock:'qty',qty:1,settle:['نقدی پای کفه']};
   if(!S.vMedia)S.vMedia=(x.media||[]).map(function(m){return {id:m.id,type:m.type}});
   setTop(isNew?'کار تازه برای ویترین':'ویرایش «'+(x.name||'')+'»','',true);
   var n=function(v,d){return v||v===0?plain(v,d):''},set=x.settle||[];
@@ -1877,10 +1880,12 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +fld('کد (اختیاری)','vt_code',x.code,{ph:'مثلاً R12'})+fld('وزن (گرم) *','vt_w',n(x.weight,3),{num:1})+fld('عیار (آزمایشگاهی)','vt_carat',n(x.carat||750,0),{num:1})
     +fld('اجرت (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
     +'<p class="note">قیمت در «حساب من» با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود + ۱۰٪ مالیات بر اجرت و سود.</p></section>'
-    +'<section class="sec"><h2>نحوه‌ی تسویه</h2><div class="vset">'+VSET.map(function(s,i){return '<label><input type="checkbox" id="vt_s'+i+'"'+(set.indexOf(s)>=0?' checked':'')+'> '+esc(s)+'</label>'}).join('')+'</div>'
-    +fld('توضیح تسویه (اختیاری)','vt_sn',x.settleNote,{w2:1,ph:'مثلاً ۵۰٪ بیعانه، بقیه هنگام تحویل'})+'</section>'
+    +'<section class="sec"><h2>موجودی</h2><div class="vset">'+VSTOCK.map(function(s){return '<label><input type="radio" name="vt_stock" value="'+s[0]+'"'+(vStock(x)===s[0]?' checked':'')+'> '+esc(s[1])+'</label>'}).join('')+'</div>'
+    +fld('تعداد (برای «تعداد موجودی»)','vt_qty',n(x.qty==null?1:x.qty,0),{num:1})+'<p class="note">«موجود» یعنی الان در دست نیست ولی سفارش گرفته می‌شود؛ «ناموجود» یعنی سفارش هم گرفته نمی‌شود.</p></section>'
+    +'<section class="sec"><h2>مدت تسویه</h2><div class="vset">'+VSET.map(function(s,i){return '<label><input type="checkbox" id="vt_s'+i+'"'+(set.indexOf(s)>=0?' checked':'')+'> '+esc(s)+'</label>'}).join('')+'</div>'
+    +fld('توضیح تسویه (اختیاری)','vt_sn',x.settleNote,{w2:1,ph:'مثلاً برای همکاران عمده'})+'</section>'
     +'<section class="sec"><h2>توضیحات</h2><label class="f w2"><span>هر چه مشتری باید بداند: نگین، اندازه، رنگ طلا، زمان آماده‌شدن…</span><textarea id="vt_desc" rows="4">'+esc(x.desc||'')+'</textarea></label>'
-    +'<div class="vset"><label><input type="checkbox" id="vt_show"'+(x.show!==false?' checked':'')+'> نمایش در «حساب من»</label><label><input type="checkbox" id="vt_sold"'+(x.sold?' checked':'')+'> فروخته شد (با برچسب «فروخته شد» می‌ماند)</label></div></section>'
+    +'<div class="vset"><label><input type="checkbox" id="vt_show"'+(x.show!==false?' checked':'')+'> نمایش در «حساب من»</label></div></section>'
     +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
   var fi=$('#vm_file');if(fi)fi.addEventListener('change',function(){vmAdd([].slice.call(fi.files||[]));fi.value=''});
   if(vOnline())vmFill(main)}
@@ -1906,7 +1911,7 @@ async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
   if(!name){toast('نام کار را بنویس.');return}if(!(w>0)){toast('وزن را بنویس.');return}
   var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
     ajrat:num(val('vt_aj'))||0,profit:val('vt_pr').trim()===''?7:num(val('vt_pr')),settle:VSET.filter(function(s,i){var c=$('#vt_s'+i);return c&&c.checked}),settleNote:val('vt_sn').trim(),
-    desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,sold:$('#vt_sold').checked,ts:old&&old.ts||new Date().toISOString()};
+    desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),ts:old&&old.ts||new Date().toISOString()};
   var nid=id||'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» دیده می‌شود.':'.'));back()}}
 async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
