@@ -149,7 +149,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 12:34</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 13:37</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1044,7 +1044,8 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
       <label><span>جمع قیمت طلا :</span><b class="out" id="s_gold">۰</b></label>
       <label><span>جمع اجرت + سود :</span><b class="out" id="s_as">۰</b></label>
       <label><span>مالیات (<i class="taxshow" style="font-style:normal">۰</i>٪ اجرت و سود) :</span><b class="out" id="s_tax">۰</b></label>
-      <label><span>تخفیف :</span><input class="num" id="r_disc" inputmode="decimal"></label>
+      <label><span>تخفیف (ریال) :</span><input class="num" id="r_disc" inputmode="decimal"></label>
+      <label class="ldg"><span>تخفیف (گرم، به قیمت همین فاکتور) :</span><input class="num rq" id="r_discg" inputmode="decimal"></label>
       <label class="big"><span>مبلغ نهایی (ریال) :</span><b class="out" id="s_final">۰</b></label>
       <label><span>با مانده قبلی :</span><b class="out" id="s_all">۰</b></label>
       <label><span>جمع پرداختی :</span><b class="out" id="s_paid">۰</b></label>
@@ -1109,23 +1110,27 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
       <label><span>قیمت یک گرم طلا (ریال):</span><input class="num gp" inputmode="decimal"></label>
       <label><span>قیمت مثقال طلای ۱۸ عیار:</span><input class="num mq" inputmode="decimal"></label>
       <label><span>مانده قبلی (گرم):</span><span class="dual"><input class="num" id="w_prev" inputmode="decimal"><select id="w_prev_t" aria-label="نوع مانده قبلی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
-      <label><span>مانده قبلی (ریال):</span><span class="dual"><input class="num rp" id="w_rprev" inputmode="decimal"><select class="rp" id="w_rprev_t" aria-label="نوع مانده قبلی ریالی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
+      <label><span>مانده قبلی (ریال):</span><span class="dual"><input class="num rq" id="w_rprev" inputmode="decimal"><select class="rq" id="w_rprev_t" aria-label="نوع مانده قبلی ریالی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
       <label><span>وضعیت تحویل کالا:</span><span class="dual"><select id="w_deliv" aria-label="وضعیت تحویل"><option value="dl">تحویل شد</option><option value="nd">تحویل نشد</option></select></span></label>
       <label><span>طلای دریافتی (گرم):</span><span class="dual"><input class="num" id="w_recv" inputmode="decimal"><select id="w_recv_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
       <label><span>پرداخت ریالی (تبدیل به گرم):</span><span class="dual"><input class="num" id="w_cash" inputmode="decimal"><select id="w_cash_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
       <label><span>جریمه دیرکرد ٪:</span><input class="num" id="w_late" inputmode="decimal"></label>
+      <label><span>تخفیف (گرم):</span><input class="num rq" id="w_discg" inputmode="decimal"></label>
+      <label><span>تخفیف (ریال):</span><input class="num rq" id="w_discr" inputmode="decimal"></label>
     </div>
     <div class="gcard">
       <h2>مانده حساب</h2>
       <label><span>جمع وزن ۷۵۰ کالا :</span><b class="out" id="x_pure">۰</b></label>
       <label><span>جمع اجرت :</span><b class="out" id="x_aj">۰</b></label>
       <label><span>مالیات (<i class="taxshow" style="font-style:normal">۰</i>٪ اجرت) :</span><b class="out" id="x_tax">۰</b></label>
+      <label class="ldg"><span>تخفیف (گرم) :</span><b class="out" id="x_dg">۰</b></label>
       <label class="big"><span>جمع این سند (گرم) :</span><b class="out" id="x_final">۰</b></label>
       <label><span>با مانده قبلی :</span><b class="out" id="x_all">۰</b></label>
       <label class="lgx"><span>آبشده و متفرقه (۷۵۰) :</span><b class="out" id="x_gx">۰</b></label>
       <label><span>دریافتی (گرم) :</span><b class="out" id="x_got">۰</b></label>
       <label class="ltr"><span>معامله طلا (گرم) :</span><b class="out" id="x_trg">۰</b></label>
       <label class="big"><span>مانده نهایی (گرم) :</span><b class="out" id="x_bal">۰</b></label>
+      <label class="ldr"><span>تخفیف (ریال) :</span><b class="out" id="x_dr">۰</b></label>
       <label class="ltr"><span>مانده ریالی این سند :</span><b class="out" id="x_trr">۰</b></label>
       <label class="lrr"><span>مانده ریالی قبلی :</span><b class="out" id="x_rprev">۰</b></label>
       <label class="big lrr"><span>مانده نهایی (ریال) :</span><b class="out" id="x_rbal">۰</b></label>
@@ -1213,7 +1218,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     });
     $('#rq').textContent=S.q?fmt(S.q):'';$('#rw').textContent=S.w?fmt(S.w,2):'';
     $('#rg').textContent=S.g?fmt(Math.round(S.g)):'';$('#ra').textContent=S.as?fmt(Math.round(S.as)):'';$('#rt_').textContent=S.t?fmt(Math.round(S.t)):'';
-    var rtax=S.as*t, disc=parse($('#r_disc').value), fin=S.t+rtax-disc;
+    var rtax=S.as*t, discG=parse($('#r_discg').value), disc=parse($('#r_disc').value)+discG*gp, fin=S.t+rtax-disc;
     var paid=$$('.rp').reduce(function(a,e){return a+parse(e.value)*(e.parentNode.querySelector('select').value==='dr'?-1:1)},0);
     $('#s_gold').textContent=fmt(Math.round(S.g));$('#s_as').textContent=fmt(Math.round(S.as));
     $('#s_tax').textContent=fmt(Math.round(rtax));$('#s_final').textContent=fmt(Math.round(fin));
@@ -1233,7 +1238,8 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     $('#wq').textContent=W.q?fmt(W.q):'';$('#ww').textContent=W.w?fmt(W.w,2):'';
     $('#wp').textContent=W.p?fmt(W.p,3):'';$('#wa').textContent=W.a?fmt(W.a,3):'';$('#wt_').textContent=W.t?fmt(W.t,3):'';
     var wtax=W.a*t, wfin=W.t+wtax, prev=parse($('#w_prev').value)*sgn('#w_prev_t'), late=parse($('#w_late').value)/100;
-    var weff=wfin*($('#w_deliv').value==='nd'?-1:1)*($('#w_doc').value==='rc'?-1:1),all=weff+prev, lateG=all*late, recv=parse($('#w_recv').value)*($('#w_recv_t').value==='dr'?-1:1);
+    var wdir=($('#w_deliv').value==='nd'?-1:1)*($('#w_doc').value==='rc'?-1:1),discG=parse($('#w_discg').value),discR=Math.round(parse($('#w_discr').value));
+    var weff=(wfin-discG)*wdir,all=weff+prev, lateG=all*late, recv=parse($('#w_recv').value)*($('#w_recv_t').value==='dr'?-1:1);
     var cashG=(wgp?parse($('#w_cash').value)/wgp:0)*($('#w_cash_t').value==='dr'?-1:1);
     var GX=0;$$('#wg tbody tr').forEach(function(tr){var ty=$('.gt',tr).value,k=$('.gk',tr);if(ty==='sh'&&k.value!=='۷۵۰')k.value='۷۵۰';
       var w=parse($('.gw',tr).value),c=ty==='sh'?750:parse(k.value),g=w&&c?w*labOf(c)/750:0;$('.g7',tr).textContent=g?fmt(g,3):'';GX+=g});
@@ -1245,11 +1251,13 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
       else{tw=parse($('#tx_w').value);ta=Math.round(tw*tgp);if(document.activeElement!==$('#tx_a'))$('#tx_a').value=pl(ta)}
       tG=(tt==='sell'?-1:1)*tw;tR=(tt==='sell'?1:-1)*ta}
     tc.textContent=!tt?'بدون خرید و فروش طلا':!tgp?'قیمت گرم یا مثقال را بنویس':(tt==='sell'?'فروش ':'خرید ')+fmt(tw,3)+' گرم × '+fmt(tgp)+' ریال = '+fmt(ta)+' ریال  ←  حساب طلایی طرف '+fmt(tw,3)+' گرم '+(tG<0?'بستانکار':'بدهکار')+' و حساب ریالی '+fmt(ta)+' ریال '+(tR>0?'بدهکار':'بستانکار')+' می‌شود';
-    var ci=Math.round(parse($('#tx_ci').value)),co=Math.round(parse($('#tx_co').value)),rb=tR-ci+co,tc2=ci||co;
+    var ci=Math.round(parse($('#tx_ci').value)),co=Math.round(parse($('#tx_co').value)),rb=tR-ci+co-discR*wdir,tc2=ci||co||discR;
     if(tc2)tc.textContent=(tt?tc.textContent+'  |  ':'')+(ci?'دریافت نقدی '+fmt(ci)+' ریال ':'')+(co?'پرداخت نقدی '+fmt(co)+' ریال ':'')+'←  مانده ریالی این سند '+fmt(Math.abs(rb))+' ریال '+(Math.abs(rb)<0.5?'تسویه':rb>0?'بدهکار':'بستانکار');
     $('#tx_rb').textContent=(tt||tc2)?fmt(Math.abs(rb))+(Math.abs(rb)<0.5?' تسویه':rb>0?' بدهکار':' بستانکار'):'';
     var got=recv+gxG+cashG, bal=all+0-got+tG;window.LGW={eff:Math.round(weff*1000)/1000,delta:Math.round((weff-got+tG)*1000)/1000,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
-    showBal('#x_trg',tG,3);showBal('#x_trr',rb,0);
+    showBal('#x_trg',tG,3);showBal('#x_trr',rb,0);$('#x_dg').textContent=fmt(discG,3);$('#x_dr').textContent=fmt(discR);
+    $$('#whole .ldg').forEach(function(l){l.classList.toggle('zl',!(discG>0))});$$('#whole .ldr').forEach(function(l){l.classList.toggle('zl',!(discR>0))});
+    $$('#retail .ldg').forEach(function(l){l.classList.toggle('zl',!(parse($('#r_discg').value)>0))});
     var rprev=Math.round(parse($('#w_rprev').value)*sgn('#w_rprev_t')),rbal=rprev+rb,hasR=Math.abs(rprev)>=0.5||tt||tc2;
     showBal('#x_rprev',rprev,0);showBal('#x_rbal',rbal,0);var lr=$$('#whole .lrr');lr[0].classList.toggle('zl',Math.abs(rprev)<0.5||!(tt||tc2));lr[1].classList.toggle('zl',!hasR);
     var gf=0;$$('#wg tbody tr').forEach(function(tr,i){if(parse($('.gw',tr).value))gf=i+1});$$('#wg tbody tr').forEach(function(tr,i){tr.classList.toggle('hr',i>=Math.max(gf,1))});
@@ -2538,7 +2546,7 @@ function vSet(){
 /* ---------- invoice editor ---------- */
 var ex=$('#export');
 function sheet(k){return $('#'+(k==='whole'?'whole':'retail'))}
-function fields(k){return $$('input:not(.gx):not(.tx):not(.rp),select:not(.gx):not(.tx):not(.rp)',sheet(k))} // .rp (the rial balance before) is saved apart, so older invoices' vals keep their order
+function fields(k){return $$('input:not(.gx):not(.tx):not(.rq),select:not(.gx):not(.tx):not(.rq)',sheet(k))} // .rq (the rial balance before) is saved apart, so older invoices' vals keep their order
 /* melted (آبشده), miscellaneous (متفرقه) and conditional melted (آبشده شرطی) gold entered on a wholesale doc; kept apart from vals so older invoices still load */
 var GXT={ab:'آبشده',mt:'متفرقه',sh:'آبشده شرطی'};
 function gxRows(){return $$('#wg tbody tr')}
@@ -2549,7 +2557,7 @@ function setKind(k){S.kind=k;$$('.sheet',ex).forEach(function(s){s.hidden=s.id!=
 /* a saved invoice is final: nothing on it can change, including its gold price */
 function lockSheets(on){$$('.sheet',ex).forEach(function(s){$$('input',s).forEach(function(e){e.readOnly=on});$$('select,button',s).forEach(function(e){e.disabled=on})})}
 function resetSheet(k,keepPrice){
-  lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;
+  lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
   $$('.gx,.tx',sheet(k)).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});shownG=1;$$('#wt tbody tr').forEach(function(tr){delete tr.dataset.ret});
   $('#taxPct').value='۰';var now=Date.now();$$('.dt',sheet(k)).forEach(function(e){e.value=jdate(now)});
   if(k==='retail'){var t=$('.meta div:nth-child(3) input',sheet(k));if(t)t.value=jtime(now)}
@@ -2578,7 +2586,7 @@ async function autoProducts(s,inbound){var made=[],next=nextCode();
 function loadInvoice(inv){
   setKind(inv.kind);var s=sheet(inv.kind),cur=$$('#rt tbody tr,#wt tbody tr',s).length;
   for(var i=cur;i<(inv.rows||cur);i++)$('.addrow',s).click();
-  var f=fields(inv.kind);(inv.vals||[]).forEach(function(v,i){if(f[i])f[i].value=v});$('#w_rprev').value=inv.rprev?inv.rprev[0]:'';$('#w_rprev_t').value=inv.rprev?inv.rprev[1]:'dr';
+  var f=fields(inv.kind);(inv.vals||[]).forEach(function(v,i){if(f[i])f[i].value=v});$('#w_rprev').value=inv.rprev?inv.rprev[0]:'';$('#w_rprev_t').value=inv.rprev?inv.rprev[1]:'dr';['#r_discg','#w_discg','#w_discr'].forEach(function(q,i){$(q).value=inv.disc2&&inv.disc2[i]||''});
   var wr=$$('#wt tbody tr');wr.forEach(function(tr){delete tr.dataset.ret});if(inv.kind==='whole')(inv.rets||[]).forEach(function(i){if(wr[i])wr[i].dataset.ret='1'});
   if(inv.kind==='whole'){var gr=gxRows();(inv.gold||[]).forEach(function(g,i){var tr=gr[i];if(!tr)return;$('.gt',tr).value=g.type||'ab';$('.gw',tr).value=plain(g.weight,3);$('.gk',tr).value=toFa(g.purity||'');$('.gl',tr).value=g.lab||'';$('.gan',tr).value=toFa(g.ang||'');$('.gn',tr).value=g.note||'';$('.gsrc',tr).value=g.src||''});
     $('#w_gx_t').value=inv.goldDir||'cr';var tr=inv.trade;if(tr){$('#tx_t').value=tr.type;$('#tx_m').value=tr.mode||'w';$('#tx_w').value=plain(tr.w,3);$('#tx_gp').value=plain(tr.gp);$('#tx_mq').value=plain(Math.round(tr.gp*4.3318));$('#tx_a').value=tr.amount?plain(tr.amount):'';$('#tx_n').value=tr.note||'';$('#tx_ci').value=tr.cin?plain(tr.cin):'';$('#tx_co').value=tr.cout?plain(tr.cout):'';if(!tr.type){$('#tx_w').value='';$('#tx_gp').value='';$('#tx_mq').value=''}}}
@@ -2654,7 +2662,7 @@ async function saveInvoice(){
     fire($('#taxPct'),'input');
     var k=S.kind,p=partyById(S.partyId),s=sheet(k),made=await autoProducts(s,k==='whole'&&$('#w_doc').value==='rc');
     var d={kind:k,doc:k==='whole'?$('#w_doc').value:'',no:$('.meta div:nth-child(2) input',s).value,date:$('.meta div:nth-child(1) input',s).value,
-      partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
+      partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,disc2:[$('#r_discg').value,$('#w_discg').value,$('#w_discr').value],rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
       ts:S.editTs||new Date().toISOString(),upd:new Date().toISOString()};
     d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
     if(k==='whole'){var w=window.LGW||{eff:0,delta:0};d.unit='g';d.amount=w.eff;d.deltaG=w.delta}else{var r=window.LGR||{eff:0,delta:0};d.unit='r';d.amount=r.eff;d.deltaR=r.delta}
@@ -2768,9 +2776,9 @@ function renderForm(){
   box.appendChild(add);app.appendChild(box);
   if(kind==='whole'){app.appendChild(goldSec());app.appendChild(tradeSec())}
   var P=function(k){return function(){return $$(N('.rp'))[k]}};
-  if(kind==='retail')app.appendChild(fsec('تسویه و مانده',[mk('تخفیف (ریال)','#r_disc',{num:1,w2:1}),mk('مانده قبلی (ریال)','#r_prev',{num:1,w2:1,sel:'#r_prev_t'}),mkSelect('وضعیت تحویل کالا','#r_deliv',{w2:1}),
+  if(kind==='retail')app.appendChild(fsec('تسویه و مانده',[mk('تخفیف (ریال)','#r_disc',{num:1,w2:1}),mk('تخفیف (گرم، به قیمت همین فاکتور)','#r_discg',{num:1,w2:1}),mk('مانده قبلی (ریال)','#r_prev',{num:1,w2:1,sel:'#r_prev_t'}),mkSelect('وضعیت تحویل کالا','#r_deliv',{w2:1}),
     mk('نقدی',P(0),{num:1,w2:1,sel:'#r_p1_t'}),mk('کارت / حواله',P(1),{num:1,w2:1,sel:'#r_p2_t'}),mk('چک',P(2),{num:1,w2:1,sel:'#r_p3_t'}),mk('طلای مشتری (تهاتر)',P(3),{num:1,w2:1,sel:'#r_p4_t'})]));
-  else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1})]));
+  else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1}),mk('تخفیف (گرم)','#w_discg',{num:1,w2:1}),mk('تخفیف (ریال)','#w_discr',{num:1,w2:1})]));
   app.appendChild(fsec('مشخصات '+(kind==='retail'?'خریدار':'مشتری'),kind==='retail'?[mk('خریدار',N('.cust label:nth-child(1) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(2) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(3) input'),{w2:1})]:
     [mk('حساب (نام مشتری)',N('.cust label:nth-child(1) input'),{w2:1}),mk('فروشگاه',N('.cust label:nth-child(2) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(3) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(4) input'),{w2:1})]));
   app.appendChild(fsec('توضیحات',[mk('توضیحات (اختیاری)',notes,{w2:1})]));
