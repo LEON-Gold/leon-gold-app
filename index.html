@@ -73,9 +73,12 @@
         for(i=0;i<r.changes.length;i++){var ch=r.changes[i];if(obox['d/'+ch.c+'/'+ch.id])continue;
           var cur=docs[ch.c]&&docs[ch.c][ch.id];if(JSON.stringify(cur===undefined?null:cur)===JSON.stringify(ch.d))continue;
           await put(ch.c,ch.id,ch.d===null?undefined:ch.d,true);touched[ch.c]=1}
-        for(i=0;i<r.blobs.length;i++){var id=r.blobs[i];if(blobs[id])continue;
-          try{var bl=await (await api('/api/blob/'+encodeURIComponent(id),{raw:true})).blob();blobs[id]=bl;await write('blobs',id,bl);touched.products=1}catch(e){}}
-        S.rev=r.rev;more=r.more;await saveS()}
+        // the server lists a photo only in the pull that first carries it, so one that failed to download is kept in S.miss and retried
+        var want=(S.miss||[]).concat(r.blobs),miss=[];
+        for(i=0;i<want.length;i++){var id=want[i];if(blobs[id]||miss.indexOf(id)>-1)continue;
+          try{var bl=await (await api('/api/blob/'+encodeURIComponent(id),{raw:true})).blob();blobs[id]=bl;await write('blobs',id,bl);touched.products=1}
+          catch(e){if(e.login)throw e;if(!/ 404$/.test(e.message))miss.push(id)}}
+        S.miss=miss;S.rev=r.rev;more=r.more;await saveS()}
       S.at=new Date().toISOString();await saveS();setState('ok')
     }catch(e){setState(e.login?'login':navigator.onLine===false?'wait':'err',String(e.message||e))}
     // pages already applied stay on screen even when a later page or the connection fails
@@ -119,7 +122,7 @@
     saveAs('leon-gold-offline-'+day+'.json',new Blob([JSON.stringify({app:'leon-gold-offline',format:1,at:d.toISOString(),docs:docs,photos:ph})],{type:'application/json'}))}
   /* the app's «پشتیبان کامل» reads product photos through this (id -> data URL) */
   window.__leonPhotos=async function(){await ready;var ph={};for(var k in blobs)ph[k]=await b64(blobs[k]);return ph};
-  var COLS=['parties','invoices','settlements','products','orders','targets','expenses','prices','settings','log'];
+  var COLS=['parties','invoices','settlements','products','orders','targets','expenses','vitrin','prices','settings','log'];
   var CNAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',expenses:'هزینه',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
   // a full file (offline export, or «پشتیبان کامل» format 3+) replaces everything; an old format-2 file replaces only what it holds
   async function importAll(file){var j;try{j=JSON.parse(await file.text())}catch(e){alert('این فایل JSON معتبر نیست.');return}
@@ -146,7 +149,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-10-31 20:55</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 07:56</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -736,6 +739,16 @@ body.noact{padding-bottom:24px}
 #supane .srch{margin-bottom:8px}
 .rcimg{margin:0 0 10px;max-height:60vh;overflow:auto;border-radius:10px;border:1px solid var(--line);background:#f5f0e3}
 .rcimg img{display:block;width:100%;height:auto}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.vcard{display:grid;gap:4px;text-align:start;font:inherit;padding:8px 8px 10px;border:1px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;color:var(--ink)}
+.vcard b{font-size:14px;line-height:1.5}.vcard span{font-size:12px;color:var(--muted)}.vcard em{justify-self:start;font-style:normal;margin:0}
+.vth{position:relative;display:block;aspect-ratio:1;border-radius:10px;background:#0f4030 center/cover no-repeat;border:1px solid var(--line)}
+.vth.miss{background:#efe7d2}
+.vplay{position:absolute;inset-inline-end:6px;bottom:6px;font-style:normal;font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(6,20,14,.7);color:var(--gold-lt)}
+.vmedia{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0}
+.vm{position:relative;display:grid;gap:4px;justify-items:center}.vm .vth,.vm video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#0f4030}
+.vm .badge{margin:0}.vmx{position:absolute;top:4px;inset-inline-start:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(6,20,14,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.vset{display:grid;gap:8px;margin:8px 0}.vset label{display:flex;align-items:center;gap:8px;font-size:14px;min-height:36px}.vset input{width:20px;height:20px;accent-color:var(--green)}
 .creds{display:grid;gap:6px;max-height:50vh;overflow:auto}
 .cred{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .cred b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cred span{display:grid;line-height:1.3}.cred small{font-size:10.5px;color:var(--muted)}.cred i{font-style:normal;font-weight:700;color:var(--green);font-size:14px}
@@ -978,7 +991,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
 <header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
 <main id="main"></main><button class="fab" id="fab" data-act="fab" type="button" aria-label="سند جدید" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="admin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg><span>پنل مدیریت</span></button><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
+<div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="vitrin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l2-4h14l2 4M3 8h18v12H3zM3 8l3 4 3-4 3 4 3-4 3 4 3-4"/></svg><span>ویترین</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><button class="it" data-tab="admin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg><span>پنل مدیریت</span></button><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
 <div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش A4</button></div></div></div>
 <div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A4)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
 <div class="pvfoot" id="pvfoot"><p class="msg" id="pvmsg" role="status"></p><button class="btn pri" id="pvPdf" type="button">ذخیره PDF</button><button class="btn pri" id="pvSave" type="button" hidden>ذخیره تصویر</button><button class="btn ghost" id="pvBack" type="button">بازگشت</button></div>
@@ -1306,7 +1319,7 @@ function fire(t,type){t.dispatchEvent(new Event(type,{bubbles:true}))}
 })();
 
 /* ---------- state ---------- */
-var S={db:null,nodb:false,err:'',noaccess:false,me:null,loaded:{},parties:[],invoices:[],targets:[],settlements:[],log:[],products:[],stock:{},mv:{},settings:[],prices:[],orders:[],expenses:[],bal:{},ent:{},
+var S={db:null,nodb:false,err:'',noaccess:false,me:null,loaded:{},parties:[],invoices:[],targets:[],settlements:[],log:[],products:[],stock:{},mv:{},settings:[],prices:[],orders:[],expenses:[],vitrin:[],bal:{},ent:{},
   view:'home',param:null,kind:'retail',partyId:'',editId:'',editTs:'',dirty:false,q:'',filter:'all',stack:[],ret:null,saving:false};
 var main=$('#main');
 
@@ -1555,7 +1568,7 @@ function logAct(op,col,id,data){if(!S.db)return;var e={ts:new Date().toISOString
 function newId(col){return S.db.collection(col).doc().id}
 
 /* ---------- navigation ---------- */
-var EDITING={inv:1,set:1,pform:1,prform:1,oform:1,tform:1,xform:1};
+var EDITING={inv:1,set:1,pform:1,prform:1,oform:1,tform:1,xform:1,vform:1};
 function go(view,param,opts){opts=opts||{};if(!opts.noPush)S.stack.push({view:S.view,param:S.param});S.view=view;S.param=param==null?null:param;S.q='';render();window.scrollTo(0,0)}
 function back(){var p=S.stack.pop();if(!p){S.view='home';S.param=null}else{S.view=p.view;S.param=p.param}S.q='';render();window.scrollTo(0,0)}
 function tab(view){S.stack=[];S.view=view;S.param=null;S.q='';S.filter='all';render();window.scrollTo(0,0)}
@@ -1569,7 +1582,7 @@ async function initDb(){
   if(!db){S.nodb=true;render();return}
   S.db=db;
   try{var us=await window.claude.use('user');if(us){S.me=await us.me();var cw=await us.can('data.write');if(cw===false&&!S.me.isOwner)S.noaccess=true}}catch(e){}
-  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses']].forEach(function(c){
+  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses'],['vitrin','vitrin']].forEach(function(c){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
   render();
@@ -1586,14 +1599,14 @@ function render(){
   var sp=document.getElementById('splash');if(sp)sp.remove();
   var v=S.view,editing=EDITING[v];$('#fab').hidden=true;
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();var mp=$('#menuPanel');if(mp)mp.hidden=!panelOK();menuProf();
-  $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets')||(v==='xform'&&b.dataset.tab==='expenses')||(v==='aparty'&&b.dataset.tab==='admin'))?'page':'false')});
+  $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets')||(v==='xform'&&b.dataset.tab==='expenses')||(v==='aparty'&&b.dataset.tab==='admin')||(v==='vform'&&b.dataset.tab==='vitrin'))?'page':'false')});
   if(S.nodb){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="warn">ذخیره‌سازی در این نمایش فعال نیست. صفحه را داخل حساب Claude خودت و با همان مرورگر یا برنامه‌ای که وارد آن هستی باز کن.</div>';return}
   if(!S.db){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   if(S.noaccess){setTop('دفتر لئون گلد','',false);$('#nav').hidden=true;$('#menuBtn').hidden=true;main.innerHTML='<div class="warn">به این دفتر دسترسی نداری. برای ورود، از مالک دفتر بخواه تو را با سطح «Contributor» یا «Editor» به این صفحه اضافه کند.</div>';return}
   if(!S.loaded.settings){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   gateCheck();if(isLocked()){main.innerHTML='';return}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
-  ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform,admin:vAdmin,aparty:vAParty})[v]();if(v==='prform')prformReady();
+  ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform,admin:vAdmin,aparty:vAParty,vitrin:vVitrin,vform:vVform})[v]();if(v==='prform')prformReady();
   $('#fab').hidden=!!editing||v==='home';
   var vk=v+'|'+(S.param||'');if(vk!==lastVK){lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
@@ -1831,6 +1844,71 @@ function vAParty(){var p=partyById(S.param);if(!p){back();return}
         +'<div class="btns"><button class="btn sm pri" data-act="ptcred" data-id="'+esc(p.id)+'" type="button">'+(u?'رمز تازه':'ساخت نام کاربری و رمز')+'</button><button class="btn sm" data-act="ptinv" data-id="'+esc(p.id)+'" type="button">لینک ورود یک‌بارمصرف</button></div>')+'</section>'
     +'<div class="btns"><button class="btn" data-act="party" data-id="'+esc(p.id)+'" type="button">صورت‌حساب کامل و ثبت سند</button></div>';
   if(on&&admNeed())admLoad()}
+/* ---------- «ویترین»: the pieces on show in every buyer's «حساب من» (collection vitrin). The photos and films go
+   straight to the server (/api/media, kept there only, never copied onto the devices); the doc keeps their ids. ---------- */
+var VCATS=['انگشتر','گردنبند','دستبند','گوشواره','سرویس','النگو','پلاک و آویز','زنجیر'];
+var VSET=['نقد','کارت‌به‌کارت','طلا با طلا (آبشده یا ساخته)','اقساط'];
+var VMEDIA={}; // media id -> object URL, fetched once with the owner's token
+async function vmURL(id){if(VMEDIA[id])return VMEDIA[id];var r=await srvApi('/api/media/'+encodeURIComponent(id),{raw:true});VMEDIA[id]=URL.createObjectURL(await r.blob());return VMEDIA[id]}
+function vmFill(root){$$('[data-vm]',root).forEach(function(el){var id=el.dataset.vm;vmURL(id).then(function(u){if(el.tagName==='VIDEO')el.src=u;else el.style.backgroundImage='url("'+u+'")'}).catch(function(){el.classList.add('miss')})})}
+function vOnline(){return window.__leonSync&&window.__leonSync.info().on}
+function vitById(id){for(var i=0;i<S.vitrin.length;i++)if(S.vitrin[i].id===id)return S.vitrin[i];return null}
+function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1}),f=S.vf||'all';
+  setTop('ویترین',fmt(L.filter(function(x){return x.show!==false&&!x.sold}).length)+' کار در «حساب من»',false);
+  var cats=[];L.forEach(function(x){if(x.cat&&cats.indexOf(x.cat)<0)cats.push(x.cat)});
+  var shown=L.filter(function(x){return f==='all'||(f==='hid'?x.show===false:f==='sold'?x.sold:x.cat===f)});
+  main.innerHTML='<button class="btn pri" data-act="newvit" type="button">+ کار تازه برای ویترین</button>'
+    +'<p class="note">هر کاری که اینجا بگذاری، با عکس و فیلم، وزن، عیار، اجرت و قیمت تقریبیِ همان ساعت، در «حساب من» همه‌ی خریدارها دیده می‌شود. سفارشی که از آنجا بدهند در «پنل مدیریت» سایت، بخش «سفارش‌ها»، می‌آید.</p>'
+    +(vOnline()?'':'<div class="warn">برای گذاشتن عکس و فیلم باید به سرور وصل باشی.</div>')
+    +(L.length?'<div class="chips" id="vchips">'+[['all','همه']].concat(cats.map(function(c){return [c,c]}),[['hid','پنهان'],['sold','فروخته‌شده']]).map(function(c){return '<button class="chip" data-act="vfilter" data-f="'+esc(c[0])+'" aria-pressed="'+(f===c[0])+'" type="button">'+esc(c[1])+'</button>'}).join('')+'</div>':'')
+    +'<div class="vgrid">'+(shown.length?shown.map(function(x){var m=(x.media||[]).filter(function(y){return y.type!=='video'})[0];
+      return '<button class="vcard" data-act="editvit" data-id="'+esc(x.id)+'" type="button"><span class="vth"'+(m?' data-vm="'+esc(m.id)+'"':'')+'>'+((x.media||[]).some(function(y){return y.type==='video'})?'<i class="vplay" aria-label="فیلم دارد">▶</i>':'')+'</span>'
+        +'<b>'+esc(x.name)+'</b><span>'+[x.cat,x.weight?fmt(x.weight,3)+' گرم':''].filter(Boolean).map(esc).join(' · ')+'</span>'
+        +(x.show===false?'<em class="badge lo">پنهان</em>':x.sold?'<em class="badge">فروخته شد</em>':'<em class="badge g">در ویترین</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+  if(vOnline())vmFill(main)}
+function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=x||{show:true,carat:750,profit:7,settle:['نقد','کارت‌به‌کارت']};
+  if(!S.vMedia)S.vMedia=(x.media||[]).map(function(m){return {id:m.id,type:m.type}});
+  setTop(isNew?'کار تازه برای ویترین':'ویرایش «'+(x.name||'')+'»','',true);
+  var n=function(v,d){return v||v===0?plain(v,d):''},set=x.settle||[];
+  main.innerHTML='<section class="sec"><h2>عکس‌ها و فیلم</h2><p class="note">اولی عکس روی کارت است. فیلم تا ۸۰ مگابایت.</p><div class="vmedia" id="vmlist">'+vmListHTML()+'</div>'
+    +'<input type="file" id="vm_file" accept="image/*,video/*" multiple hidden><div class="btns"><button class="btn" data-act="vmpick" type="button"'+(vOnline()?'':' disabled')+'>افزودن عکس یا فیلم</button></div><p class="note" id="vmmsg"></p></section>'
+    +'<section class="sec"><h2>مشخصات</h2><div class="grid">'+fld('نام کار *','vt_name',x.name,{w2:1,ph:'مثلاً انگشتر سولیتر'})
+    +'<label class="f"><span>دسته</span><input id="vt_cat" list="vt_cats" value="'+esc(x.cat||'')+'" placeholder="انگشتر، گردنبند…"><datalist id="vt_cats">'+VCATS.map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist></label>'
+    +fld('کد (اختیاری)','vt_code',x.code,{ph:'مثلاً R12'})+fld('وزن (گرم) *','vt_w',n(x.weight,3),{num:1})+fld('عیار (آزمایشگاهی)','vt_carat',n(x.carat||750,0),{num:1})
+    +fld('اجرت (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
+    +'<p class="note">قیمت در «حساب من» با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود + ۱۰٪ مالیات بر اجرت و سود.</p></section>'
+    +'<section class="sec"><h2>نحوه‌ی تسویه</h2><div class="vset">'+VSET.map(function(s,i){return '<label><input type="checkbox" id="vt_s'+i+'"'+(set.indexOf(s)>=0?' checked':'')+'> '+esc(s)+'</label>'}).join('')+'</div>'
+    +fld('توضیح تسویه (اختیاری)','vt_sn',x.settleNote,{w2:1,ph:'مثلاً ۵۰٪ بیعانه، بقیه هنگام تحویل'})+'</section>'
+    +'<section class="sec"><h2>توضیحات</h2><label class="f w2"><span>هر چه مشتری باید بداند: نگین، اندازه، رنگ طلا، زمان آماده‌شدن…</span><textarea id="vt_desc" rows="4">'+esc(x.desc||'')+'</textarea></label>'
+    +'<div class="vset"><label><input type="checkbox" id="vt_show"'+(x.show!==false?' checked':'')+'> نمایش در «حساب من»</label><label><input type="checkbox" id="vt_sold"'+(x.sold?' checked':'')+'> فروخته شد (با برچسب «فروخته شد» می‌ماند)</label></div></section>'
+    +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
+  var fi=$('#vm_file');if(fi)fi.addEventListener('change',function(){vmAdd([].slice.call(fi.files||[]));fi.value=''});
+  if(vOnline())vmFill(main)}
+function vmListHTML(){var L=S.vMedia||[];if(!L.length)return '<div class="empty">هنوز عکسی نگذاشته‌ای.</div>';
+  return L.map(function(m,i){return '<div class="vm">'+(m.type==='video'?'<video data-vm="'+esc(m.id)+'" muted playsinline preload="metadata"></video>':'<span class="vth" data-vm="'+esc(m.id)+'"></span>')
+    +(i===0?'<em class="badge g">روی کارت</em>':'<button class="lnk" data-act="vmcover" data-i="'+i+'" type="button">اول کن</button>')+'<button class="vmx" data-act="vmrm" data-i="'+i+'" type="button" aria-label="برداشتن">×</button></div>'}).join('')}
+function vmRedraw(){var b=$('#vmlist');if(b){b.innerHTML=vmListHTML();vmFill(b)}}
+async function vmAdd(files){var msg=$('#vmmsg');
+  for(var i=0;i<files.length;i++){var f=files[i],video=/^video\//.test(f.type);
+    if(!video&&!/^image\//.test(f.type)){toast('فقط عکس یا فیلم.');continue}
+    if(video&&f.size>80*1024*1024){toast('فیلم «'+f.name+'» بیشتر از ۸۰ مگابایت است؛ کوتاه‌ترش کن.');continue}
+    if(msg)msg.textContent='در حال بارگذاری '+(video?'فیلم':'عکس')+' '+fmt(i+1)+' از '+fmt(files.length)+'…';
+    try{var body=video?f:await shrinkTo(f,1600),type=video?(f.type==='video/quicktime'?'video/quicktime':f.type||'video/mp4'):'image/jpeg',id='vm'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      await srvApi('/api/media/'+id,{method:'PUT',headers:{'Content-Type':type},body:body});
+      VMEDIA[id]=URL.createObjectURL(body);(S.vMedia=S.vMedia||[]).push({id:id,type:video?'video':'image'});S.dirty=true;vmRedraw()}
+    catch(e){toast(e&&e.body&&e.body.error==='bad_type'?'این نوع فایل پذیرفته نمی‌شود.':'بارگذاری نشد. اینترنت را بررسی کن.')}}
+  if(msg)msg.textContent=''}
+// a showcase photo: a little larger than the ledger's own product photos
+async function shrinkTo(file,max){try{var bmp=await createImageBitmap(file),s=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');
+  c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  var b=await new Promise(function(r){c.toBlob(r,'image/jpeg',0.86)});return b||file}catch(e){return file}}
+async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
+  if(!name){toast('نام کار را بنویس.');return}if(!(w>0)){toast('وزن را بنویس.');return}
+  var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
+    ajrat:num(val('vt_aj'))||0,profit:val('vt_pr').trim()===''?7:num(val('vt_pr')),settle:VSET.filter(function(s,i){var c=$('#vt_s'+i);return c&&c.checked}),settleNote:val('vt_sn').trim(),
+    desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,sold:$('#vt_sold').checked,ts:old&&old.ts||new Date().toISOString()};
+  var nid=id||'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» دیده می‌شود.':'.'));back()}}
 async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
 function srvApi(p,o){return window.__leonSync.api(p,o)}
 function srvErrMsg(e){var c=(e&&e.body&&e.body.error)||(e&&e.login&&'login');
@@ -2170,14 +2248,14 @@ async function saveFile(name,text,type){var d=null;try{d=await window.claude.use
 function day(){return new Date().toISOString().slice(0,10)}
 function strip(o){var c=Object.assign({},o);return c}
 /* the lock button asks for a backup when the backed-up collections changed (per the audit log) after this device's last backup */
-var BK_COLS=['parties','invoices','settlements','products','orders','targets','expenses'];
+var BK_COLS=['parties','invoices','settlements','products','orders','targets','expenses','vitrin'];
 function lastChange(){var t='';S.log.forEach(function(e){if(BK_COLS.indexOf(e.col)>=0&&e.ts>t)t=e.ts});return t}
 function lockAsk(){var lc=lastChange(),lb=lsGet('leon_lastbk')||'';if(!lc||(lb.length>10&&lc<=lb))return lockNow();
   var m=document.createElement('div');m.className='modal';m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>از آخرین پشتیبان، اطلاعات دفتر تغییر کرده. قبل از قفل، پشتیبان کامل بگیرم؟</p><div class="btns"><button class="btn pri" data-y>پشتیبان و قفل</button><button class="btn" data-l>فقط قفل</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',async function(e){if(e.target.closest('[data-y]')){m.remove();await backupJson();lockNow()}else if(e.target.closest('[data-l]')){m.remove();lockNow()}else if(e.target===m)m.remove()})}
 /* a full backup carries every collection (logins and price included) plus product photos when the runtime can read them;
    format 2 files held only parties, invoices and settlements */
-var BK_ALL=['parties','invoices','settlements','products','orders','targets','expenses','prices','settings','log'];
+var BK_ALL=['parties','invoices','settlements','products','orders','targets','expenses','vitrin','prices','settings','log'];
 var BK_NAME={parties:'طرف‌حساب',invoices:'فاکتور',settlements:'سند تسویه',products:'کالا',orders:'سفارش',targets:'تارگت',expenses:'هزینه',prices:'قیمت روزانه',settings:'تنظیمات',log:'سابقه'};
 function bkSummary(c){return BK_ALL.filter(function(k){return c[k]}).map(function(k){return fmt(c[k])+' '+BK_NAME[k]}).join('، ')}
 async function backupJson(){var d={app:'leon-gold',format:3,at:new Date().toISOString()},cnt={};
@@ -2789,6 +2867,14 @@ document.addEventListener('click',function(e){
     case 'pinoff':pinOff(b.dataset.u||'');break;
     case 'serverlogout':ask('از حساب سرور خارج شوی؟ اطلاعات همین دستگاه دست‌نخورده می‌ماند؛ برای ورود دوباره به نام کاربری و رمز نیاز است.',async function(){try{await window.__leonSync.disconnect()}catch(e){}location.reload()},'خروج');break;
     case 'panelgo':panelGo();break;
+    case 'newvit':S.vMedia=null;go('vform',null);break;
+    case 'editvit':S.vMedia=null;go('vform',{id:id});break;
+    case 'savevit':saveVit(id);break;
+    case 'delvit':ask('«'+((vitById(id)||{}).name||'')+'» از ویترین حذف شود؟ از «حساب من» همه هم برداشته می‌شود.',async function(){if(await del('vitrin',id)){S.dirty=false;S.vMedia=null;toast('حذف شد.');back()}},'حذف');break;
+    case 'vfilter':S.vf=b.dataset.f;render();break;
+    case 'vmpick':{var vf=$('#vm_file');if(vf){vf.value='';vf.click()}break}
+    case 'vmrm':S.vMedia.splice(+b.dataset.i,1);vmRedraw();break;
+    case 'vmcover':{var vi=+b.dataset.i,vx=S.vMedia.splice(vi,1)[0];S.vMedia.unshift(vx);vmRedraw();break}
     case 'aparty':S.ainv=10;go('aparty',id);break;
     case 'afilter':S.af=b.dataset.f;render();break;
     case 'ainvmore':S.ainv=(S.ainv||10)+20;render();break;
