@@ -149,7 +149,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-01 13:37</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-02 22:01</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1113,6 +1113,8 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
       <label><span>مانده قبلی (ریال):</span><span class="dual"><input class="num rq" id="w_rprev" inputmode="decimal"><select class="rq" id="w_rprev_t" aria-label="نوع مانده قبلی ریالی"><option value="dr">بدهکار</option><option value="cr">بستانکار</option></select></span></label>
       <label><span>وضعیت تحویل کالا:</span><span class="dual"><select id="w_deliv" aria-label="وضعیت تحویل"><option value="dl">تحویل شد</option><option value="nd">تحویل نشد</option></select></span></label>
       <label><span>طلای دریافتی (گرم):</span><span class="dual"><input class="num" id="w_recv" inputmode="decimal"><select id="w_recv_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
+      <label><span>حواله (گرم):</span><span class="dual"><input class="num rq" id="w_hv" inputmode="decimal"><select class="rq" id="w_hv_t" aria-label="جهت حواله"><option value="out">حواله دادیم</option><option value="in">حواله گرفتیم</option></select></span></label>
+      <label><span>حساب حواله:</span><span class="dual"><select class="rq" id="w_hvp" aria-label="حواله از حساب چه کسی"><option value="">—</option></select></span></label>
       <label><span>پرداخت ریالی (تبدیل به گرم):</span><span class="dual"><input class="num" id="w_cash" inputmode="decimal"><select id="w_cash_t" aria-label="بدهکار یا بستانکار"><option value="cr">بستانکار</option><option value="dr">بدهکار</option></select></span></label>
       <label><span>جریمه دیرکرد ٪:</span><input class="num" id="w_late" inputmode="decimal"></label>
       <label><span>تخفیف (گرم):</span><input class="num rq" id="w_discg" inputmode="decimal"></label>
@@ -1128,6 +1130,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
       <label><span>با مانده قبلی :</span><b class="out" id="x_all">۰</b></label>
       <label class="lgx"><span>آبشده و متفرقه (۷۵۰) :</span><b class="out" id="x_gx">۰</b></label>
       <label><span>دریافتی (گرم) :</span><b class="out" id="x_got">۰</b></label>
+      <label class="lhv"><span id="x_hvl">حواله (گرم) :</span><b class="out" id="x_hv">۰</b></label>
       <label class="ltr"><span>معامله طلا (گرم) :</span><b class="out" id="x_trg">۰</b></label>
       <label class="big"><span>مانده نهایی (گرم) :</span><b class="out" id="x_bal">۰</b></label>
       <label class="ldr"><span>تخفیف (ریال) :</span><b class="out" id="x_dr">۰</b></label>
@@ -1254,7 +1257,10 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     var ci=Math.round(parse($('#tx_ci').value)),co=Math.round(parse($('#tx_co').value)),rb=tR-ci+co-discR*wdir,tc2=ci||co||discR;
     if(tc2)tc.textContent=(tt?tc.textContent+'  |  ':'')+(ci?'دریافت نقدی '+fmt(ci)+' ریال ':'')+(co?'پرداخت نقدی '+fmt(co)+' ریال ':'')+'←  مانده ریالی این سند '+fmt(Math.abs(rb))+' ریال '+(Math.abs(rb)<0.5?'تسویه':rb>0?'بدهکار':'بستانکار');
     $('#tx_rb').textContent=(tt||tc2)?fmt(Math.abs(rb))+(Math.abs(rb)<0.5?' تسویه':rb>0?' بدهکار':' بستانکار'):'';
-    var got=recv+gxG+cashG, bal=all+0-got+tG;window.LGW={eff:Math.round(weff*1000)/1000,delta:Math.round((weff-got+tG)*1000)/1000,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
+    var hvW=parse($('#w_hv').value),hvOut=$('#w_hv_t').value!=='in',hv=hvW*(hvOut?1:-1),hvS=$('#w_hvp'),hvP=hvS.value&&hvS.selectedOptions[0]?{name:hvS.selectedOptions[0].textContent}:null;
+    $('#x_hv').textContent=fmt(hvW,3)+(hvP?' · '+(hvOut?'از حساب ما نزد ':'به حساب ما نزد ')+hvP.name:'');$('#x_hvl').textContent=(hvOut?'حواله داده شد':'حواله گرفته شد')+' (گرم) :';
+    $$('#whole .lhv').forEach(function(l){l.classList.toggle('zl',!(hvW>0))});
+    var got=recv+gxG+cashG, bal=all+0-got+tG+hv;window.LGW={eff:Math.round(weff*1000)/1000,delta:Math.round((weff-got+tG+hv)*1000)/1000,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
     showBal('#x_trg',tG,3);showBal('#x_trr',rb,0);$('#x_dg').textContent=fmt(discG,3);$('#x_dr').textContent=fmt(discR);
     $$('#whole .ldg').forEach(function(l){l.classList.toggle('zl',!(discG>0))});$$('#whole .ldr').forEach(function(l){l.classList.toggle('zl',!(discR>0))});
     $$('#retail .ldg').forEach(function(l){l.classList.toggle('zl',!(parse($('#r_discg').value)>0))});
@@ -1347,6 +1353,8 @@ function compute(){
   S.invoices.forEach(function(i){if(!bal[i.partyId])return;var u=unitOf(i),d=(u==='g'?i.deltaG:i.deltaR)||0;
     bal[i.partyId][u]+=d;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,label:invLabel(i)+' '+(i.no||''),u:u,d:d});
     if(u==='g'&&i.deltaR){bal[i.partyId].r+=i.deltaR;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,tr:1,label:(i.trade&&i.trade.type==='buy'?'خرید طلا':i.trade&&i.trade.type==='sell'?'فروش طلا':'نقدی')+(i.trade&&(i.trade.cin||i.trade.cout)&&i.trade.type?' و نقدی':'')+' · '+invLabel(i)+' '+(i.no||'')+(i.trade&&i.trade.note?' · '+i.trade.note:''),u:'r',d:i.deltaR})}});
+  S.invoices.forEach(function(i){var h=i.hav;if(!h||!h.w||!bal[h.partyId])return;var d=(h.dir==='in'?1:-1)*h.w;
+    bal[h.partyId].g+=d;ent[h.partyId].push({ts:i.ts,kind:'inv',id:i.id,hv:1,label:'حواله '+(h.dir==='in'?'به حساب لئون از ':'از حساب لئون به ')+(i.partyName||'')+' · '+invLabel(i)+' '+(i.no||''),u:'g',d:d})});
   S.settlements.forEach(function(s){if(!bal[s.partyId])return;var d=(s.dir==='in'?-1:1)*(s.amount||0);
     bal[s.partyId][s.unit]+=d;ent[s.partyId].push({ts:s.ts,kind:'set',id:s.id,label:(s.dir==='in'?'دریافت از او':'پرداخت به او')+(s.note?' · '+s.note:''),u:s.unit,d:d})});
   Object.keys(ent).forEach(function(k){var run={g:0,r:0};ent[k].sort(function(a,b){return a.ts<b.ts?-1:a.ts>b.ts?1:0});ent[k].forEach(function(e){run[e.u]+=e.d;e.run=run[e.u]})});
@@ -2555,9 +2563,10 @@ function goldOf(){var out=[];gxRows().forEach(function(tr){var w=num($('.gw',tr)
 function gxText(g){return [GXT[g.type]||'آبشده',fmt(g.weight||0,3)+' گرم','عیار '+toFa(g.purity||''),g.lab?'آزمایشگاه '+g.lab:'',g.ang?'انگ '+toFa(g.ang):'',g.note||'','= '+fmt(g.g750||0,3)+' گرم ۷۵۰'].filter(Boolean).join(' · ')}
 function setKind(k){S.kind=k;$$('.sheet',ex).forEach(function(s){s.hidden=s.id!==k})}
 /* a saved invoice is final: nothing on it can change, including its gold price */
+function hvOpts(){var sel=$('#w_hvp'),v=sel.value;sel.innerHTML='<option value="">—</option>'+S.parties.filter(function(p){return p.id!==S.partyId}).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('');sel.value=v}
 function lockSheets(on){$$('.sheet',ex).forEach(function(s){$$('input',s).forEach(function(e){e.readOnly=on});$$('select,button',s).forEach(function(e){e.disabled=on})})}
 function resetSheet(k,keepPrice){
-  lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
+  lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;$('#w_hv').value='';$('#w_hv_t').selectedIndex=0;hvOpts();$('#w_hvp').value='';['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
   $$('.gx,.tx',sheet(k)).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});shownG=1;$$('#wt tbody tr').forEach(function(tr){delete tr.dataset.ret});
   $('#taxPct').value='۰';var now=Date.now();$$('.dt',sheet(k)).forEach(function(e){e.value=jdate(now)});
   if(k==='retail'){var t=$('.meta div:nth-child(3) input',sheet(k));if(t)t.value=jtime(now)}
@@ -2586,7 +2595,7 @@ async function autoProducts(s,inbound){var made=[],next=nextCode();
 function loadInvoice(inv){
   setKind(inv.kind);var s=sheet(inv.kind),cur=$$('#rt tbody tr,#wt tbody tr',s).length;
   for(var i=cur;i<(inv.rows||cur);i++)$('.addrow',s).click();
-  var f=fields(inv.kind);(inv.vals||[]).forEach(function(v,i){if(f[i])f[i].value=v});$('#w_rprev').value=inv.rprev?inv.rprev[0]:'';$('#w_rprev_t').value=inv.rprev?inv.rprev[1]:'dr';['#r_discg','#w_discg','#w_discr'].forEach(function(q,i){$(q).value=inv.disc2&&inv.disc2[i]||''});
+  var f=fields(inv.kind);(inv.vals||[]).forEach(function(v,i){if(f[i])f[i].value=v});$('#w_rprev').value=inv.rprev?inv.rprev[0]:'';$('#w_rprev_t').value=inv.rprev?inv.rprev[1]:'dr';hvOpts();$('#w_hv').value=inv.hav?plain(inv.hav.w,3):'';$('#w_hv_t').value=inv.hav&&inv.hav.dir==='in'?'in':'out';$('#w_hvp').value=inv.hav?inv.hav.partyId:'';['#r_discg','#w_discg','#w_discr'].forEach(function(q,i){$(q).value=inv.disc2&&inv.disc2[i]||''});
   var wr=$$('#wt tbody tr');wr.forEach(function(tr){delete tr.dataset.ret});if(inv.kind==='whole')(inv.rets||[]).forEach(function(i){if(wr[i])wr[i].dataset.ret='1'});
   if(inv.kind==='whole'){var gr=gxRows();(inv.gold||[]).forEach(function(g,i){var tr=gr[i];if(!tr)return;$('.gt',tr).value=g.type||'ab';$('.gw',tr).value=plain(g.weight,3);$('.gk',tr).value=toFa(g.purity||'');$('.gl',tr).value=g.lab||'';$('.gan',tr).value=toFa(g.ang||'');$('.gn',tr).value=g.note||'';$('.gsrc',tr).value=g.src||''});
     $('#w_gx_t').value=inv.goldDir||'cr';var tr=inv.trade;if(tr){$('#tx_t').value=tr.type;$('#tx_m').value=tr.mode||'w';$('#tx_w').value=plain(tr.w,3);$('#tx_gp').value=plain(tr.gp);$('#tx_mq').value=plain(Math.round(tr.gp*4.3318));$('#tx_a').value=tr.amount?plain(tr.amount):'';$('#tx_n').value=tr.note||'';$('#tx_ci').value=tr.cin?plain(tr.cin):'';$('#tx_co').value=tr.cout?plain(tr.cout):'';if(!tr.type){$('#tx_w').value='';$('#tx_gp').value='';$('#tx_mq').value=''}}}
@@ -2599,6 +2608,7 @@ function applyParty(p){
   var b=S.bal[p.id]||{g:0,r:0},v=k==='whole'?b.g:b.r,pe=k==='whole'?$('#w_prev'):$('#r_prev'),pt=k==='whole'?$('#w_prev_t'):$('#r_prev_t');
   pe.value=Math.abs(v)<(k==='whole'?0.0005:0.5)?'':plain(Math.abs(v),k==='whole'?3:0);pt.value=v<0?'cr':'dr';
   fire(pe,'input');fire(pt,'change');
+  if(k==='whole')hvOpts();
   if(k==='whole'){var re=$('#w_rprev'),rt=$('#w_rprev_t');re.value=Math.abs(b.r)<0.5?'':plain(Math.abs(b.r),0);rt.value=b.r<0?'cr':'dr';fire(re,'input');fire(rt,'change')}
 }
 function vInv(){
@@ -2658,13 +2668,14 @@ async function saveInvoice(){
   if(S.saving)return;
   if(S.editId&&S.unlock!==S.editId){toast('این فاکتور قفل است و قابل ویرایش نیست');return}
   if(!S.partyId){toast('اول طرف‌حساب را انتخاب کن');var ps=$('#partySel');if(ps)ps.focus();return}
+  if(S.kind==='whole'&&num($('#w_hv').value)>0&&!partyById($('#w_hvp').value)){toast('حساب حواله را انتخاب کن (حواله از حساب چه کسی)');return}
   S.saving=true;try{
     fire($('#taxPct'),'input');
     var k=S.kind,p=partyById(S.partyId),s=sheet(k),made=await autoProducts(s,k==='whole'&&$('#w_doc').value==='rc');
     var d={kind:k,doc:k==='whole'?$('#w_doc').value:'',no:$('.meta div:nth-child(2) input',s).value,date:$('.meta div:nth-child(1) input',s).value,
       partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,disc2:[$('#r_discg').value,$('#w_discg').value,$('#w_discr').value],rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
       ts:S.editTs||new Date().toISOString(),upd:new Date().toISOString()};
-    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
+    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
     if(k==='whole'){var w=window.LGW||{eff:0,delta:0};d.unit='g';d.amount=w.eff;d.deltaG=w.delta}else{var r=window.LGR||{eff:0,delta:0};d.unit='r';d.amount=r.eff;d.deltaR=r.delta}
     var id=S.editId||newId('invoices');
     if(S.editId){var prev=null;S.invoices.forEach(function(x){if(x.id===id)prev=x});if(prev){var snap=Object.assign({},prev);delete snap.id;logAct('edit','invoices',id,snap)}}
@@ -2755,7 +2766,7 @@ function itemCard(i){var kind=S.kind,c=document.createElement('div');c.className
     rl.appendChild(cb);rl.appendChild(tx);c.appendChild(rl);c.classList.toggle('isret',cb.checked)}
   return c}
 function renderForm(){
-  var app=$('#form');if(!app)return;app.innerHTML='';var kind=S.kind,Sx='#'+kind+' ';
+  var app=$('#form');if(!app)return;if(S.kind==='whole')hvOpts();app.innerHTML='';var kind=S.kind,Sx='#'+kind+' ';
   var N=function(n){return Sx+n},meta=function(i){return N('.meta div:nth-child('+i+') input')},notes=N('.notes .free input');
   var taxf=function(){return $('#taxPct')};
   if(kind==='retail'){
@@ -2778,7 +2789,7 @@ function renderForm(){
   var P=function(k){return function(){return $$(N('.rp'))[k]}};
   if(kind==='retail')app.appendChild(fsec('تسویه و مانده',[mk('تخفیف (ریال)','#r_disc',{num:1,w2:1}),mk('تخفیف (گرم، به قیمت همین فاکتور)','#r_discg',{num:1,w2:1}),mk('مانده قبلی (ریال)','#r_prev',{num:1,w2:1,sel:'#r_prev_t'}),mkSelect('وضعیت تحویل کالا','#r_deliv',{w2:1}),
     mk('نقدی',P(0),{num:1,w2:1,sel:'#r_p1_t'}),mk('کارت / حواله',P(1),{num:1,w2:1,sel:'#r_p2_t'}),mk('چک',P(2),{num:1,w2:1,sel:'#r_p3_t'}),mk('طلای مشتری (تهاتر)',P(3),{num:1,w2:1,sel:'#r_p4_t'})]));
-  else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1}),mk('تخفیف (گرم)','#w_discg',{num:1,w2:1}),mk('تخفیف (ریال)','#w_discr',{num:1,w2:1})]));
+  else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('حواله (گرم)','#w_hv',{num:1,w2:1,sel:'#w_hv_t'}),mkSelect('حساب حواله (نزد چه کسی)','#w_hvp',{w2:1}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1}),mk('تخفیف (گرم)','#w_discg',{num:1,w2:1}),mk('تخفیف (ریال)','#w_discr',{num:1,w2:1})]));
   app.appendChild(fsec('مشخصات '+(kind==='retail'?'خریدار':'مشتری'),kind==='retail'?[mk('خریدار',N('.cust label:nth-child(1) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(2) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(3) input'),{w2:1})]:
     [mk('حساب (نام مشتری)',N('.cust label:nth-child(1) input'),{w2:1}),mk('فروشگاه',N('.cust label:nth-child(2) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(3) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(4) input'),{w2:1})]));
   app.appendChild(fsec('توضیحات',[mk('توضیحات (اختیاری)',notes,{w2:1})]));
@@ -2939,7 +2950,7 @@ document.addEventListener('click',function(e){
     case 'unlockinv':ask('قفل این فاکتور باز شود تا بتوانی اصلاحش کنی؟ قیمت طلای خود فاکتور عوض نمی‌شود.',function(){S.unlock=S.editId;lockSheets(false);var y=window.scrollY;vInv();window.scrollTo(0,y)},'باز کردن قفل');break;
     case 'psort':if((S.psort||'name')===b.dataset.s)S.pdesc=S.pdesc===false;else{S.psort=b.dataset.s;S.pdesc=true}$('#sorts').innerHTML='<span class="note" style="align-self:center">مرتب‌سازی:</span>'+sortChips();$('#lst').innerHTML=listProducts();break;
     case 'filter':S.filter=b.dataset.f;$$('#chips .chip').forEach(function(c){c.setAttribute('aria-pressed',String(c.dataset.f===S.filter))});$('#lst').innerHTML=S.view==='products'?listProducts():listInvoices();break;
-    case 'delparty':{var used=S.invoices.some(function(i){return i.partyId===id})||S.settlements.some(function(s){return s.partyId===id});
+    case 'delparty':{var used=S.invoices.some(function(i){return i.partyId===id||(i.hav&&i.hav.partyId===id)})||S.settlements.some(function(s){return s.partyId===id});
       if(used){toast('این طرف‌حساب فاکتور یا سند دارد و حذف نمی‌شود');break}
       ask('این طرف‌حساب حذف شود؟',async function(){if(await del('parties',id)){toast('حذف شد');S.stack=[];tab('parties')}},'حذف');break}
     case 'delset':ask('این سند تسویه حذف شود؟ مانده طرف‌حساب دوباره حساب می‌شود.',async function(){if(await del('settlements',id)){toast('حذف شد');back()}},'حذف');break;
