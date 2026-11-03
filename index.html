@@ -149,7 +149,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-02 22:01</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-03 16:35</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -748,7 +748,7 @@ body.noact{padding-bottom:24px}
 .vmedia{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0}
 .vm{position:relative;display:grid;gap:4px;justify-items:center}.vm .vth,.vm video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#0f4030}
 .vm .badge{margin:0}.vmx{position:absolute;top:4px;inset-inline-start:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(6,20,14,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
-.vset{display:grid;gap:8px;margin:8px 0}.vset label{display:flex;align-items:center;gap:8px;font-size:14px;min-height:36px}.vset input{width:20px;height:20px;accent-color:var(--green)}.f textarea{font:inherit;font-size:16px;letter-spacing:0;width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical;min-height:96px;line-height:1.8}.f textarea:focus{outline:none;border-color:var(--gold-d);box-shadow:0 0 0 3px rgba(197,154,80,.22)}.vset{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.vset{display:grid;gap:8px;margin:8px 0}.vset label{display:flex;align-items:center;gap:8px;font-size:14px;min-height:36px}.vset input{width:20px;height:20px;accent-color:var(--green)}.f textarea{font:inherit;font-size:16px;letter-spacing:0;width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical;min-height:96px;line-height:1.8}.f textarea:focus{outline:none;border-color:var(--gold-d);box-shadow:0 0 0 3px rgba(197,154,80,.22)}.vset{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.vto{grid-template-columns:1fr;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px 10px;background:#fff}.vto label small{color:var(--muted);font-size:12px}.vto label[hidden]{display:none}
 .creds{display:grid;gap:6px;max-height:50vh;overflow:auto}
 .cred{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .cred b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cred span{display:grid;line-height:1.3}.cred small{font-size:10.5px;color:var(--muted)}.cred i{font-style:normal;font-weight:700;color:var(--green);font-size:14px}
@@ -1257,7 +1257,7 @@ div.row{cursor:default}div.row:active{transform:none;background:#fff}
     var ci=Math.round(parse($('#tx_ci').value)),co=Math.round(parse($('#tx_co').value)),rb=tR-ci+co-discR*wdir,tc2=ci||co||discR;
     if(tc2)tc.textContent=(tt?tc.textContent+'  |  ':'')+(ci?'دریافت نقدی '+fmt(ci)+' ریال ':'')+(co?'پرداخت نقدی '+fmt(co)+' ریال ':'')+'←  مانده ریالی این سند '+fmt(Math.abs(rb))+' ریال '+(Math.abs(rb)<0.5?'تسویه':rb>0?'بدهکار':'بستانکار');
     $('#tx_rb').textContent=(tt||tc2)?fmt(Math.abs(rb))+(Math.abs(rb)<0.5?' تسویه':rb>0?' بدهکار':' بستانکار'):'';
-    var hvW=parse($('#w_hv').value),hvOut=$('#w_hv_t').value!=='in',hv=hvW*(hvOut?1:-1),hvS=$('#w_hvp'),hvP=hvS.value&&hvS.selectedOptions[0]?{name:hvS.selectedOptions[0].textContent}:null;
+    var hvW=Math.round(parse($('#w_hv').value)*1000)/1000,hvOut=$('#w_hv_t').value!=='in',hv=hvW*(hvOut?1:-1),hvS=$('#w_hvp'),hvP=hvS.value&&hvS.selectedOptions[0]?{name:hvS.selectedOptions[0].textContent}:null;
     $('#x_hv').textContent=fmt(hvW,3)+(hvP?' · '+(hvOut?'از حساب ما نزد ':'به حساب ما نزد ')+hvP.name:'');$('#x_hvl').textContent=(hvOut?'حواله داده شد':'حواله گرفته شد')+' (گرم) :';
     $$('#whole .lhv').forEach(function(l){l.classList.toggle('zl',!(hvW>0))});
     var got=recv+gxG+cashG, bal=all+0-got+tG+hv;window.LGW={eff:Math.round(weff*1000)/1000,delta:Math.round((weff-got+tG+hv)*1000)/1000,tR:rb,tw:tw,ta:ta,tgp:tgp,ci:ci,co:co};
@@ -1882,13 +1882,13 @@ function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(
   var cats=[];L.forEach(function(x){if(x.cat&&cats.indexOf(x.cat)<0)cats.push(x.cat)});
   var shown=L.filter(function(x){return f==='all'||(f==='hid'?x.show===false:f==='sold'?vStock(x)==='none':x.cat===f)});
   main.innerHTML='<button class="btn pri" data-act="newvit" type="button">+ کار تازه برای ویترین</button>'
-    +'<p class="note">هر کاری که اینجا بگذاری، با عکس و فیلم، وزن، عیار، اجرت و قیمت تقریبیِ همان ساعت، در «حساب من» همه‌ی خریدارها دیده می‌شود. سفارشی که از آنجا بدهند در «پنل مدیریت» سایت، بخش «سفارش‌ها»، می‌آید.</p>'
+    +'<p class="note">هر کاری که اینجا بگذاری، با عکس و فیلم، وزن، عیار، اجرت و قیمت تقریبیِ همان ساعت، در «حساب من» دیده می‌شود: همه‌ی خریدارها، یا فقط کسانی که در «نمایش به» انتخاب کنی. سفارشی که از آنجا بدهند در «پنل مدیریت» سایت، بخش «سفارش‌ها»، می‌آید.</p>'
     +(vOnline()?'':'<div class="warn">برای گذاشتن عکس و فیلم باید به سرور وصل باشی.</div>')
     +(L.length?'<div class="chips" id="vchips">'+[['all','همه']].concat(cats.map(function(c){return [c,c]}),[['hid','پنهان'],['sold','ناموجود']]).map(function(c){return '<button class="chip" data-act="vfilter" data-f="'+esc(c[0])+'" aria-pressed="'+(f===c[0])+'" type="button">'+esc(c[1])+'</button>'}).join('')+'</div>':'')
     +'<div class="vgrid">'+(shown.length?shown.map(function(x){var m=(x.media||[]).filter(function(y){return y.type!=='video'})[0];
       return '<button class="vcard" data-act="editvit" data-id="'+esc(x.id)+'" type="button"><span class="vth"'+(m?' data-vm="'+esc(m.id)+'"':'')+'>'+((x.media||[]).some(function(y){return y.type==='video'})?'<i class="vplay" aria-label="فیلم دارد">▶</i>':'')+'</span>'
         +'<b>'+esc(x.name)+'</b><span>'+[x.cat,x.weight?fmt(x.weight,3)+' گرم':''].filter(Boolean).map(esc).join(' · ')+'</span>'
-        +(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+        +(x.show!==false&&x.to&&x.to.length?'<em class="badge lo">فقط '+fmt(x.to.length)+' نفر</em>':'')+(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
   if(vOnline())vmFill(main)}
 function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=x||{show:true,carat:750,profit:7,stock:'qty',qty:1,settle:['نقدی پای کفه']};
   if(!S.vMedia)S.vMedia=(x.media||[]).map(function(m){return {id:m.id,type:m.type}});
@@ -1907,9 +1907,22 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +fld('توضیح تسویه (اختیاری)','vt_sn',x.settleNote,{w2:1,ph:'مثلاً برای همکاران عمده'})+'</section>'
     +'<section class="sec"><h2>توضیحات</h2><label class="f w2"><span>هر چه مشتری باید بداند: نگین، اندازه، رنگ طلا، زمان آماده‌شدن…</span><textarea id="vt_desc" rows="4">'+esc(x.desc||'')+'</textarea></label>'
     +'<div class="vset"><label><input type="checkbox" id="vt_show"'+(x.show!==false?' checked':'')+'> نمایش در «حساب من»</label></div></section>'
+    +vToHTML(x)
     +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
   var fi=$('#vm_file');if(fi)fi.addEventListener('change',function(){vmAdd([].slice.call(fi.files||[]));fi.value=''});
-  if(vOnline())vmFill(main)}
+  vToWire();if(vOnline())vmFill(main)}
+// whom a piece is shown to: every buyer (to empty), or only the parties ticked; the server keeps it from the rest (portal.mjs)
+var VKIND={customer:'مشتری',supplier:'تأمین‌کننده',both:'مشتری و تأمین‌کننده'};
+function vToHTML(x){var to=Array.isArray(x.to)?x.to:[],some=to.length>0;
+  var L=S.parties.slice().sort(function(a,b){return (to.indexOf(b.id)>=0)-(to.indexOf(a.id)>=0)||(a.name||'').localeCompare(b.name||'','fa')});
+  return '<section class="sec"><h2>نمایش به</h2><div class="vset"><label><input type="radio" name="vt_to" value="all"'+(some?'':' checked')+'> همه‌ی خریدارها</label><label><input type="radio" name="vt_to" value="some"'+(some?' checked':'')+'> فقط کسانی که انتخاب می‌کنم</label></div>'
+    +'<div id="vt_tobox"'+(some?'':' hidden')+'>'+fld('جستجوی نام','vt_toq','',{w2:1,ph:'نام یا فروشگاه…'})
+    +'<div class="vset vto" id="vt_tolist">'+(L.length?L.map(function(p){return '<label data-n="'+esc(((p.name||'')+' '+(p.shop||'')).toLowerCase())+'"><input type="checkbox" class="vtp" value="'+esc(p.id)+'"'+(to.indexOf(p.id)>=0?' checked':'')+'> '+esc(p.name||'')+(p.shop?' · '+esc(p.shop):'')+' <small>'+esc(VKIND[p.kind]||'مشتری')+'</small></label>'}).join(''):'<div class="empty">هنوز طرف‌حسابی نیست.</div>')+'</div>'
+    +'<p class="note" id="vt_ton"></p></div><p class="note">کسی که انتخاب نشده، این کار را در «حساب من» نمی‌بیند و از آن خبردار نمی‌شود.</p></section>'}
+function vToWire(){var box=$('#vt_tobox');if(!box)return;var cnt=function(){var n=$$('.vtp:checked').length;$('#vt_ton').textContent=n?fmt(n)+' نفر انتخاب شده':'هنوز کسی انتخاب نشده.'};
+  $$('input[name=vt_to]').forEach(function(r){r.addEventListener('change',function(){box.hidden=r.value!=='some'||!r.checked;if(r.value==='all'&&r.checked)box.hidden=true})});
+  $('#vt_toq').addEventListener('input',function(){var q=fanum(this.value).toLowerCase();$$('#vt_tolist label').forEach(function(l){l.hidden=!!q&&fanum(l.dataset.n).indexOf(q)<0})});
+  $$('.vtp').forEach(function(c){c.addEventListener('change',function(){S.dirty=true;cnt()})});cnt()}
 function vmListHTML(){var L=S.vMedia||[];if(!L.length)return '<div class="empty">هنوز عکسی نگذاشته‌ای.</div>';
   return L.map(function(m,i){return '<div class="vm">'+(m.type==='video'?'<video data-vm="'+esc(m.id)+'" muted playsinline preload="metadata"></video>':'<span class="vth" data-vm="'+esc(m.id)+'"></span>')
     +(i===0?'<em class="badge g">روی کارت</em>':'<button class="lnk" data-act="vmcover" data-i="'+i+'" type="button">اول کن</button>')+'<button class="vmx" data-act="vmrm" data-i="'+i+'" type="button" aria-label="برداشتن">×</button></div>'}).join('')}
@@ -1930,11 +1943,13 @@ async function shrinkTo(file,max){try{var bmp=await createImageBitmap(file),s=Ma
   var b=await new Promise(function(r){c.toBlob(r,'image/jpeg',0.86)});return b||file}catch(e){return file}}
 async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
   if(!name){toast('نام کار را بنویس.');return}if(!(w>0)){toast('وزن را بنویس.');return}
+  var some=(($('input[name=vt_to]:checked')||{}).value)==='some',to=some?$$('.vtp:checked').map(function(c){return c.value}):[];
+  if(some&&!to.length){toast('کسی را برای نمایش انتخاب نکرده‌ای؛ یا چند نفر را تیک بزن یا «همه‌ی خریدارها» را بزن.');return}
   var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
     ajrat:num(val('vt_aj'))||0,profit:val('vt_pr').trim()===''?7:num(val('vt_pr')),settle:VSET.filter(function(s,i){var c=$('#vt_s'+i);return c&&c.checked}),settleNote:val('vt_sn').trim(),
-    desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),ts:old&&old.ts||new Date().toISOString()};
+    desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),to:to,ts:old&&old.ts||new Date().toISOString()};
   var nid=id||'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» دیده می‌شود.':'.'));back()}}
+  if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» '+(to.length?fmt(to.length)+' نفر':'همه')+' دیده می‌شود.':'.'));back()}}
 async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
 function srvApi(p,o){return window.__leonSync.api(p,o)}
 function srvErrMsg(e){var c=(e&&e.body&&e.body.error)||(e&&e.login&&'login');
