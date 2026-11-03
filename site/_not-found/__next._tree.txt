@@ -1,4 +1,4 @@
 :HL["/leon-gold-app/site/_next/static/chunks/097uzq91til72.css","style"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"/_not-found","h":96,"c":"$Q2"}]]
-0:{"b":"yM0Np5s4z5kt6CeFThCBk","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"ExiXVpBj2QBgZrxm83NyV","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
