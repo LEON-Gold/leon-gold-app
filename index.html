@@ -42,7 +42,7 @@
      Every change is saved here first and queued in the outbox; when online the outbox goes to the server
      and everyone else's changes come back. A doc with a change still waiting here is never overwritten by
      the server's older copy. The last change to reach the server wins. */
-  var SYNC_URL='https://leon-gold.liara.run'.indexOf('__')===0?'':'https://leon-gold.liara.run',busy=false,again=false,timer=0,state='off',lastErr='';
+  var SYNC_URL='https://api.leongold.net'.indexOf('__')===0?'':'https://api.leongold.net',busy=false,again=false,timer=0,state='off',lastErr='';
   var qn=0;function queue(k,v){v.q=Date.now()+'.'+(++qn);obox[k]=v;return write('outbox',k,v)}
   function saveS(){return write('meta','sync',S)}
   function soon(){clearTimeout(timer);timer=setTimeout(syncNow,800)}
@@ -107,7 +107,10 @@
   setInterval(function(){if(S.on&&document.visibilityState==='visible')syncNow()},20000);
   addEventListener('online',function(){if(S.on)syncNow()});
   document.addEventListener('visibilitychange',function(){if(S.on&&document.visibilityState==='visible')syncNow()});
-  ready.then(function(){if(S.on)syncNow();else setState('off')});
+  // the server moved to the owner's own domain (Liara's free *.liara.run address lasts 7 days): a device still holding
+  // the old address follows this build's one, with the same sign-in (same server, same data)
+  ready.then(function(){if(S.url&&SYNC_URL&&S.url!==SYNC_URL&&/^https:\/\/[\w-]+\.liara\.run$/.test(S.url)){S.url=SYNC_URL;saveS()}
+    if(S.on)syncNow();else setState('off')});
   window.__leonSync={now:syncNow,connect:connect,relogin:relogin,disconnect:disconnect,ready:ready,api:api,
     // only the owner can sign in to the server now, so a device holding a token is the owner's (old tokens never carried the flag)
     info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',owner:!!S.token,at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
@@ -149,7 +152,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-03 16:35</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-03 20:33</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
