@@ -5,6 +5,8 @@
 /* Offline stand-in for window.claude: the same db / user / downloads / assets calls the app makes,
    kept in this browser's IndexedDB. Built into leon-gold-offline.html by build.ps1; never published. */
 (function(){
+  // «#view»: «حساب من» shows one invoice on this exact sheet (index.html viewMode()); no ledger data, no sign-in, no worker
+  var VIEW=location.hash==='#view';
   var DBN='leon-gold-offline',docs={},blobs={},urls={},subs={},idb=null,n=0;
   var clone=function(o){return JSON.parse(JSON.stringify(o))};
   // v2 adds the sync outbox (changes not yet on the server) and meta (sync settings)
@@ -34,7 +36,10 @@
     onSnapshot:function(f){(subs[c]=subs[c]||[]).push(f);setTimeout(function(){emit(c)});return function(){subs[c]=subs[c].filter(function(x){return x!==f})}}}}};
   var user={me:async function(){return {id:'local',name:'مالک',avatarUrl:'',isOwner:true}},can:async function(){return true}};
   function saveAs(name,blob){var a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},60000)}
-  var downloads={save:async function(o){saveAs(o.filename,o.data instanceof Blob?o.data:new Blob([o.data]))}};
+  var downloads={save:async function(o){var b=o.data instanceof Blob?o.data:new Blob([o.data]);
+    // «#view» on a phone: the share sheet saves to Files or sends it on; elsewhere (or if sharing is refused) a plain download
+    if(VIEW){var fl=new File([b],o.filename,{type:b.type||'application/pdf'});if(navigator.canShare&&navigator.canShare({files:[fl]})){try{await navigator.share({files:[fl]});return}catch(e){if(e&&e.name==='AbortError')throw {code:'declined'}}}}
+    saveAs(o.filename,b)}};
   var assets={upload:async function(b,o){var id='p'+Date.now().toString(36)+(++n),bl=new Blob([b],{type:(o&&o.type)||b.type||'image/jpeg'});
     blobs[id]=bl;await write('blobs',id,bl);if(S.on){await queue('b/'+id,{b:id});soon()}return {id:id}}};
 
@@ -152,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-03 20:33</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 14:25</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -214,10 +219,10 @@
         e.target.textContent='در حال اتصال…';
         try{var ok=await window.__leonSync.connect(u,nm,p);if(ok===false)return paint();paint()}
         catch(x){er.textContent=x.login?'نام کاربری یا رمز درست نیست.':'به سرور وصل نشد. آدرس و اینترنت را بررسی کنید.';e.target.textContent='اتصال'}}}}
-  if(document.body)badge();else document.addEventListener('DOMContentLoaded',badge);
+  if(!VIEW){if(document.body)badge();else document.addEventListener('DOMContentLoaded',badge)}
   /* installed on a phone (served over https): keep the app available offline */
-  if(/^https?:$/.test(location.protocol)&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
-  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+  if(!VIEW&&/^https?:$/.test(location.protocol)&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+  if(!VIEW&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
 })();
 
 </script>
@@ -615,6 +620,8 @@ body::before{display:none}
 .pvfoot .btn.pri{background:var(--gold-lt);color:#0a1f15}
 .pvfoot .btn.ghost{color:var(--gold-lt);border-color:rgba(232,207,142,.5)}
 body.pvmode #app,body.pvmode .act,body.pvmode .mh{visibility:hidden}
+/* «#view»: only the invoice preview, for «حساب من» (viewMode) */
+body.viewmode .top,body.viewmode #main,body.viewmode .act,body.viewmode .fab,body.viewmode .nav,body.viewmode .scrim,body.viewmode #pvSave{display:none!important}
 /* ===== app shell ===== */
 html,body{height:auto}
 .tool[hidden]{display:none!important}
@@ -3046,10 +3053,20 @@ exportBtn('#pvPdf','در حال ساخت PDF…',async function(dl){
   doc.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,wmm,canvas.height*210/canvas.width,undefined,'FAST');
   await dl.save({filename:invFileName('pdf'),data:doc.output('blob')});setMsg('فایل PDF آماده است.')});
 
+/* ---------- «#view»: one invoice on this sheet, for «حساب من» (leon-gold-site components/hesab/Invoice.tsx) ----------
+   The page above sends the saved invoice (only what the printed sheet shows) by postMessage from the same origin;
+   it is loaded like a saved invoice and shown in the A4 preview with its PDF button. No data is read or written. */
+function viewMode(){document.body.classList.add('viewmode');var sp=document.getElementById('splash');if(sp)sp.remove();var up=function(m){try{parent.postMessage(m,location.origin)}catch(e){}};
+  addEventListener('message',function(e){if(e.origin!==location.origin||!e.data||!e.data.leonInv)return;var inv=e.data.leonInv,k=inv.kind==='whole'?'whole':'retail';
+    S.parties=inv.hav&&inv.hav.partyId?[{id:inv.hav.partyId,name:inv.hav.partyName||''}]:[];S.partyId='';S.editId='';
+    try{resetSheet(k,true);loadInvoice(inv);fire($('#taxPct'),'input');openPv();up({leonView:'shown'})}catch(x){up({leonView:'error',why:String(x&&x.message||x)})}});
+  ['#pvClose','#pvBack'].forEach(function(q){$(q).addEventListener('click',function(){up({leonView:'close'})})});
+  up({leonView:'ready'})}
 /* ---------- boot ---------- */
 /* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
    a device that already has a token (the phone/PC already in use) boots straight in, same as before */
 (async function boot(){
+  if(location.hash==='#view'){viewMode();return}
   if(window.__leonSync){await window.__leonSync.ready;if(!window.__leonSync.info().on){entryGate();return}}
   render();initDb()})();
 $('#lockBtn').addEventListener('click',function(){leaveGuard(lockAsk)});
