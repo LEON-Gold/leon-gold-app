@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:36</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:48</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -700,6 +700,9 @@ body.menu .nav{transform:none}
 .nav .mh i{width:22px;height:38px;background:var(--lion) center/contain no-repeat}.nav .mh b{flex:1;font-size:15px;font-weight:800}
 .nav .mh .x{font:inherit;font-size:20px;line-height:1;color:var(--gold-lt);background:transparent;border:1px solid rgba(232,207,142,.4);border-radius:10px;width:38px;height:38px;cursor:pointer}
 .nav .in{display:grid;gap:4px}
+.pmbox{max-height:88vh;overflow:auto}.pmlist{display:grid;gap:6px}
+.pmi{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;cursor:pointer}.pmi input{-webkit-appearance:none;appearance:none;width:22px;height:22px;flex:none;margin:0;border:1.5px solid #b08a3e;border-radius:6px;background:#fff;display:grid;place-content:center;cursor:pointer}.pmi input:checked{background:var(--green);border-color:var(--green)}.pmi input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}.pmi input:disabled{opacity:.55;cursor:default}.pmall{background:#f6f0e1}
+body.limited #offBadge [data-o=exp],body.limited #offBadge [data-o=imp]{display:none!important}
 .nav button.it .nb{margin-inline-start:auto;font-style:normal;background:#b3412e;color:#fff;border-radius:999px;min-width:20px;padding:0 7px;font-size:11.5px;line-height:20px;text-align:center}
 .row.lead{cursor:default}.row.lead .btns{grid-column:1/-1;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
 .leads h2 .badge{vertical-align:middle}
@@ -1687,6 +1690,8 @@ function render(){
   if(S.noaccess){setTop('دفتر لئون گلد','',false);$('#nav').hidden=true;$('#menuBtn').hidden=true;main.innerHTML='<div class="warn">به این دفتر دسترسی نداری. برای ورود، از مالک دفتر بخواه تو را با سطح «Contributor» یا «Editor» به این صفحه اضافه کند.</div>';return}
   if(!S.loaded.settings){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   gateCheck();if(isLocked()){main.innerHTML='';return}
+  document.body.classList.toggle('limited',!!myPerms());$$('#nav [data-tab]').forEach(function(b){b.style.display=canSee(b.dataset.tab)?'':'none'});if(mp&&!canSee('admin'))mp.hidden=true;
+  if(!canSee(v)){toast('به این بخش دسترسی ندارید.');S.stack=[];S.param=null;S.view=v=firstAllowed()}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
   ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform,admin:vAdmin,aparty:vAParty,vitrin:vVitrin,vform:vVform})[v]();if(v==='prform')prformReady();
   $('#fab').hidden=!!editing||v==='home';
@@ -2043,6 +2048,26 @@ function srvUserDialog(editName){var m=document.createElement('div');m.className
     try{await srvApi('/api/users',{method:'POST',json:{u:name,p:a}});m.remove();toast(editName?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.');loadSrvUsers()}
     catch(x){er.textContent=srvErrMsg(x)}})}
 /* ---------- profile: the signed-in ledger user edits own photo, username and password ---------- */
+/* ---------- what each ledger user may open (owner, 2026-11-08). A user with «perms» sees only those sections in the menu and
+   cannot open the others; no «perms» = everything. Only a user with full access opens «ورود و کاربران» and sets these limits.
+   This is enforced by the app on the device: the sync server still treats every ledger login as the owner's. */
+var SECTIONS=[['home','خانه (خلاصه‌ی همه‌ی حساب‌ها)'],['invoices','فاکتورها'],['parties','طرف‌حساب‌ها'],['settlements','تسویه'],['expenses','هزینه‌های مغازه'],['products','کالاها و موجودی'],['vitrin','ویترین'],['orders','سفارشات'],['report','گزارش فروش'],['eval','ارزیابی'],['targets','تارگت من'],['admin','پنل مدیریت'],['log','سوابق تغییرات'],['backup','پشتیبان و خروجی‌ها']];
+var VIEW_SEC={inv:'invoices',party:'parties',pform:'parties',set:'settlements',product:'products',prform:'products',oform:'orders',tform:'targets',xform:'expenses',aparty:'admin',vform:'vitrin'};
+function myPerms(){var cu=curUser(),r=cu&&userRec(cu);return r&&Array.isArray(r.perms)?r.perms:null}
+function canSee(v){if(v==='profile')return true;var p=myPerms();if(!p)return true;if(v==='users')return false;return p.indexOf(VIEW_SEC[v]||v)>=0}
+function firstAllowed(){var p=myPerms();if(!p)return 'home';for(var i=0;i<SECTIONS.length;i++)if(p.indexOf(SECTIONS[i][0])>=0)return SECTIONS[i][0];return 'profile'}
+function permDialog(name){var r=userRec(name);if(!r)return;var P=Array.isArray(r.perms)?r.perms:null,m=document.createElement('div');m.className='modal';
+  m.innerHTML='<form class="box pmbox" role="dialog" aria-modal="true"><p><b>دسترسی‌های «'+esc(name)+'»</b><br>هر بخشی که تیک بخورد را در منو می‌بیند و باز می‌کند؛ بقیه برایش پنهان است. «ورود و کاربران» فقط برای کاربرهای با دسترسی کامل است.</p>'
+   +'<label class="pmi pmall"><input type="checkbox" id="pmAll"'+(P?'':' checked')+'> <b>دسترسی کامل (بدون محدودیت)</b></label>'
+   +'<div class="pmlist">'+SECTIONS.map(function(x){return '<label class="pmi"><input type="checkbox" class="pm" value="'+x[0]+'"'+(!P||P.indexOf(x[0])>=0?' checked':'')+'> '+esc(x[1])+'</label>'}).join('')+'</div>'
+   +'<p class="err" id="pmErr" style="color:#b3261e;min-height:18px"></p><div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
+  document.body.appendChild(m);var all=$('#pmAll',m),boxes=$$('.pm',m),sync=function(){boxes.forEach(function(b){b.disabled=all.checked;if(all.checked)b.checked=true})};sync();
+  all.addEventListener('change',function(){if(!all.checked)boxes.forEach(function(b){b.checked=false});sync()});
+  m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]'))m.remove()});
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();var sel=boxes.filter(function(b){return b.checked}).map(function(b){return b.value});
+    if(!all.checked&&!sel.length){$('#pmErr',m).textContent='حداقل یک بخش را تیک بزن، یا «دسترسی کامل».';return}
+    var U=lockUsers().map(function(x){var y=Object.assign({},x);if(y.u===name){if(all.checked)delete y.perms;else y.perms=sel}return y});
+    try{await saveUsers(U);m.remove();toast(all.checked?'«'+name+'» دسترسی کامل دارد.':'دسترسی «'+name+'» ذخیره شد: '+fmt(sel.length)+' بخش.');render()}catch(x){$('#pmErr',m).textContent=dberr(x)}})}
 function userRec(u){return lockUsers().filter(function(x){return x.u===u})[0]||null}
 function avHTML(u,photo){return '<span class="av">'+(photo?'<img alt="" src="'+esc(photo)+'">':esc((String(u||'?').trim()[0]||'?').toUpperCase()))+'</span>'}
 async function updUser(old,patch){var U=lockUsers().map(function(x){return Object.assign({},x)}),hit=null;U.forEach(function(x){if(x.u===old){Object.assign(x,patch);hit=x}});if(!hit)throw {code:'nouser'};
@@ -2130,12 +2155,12 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
 function lockNow(){UNLOCKED=null;ssSet('leon_unlock',null);render()}
 ['pointerdown','keydown'].forEach(function(ev){document.addEventListener(ev,function(){LASTACT=Date.now()},true)});
 setInterval(function(){if(lockOn()&&!isLocked()&&Date.now()-LASTACT>IDLE_MIN*60000&&!S.dirty)lockNow()},30000);
-function secHTML(){var U=lockUsers(),own=S.me?S.me.isOwner:true,cu=curUser(),app=!!window.__leonSync; // app: the phone app, signed in through the sync server
+function secHTML(){var U=lockUsers(),own=(S.me?S.me.isOwner:true)&&!myPerms(),cu=curUser(),app=!!window.__leonSync; // app: the phone app, signed in through the sync server
   return '<section class="sec" id="secUsers"><h2>'+(app?'قفل رمزی روی دستگاه':'ورود و کاربران')+'</h2><p class="note">'+(!app&&S.me&&S.me.name?'حساب Claude: <b class="meName"></b>. ':'')+(cu?'کاربر فعلی: <b>'+esc(cu)+'</b>. ':'')
   +(U.length?'ورود با نام کاربری و رمز فعال است؛ بعد از '+fmt(IDLE_MIN)+' دقیقه بی‌کاری یا با دکمه «قفل» بالای صفحه، دفتر قفل می‌شود.':'ورود با نام کاربری فعال نیست؛ با افزودن اولین کاربر فعال می‌شود.')
   +(app?' این قفل فقط روی همین دستگاه‌هاست و جدا از ورود به سرور است.':' فقط کسانی که مالک دفتر به این صفحه اضافه کرده (Contributor یا Editor) داده‌ها را می‌بینند.')+'</p>'
-  +(U.length?'<div class="list">'+U.map(function(x){return '<div class="row"><span class="t">'+esc(x.u)+(x.u===cu?'<span class="badge g">شما</span>':'')+'</span><span class="v">'
-    +(own?'<button class="btn sm" data-act="urename" data-u="'+esc(x.u)+'" type="button">تغییر نام</button> <button class="btn sm" data-act="pinset" data-u="'+esc(x.u)+'" type="button">تغییر رمز</button> <button class="btn sm" data-act="pinoff" data-u="'+esc(x.u)+'" type="button">حذف</button>':'')+'</span></div>'}).join('')+'</div>':'')
+  +(U.length?'<div class="list">'+U.map(function(x){return '<div class="row"><span class="t">'+esc(x.u)+(x.u===cu?'<span class="badge g">شما</span>':'')+(Array.isArray(x.perms)?'<span class="badge lo">محدود · '+fmt(x.perms.length)+' بخش</span>':'<span class="badge">دسترسی کامل</span>')+'</span><span class="v">'
+    +(own&&x.u!==cu?'<button class="btn sm pri" data-act="uperm" data-u="'+esc(x.u)+'" type="button">محدودیت</button> ':'')+(own?'<button class="btn sm" data-act="urename" data-u="'+esc(x.u)+'" type="button">تغییر نام</button> <button class="btn sm" data-act="pinset" data-u="'+esc(x.u)+'" type="button">تغییر رمز</button> <button class="btn sm" data-act="pinoff" data-u="'+esc(x.u)+'" type="button">حذف</button>':'')+'</span></div>'}).join('')+'</div>':'')
   +(own?'<div class="btns" style="margin-top:8px"><button class="btn sm" data-act="pinset" type="button">+ افزودن کاربر</button></div>':'')+'</section>'}
 async function saveUsers(U){await S.db.collection('settings').doc('lock').set({users:U,ts:Date.now()})}
 function pinDialog(edit){var m=document.createElement('div');m.className='modal';
@@ -2151,8 +2176,8 @@ function pinDialog(edit){var m=document.createElement('div');m.className='modal'
     if(!edit&&U.some(function(x){return normU(x.u)===normU(name)})){er.textContent='این نام کاربری قبلاً ثبت شده.';return}
     if(a.length<4){er.textContent='رمز باید حداقل ۴ رقم باشد.';return}if(a!==b){er.textContent='دو رمز یکی نیستند.';return}
     var salt=Math.random().toString(36).slice(2)+Date.now().toString(36),h=await pinHash(a,salt),first=!U.length,wasMe=edit&&edit===curUser();
-    U=U.filter(function(x){return x.u!==name});U.push({u:name,hash:h,salt:salt});
-    try{await saveUsers(U);if(first||wasMe){UNLOCKED=name+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',name)}m.remove();toast(edit?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.')}catch(x){er.textContent=dberr(x)}})}
+    var prev=null;U.forEach(function(x){if(x.u===name)prev=x});U=U.filter(function(x){return x.u!==name});U.push(Object.assign({},prev||{},{u:name,hash:h,salt:salt}));
+    try{await saveUsers(U);if(first||wasMe){UNLOCKED=name+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',name)}m.remove();toast(edit?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.');if(!edit&&!first)setTimeout(function(){permDialog(name)},300)}catch(x){er.textContent=dberr(x)}})}
 function renameDialog(old){var m=document.createElement('div');m.className='modal';
   m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>تغییر نام کاربری «'+esc(old)+'»</b><br>رمز همان قبلی می‌ماند.</p><label class="f"><span>نام کاربری جدید</span><input id="rnU" maxlength="30" autocapitalize="off"></label>'
   +'<p class="err" id="rnErr" style="color:#b3261e;min-height:18px"></p><div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
@@ -2995,6 +3020,7 @@ document.addEventListener('click',function(e){
     case 'restore':restoreLog(id);break;
     case 'backup':backupJson();break;
     case 'pinset':pinDialog(b.dataset.u||'');break;
+    case 'uperm':permDialog(b.dataset.u||'');break;
     case 'pfpick':{var pf=$('#pfFile');if(pf){pf.value='';pf.click()}break}
     case 'pfrm':ask('عکس پروفایل حذف شود؟',async function(){try{await updUser(curUser(),{photo:''});toast('عکس حذف شد.')}catch(x){toast(dberr(x))}},'حذف');break;
     case 'tabto':tab(b.dataset.t);break;
