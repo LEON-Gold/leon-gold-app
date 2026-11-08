@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:48</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 00:16</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -700,6 +700,7 @@ body.menu .nav{transform:none}
 .nav .mh i{width:22px;height:38px;background:var(--lion) center/contain no-repeat}.nav .mh b{flex:1;font-size:15px;font-weight:800}
 .nav .mh .x{font:inherit;font-size:20px;line-height:1;color:var(--gold-lt);background:transparent;border:1px solid rgba(232,207,142,.4);border-radius:10px;width:38px;height:38px;cursor:pointer}
 .nav .in{display:grid;gap:4px}
+.vfilt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}.vfilt select{-webkit-appearance:none;appearance:none;min-height:44px;border-radius:999px;border:1px solid var(--line);background:#fff;padding:0 14px 0 34px;font:700 15px/1.2 inherit;font-family:inherit;color:var(--ink,#17231c);background-image:linear-gradient(45deg,transparent 50%,#9c7433 50%),linear-gradient(135deg,#9c7433 50%,transparent 50%);background-position:16px 52%,21px 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}.vfilt select.on{border-color:var(--gold);background-color:#f6ecd2}
 .pmbox{max-height:88vh;overflow:auto}.pmlist{display:grid;gap:6px}
 .pmi{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;cursor:pointer}.pmi input{-webkit-appearance:none;appearance:none;width:22px;height:22px;flex:none;margin:0;border:1.5px solid #b08a3e;border-radius:6px;background:#fff;display:grid;place-content:center;cursor:pointer}.pmi input:checked{background:var(--green);border-color:var(--green)}.pmi input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}.pmi input:disabled{opacity:.55;cursor:default}.pmall{background:#f6f0e1}
 body.limited #offBadge [data-o=exp],body.limited #offBadge [data-o=imp]{display:none!important}
@@ -1935,28 +1936,34 @@ function vAParty(){var p=partyById(S.param);if(!p){back();return}
   if(on&&admNeed())admLoad()}
 /* ---------- «ویترین»: the pieces on show in every buyer's «حساب من» (collection vitrin). The photos and films go
    straight to the server (/api/media, kept there only, never copied onto the devices); the doc keeps their ids. ---------- */
-var VCATS=['انگشتر','گردنبند','دستبند','گوشواره','سرویس','النگو','پلاک و آویز','زنجیر'];
+var VCATS=['انگشتر','گردنبند','دستبند','گوشواره','نیم‌ست','سرویس','مدال','زنجیر','پابند','النگو','پلاک و آویز'];
+function vck(s){return String(s||'').replace(/[\s\u200c]/g,'')}
+function vCatOf(x){var k=vck(x.cat);for(var i=0;i<VCATS.length;i++)if(vck(VCATS[i])===k)return VCATS[i];return x.cat||''}
 var VSET=['نقدی پای کفه','۳ روز','۱ هفته']; // how long the buyer has to settle (wholesale terms)
 // stock: qty = in hand (with a count), order = not in hand but can be ordered, none = not available at all
-var VSTOCK=[['qty','تعداد موجودی'],['order','موجود (قابل سفارش)'],['none','ناموجود']];
+var VSTOCK=[['qty','آماده‌ی تحویل آنی (تعداد موجودی)'],['order','موجود (قابل سفارش)'],['none','ناموجود']];
 function vStock(x){return x.stock||(x.sold?'none':'order')}
 var VMEDIA={}; // media id -> object URL, fetched once with the owner's token
 async function vmURL(id){if(VMEDIA[id])return VMEDIA[id];var r=await srvApi('/api/media/'+encodeURIComponent(id),{raw:true});VMEDIA[id]=URL.createObjectURL(await r.blob());return VMEDIA[id]}
 function vmFill(root){$$('[data-vm]',root).forEach(function(el){var id=el.dataset.vm;vmURL(id).then(function(u){if(el.tagName==='VIDEO')el.src=u;else el.style.backgroundImage='url("'+u+'")'}).catch(function(){el.classList.add('miss')})})}
 function vOnline(){return window.__leonSync&&window.__leonSync.info().on}
 function vitById(id){for(var i=0;i<S.vitrin.length;i++)if(S.vitrin[i].id===id)return S.vitrin[i];return null}
-function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1}),f=S.vf||'all';
+function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1}),st=S.vst||'all',ct=S.vcat||'all';
   setTop('ویترین',fmt(L.filter(function(x){return x.show!==false}).length)+' کار در «حساب من»',false);
-  var cats=[];L.forEach(function(x){if(x.cat&&cats.indexOf(x.cat)<0)cats.push(x.cat)});
-  var shown=L.filter(function(x){return f==='all'||(f==='hid'?x.show===false:f==='sold'?vStock(x)==='none':x.cat===f)});
+  var cats=VCATS.slice();L.forEach(function(x){var c=vCatOf(x);if(c&&cats.indexOf(c)<0)cats.push(c)});
+  var okSt=function(x){return st==='all'||(st==='hid'?x.show===false:vStock(x)===st)},okCt=function(x){return ct==='all'||vCatOf(x)===ct};
+  var shown=L.filter(function(x){return okSt(x)&&okCt(x)});
+  var stOpts=[['all','همه‌ی وضعیت‌ها']].concat(VSTOCK.map(function(v){return [v[0],v[0]==='qty'?'آماده‌ی تحویل آنی':v[0]==='order'?'قابل سفارش':'ناموجود']}),[['hid','پنهان از «حساب من»']]);
   main.innerHTML='<button class="btn pri" data-act="newvit" type="button">+ کار تازه برای ویترین</button>'
     +'<p class="note">هر کاری که اینجا بگذاری، با عکس و فیلم، وزن، عیار، اجرت و قیمت تقریبیِ همان ساعت، در «حساب من» دیده می‌شود: همه‌ی خریدارها، یا فقط کسانی که در «نمایش به» انتخاب کنی. سفارشی که از آنجا بدهند همین‌جا در دفتر (صفحه‌ی اول و «سفارشات») و در «پنل مدیریت» سایت می‌آید، با تأمین‌کننده‌ای که برای آن کار انتخاب کرده‌ای.</p>'
     +(vOnline()?'':'<div class="warn">برای گذاشتن عکس و فیلم باید به سرور وصل باشی.</div>')
-    +(L.length?'<div class="chips" id="vchips">'+[['all','همه']].concat(cats.map(function(c){return [c,c]}),[['hid','پنهان'],['sold','ناموجود']]).map(function(c){return '<button class="chip" data-act="vfilter" data-f="'+esc(c[0])+'" aria-pressed="'+(f===c[0])+'" type="button">'+esc(c[1])+'</button>'}).join('')+'</div>':'')
+    +(L.length?'<div class="vfilt"><select id="vstSel" aria-label="وضعیت" class="'+(st!=='all'?'on':'')+'">'+stOpts.map(function(o){var n=o[0]==='all'?0:L.filter(function(x){return okCt(x)&&(o[0]==='hid'?x.show===false:vStock(x)===o[0])}).length;return '<option value="'+o[0]+'"'+(o[0]===st?' selected':'')+'>'+esc(o[1])+(o[0]==='all'?'':' ('+fmt(n)+')')+'</option>'}).join('')+'</select>'
+     +'<select id="vctSel" aria-label="دسته" class="'+(ct!=='all'?'on':'')+'"><option value="all">همه‌ی دسته‌ها</option>'+cats.map(function(c){var n=L.filter(function(x){return okSt(x)&&vCatOf(x)===c}).length;return '<option value="'+esc(c)+'"'+(c===ct?' selected':'')+'>'+esc(c)+' ('+fmt(n)+')</option>'}).join('')+'</select></div>':'')
     +'<div class="vgrid">'+(shown.length?shown.map(function(x){var m=(x.media||[]).filter(function(y){return y.type!=='video'})[0];
       return '<button class="vcard" data-act="editvit" data-id="'+esc(x.id)+'" type="button"><span class="vth"'+(m?' data-vm="'+esc(m.id)+'"':'')+'>'+((x.media||[]).some(function(y){return y.type==='video'})?'<i class="vplay" aria-label="فیلم دارد">▶</i>':'')+'</span>'
         +'<b>'+esc(x.name)+'</b><span>'+[x.cat,x.weight?fmt(x.weight,3)+' گرم':'',x.supId&&partyById(x.supId)?'از '+partyById(x.supId).name:x.own?'موجودی خودم':''].filter(Boolean).map(esc).join(' · ')+'</span>'
-        +(x.show!==false&&x.to&&x.to.length?'<em class="badge lo">فقط '+fmt(x.to.length)+' نفر</em>':'')+(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'کاری در این دسته نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+        +(x.show!==false&&x.to&&x.to.length?'<em class="badge lo">فقط '+fmt(x.to.length)+' نفر</em>':'')+(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'با این انتخاب کاری نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+  var a1=$('#vstSel'),a2=$('#vctSel');if(a1)a1.addEventListener('change',function(){S.vst=a1.value;render()});if(a2)a2.addEventListener('change',function(){S.vcat=a2.value;render()});
   if(vOnline())vmFill(main)}
 // whose work a showcase piece is: picked once here, it fills the supplier of every order made from it (owner, 2026-11-08)
 function vSupSel(x){var v=x.supId&&partyById(x.supId)?x.supId:x.own?'__own':'';var ps=S.parties.slice().sort(function(a,b){return (b.kind!=='customer')-(a.kind!=='customer')||(a.name||'').localeCompare(b.name||'','fa')});
@@ -3033,7 +3040,6 @@ document.addEventListener('click',function(e){
     case 'editvit':S.vMedia=null;go('vform',{id:id});break;
     case 'savevit':saveVit(id);break;
     case 'delvit':ask('«'+((vitById(id)||{}).name||'')+'» از ویترین حذف شود؟ از «حساب من» همه هم برداشته می‌شود.',async function(){if(await del('vitrin',id)){S.dirty=false;S.vMedia=null;toast('حذف شد.');back()}},'حذف');break;
-    case 'vfilter':S.vf=b.dataset.f;render();break;
     case 'vmpick':{var vf=$('#vm_file');if(vf){vf.value='';vf.click()}break}
     case 'vmrm':S.vMedia.splice(+b.dataset.i,1);vmRedraw();break;
     case 'vmcover':{var vi=+b.dataset.i,vx=S.vMedia.splice(vi,1)[0];S.vMedia.unshift(vx);vmRedraw();break}
