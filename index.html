@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 00:16</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 00:41</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -820,6 +820,7 @@ body.noact{padding-bottom:24px}
 .ppk-l{overflow-y:auto;min-height:0;overscroll-behavior:contain}
 .ppk-no{display:inline-block;background:linear-gradient(135deg,#f5f0e3,#e8dcc0)}
 .ppk-b{justify-self:start;margin-top:-2px}
+.ppk-l i.thumb{background-size:cover;background-position:center}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--green-d);color:#f6e9c4;border:1px solid var(--gold);border-radius:12px;padding:10px 16px;font-size:13.5px;max-width:90vw}
 #form input:disabled,#form select:disabled,#partySel:disabled{background:#f6f3ec;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
 .lockbar{background:#eef5ef;border:1px solid #9cc2a5;color:#1f4d2c;border-radius:12px;padding:12px;font-size:13px;line-height:1.8}
@@ -1562,7 +1563,7 @@ function vOform(){var o=null;S.orders.forEach(function(x){if(S.param&&x.id===S.p
   main.innerHTML='<section class="sec"><h2>مشتری و زمان</h2><div class="grid">'+sel('مشتری','of_party',po,o.self?'__self':(o.partyId||(S.param&&S.param.partyId)||(S.param&&S.param.self?'__self':'')),{w2:1})
    +fld('تاریخ سفارش','of_date',o.date||jdate(Date.now()),{num:1})+fld('موعد تحویل','of_due',o.due||'',{num:1,ph:'۱۴۰۵/۰۸/۱۵'})
    +sel('وضعیت','of_status',OST,o.status||'new',{w2:1})+'</div></section>'
-   +'<section class="sec"><h2>اقلام سفارش</h2><div id="oitems" style="display:grid;gap:8px">'+oItemsHTML()+'</div><button class="btn" data-act="oadd" type="button" style="margin-top:8px">+ افزودن قلم</button></section>'
+   +'<section class="sec"><h2>اقلام سفارش</h2><div id="oitems" style="display:grid;gap:8px">'+oItemsHTML()+'</div><div class="btns" style="margin-top:8px"><button class="btn" data-act="oadd" type="button">+ افزودن قلم</button>'+((S.vitrin||[]).length?'<button class="btn" data-act="ovit" type="button">+ از ویترین (با عکس)</button>':'')+'</div></section>'
    +'<section class="sec"><h2>سایر</h2><div class="grid">'+fld('بیعانه (ریال، فقط برای یادداشت)','of_dep',o.deposit?plain(o.deposit):'',{num:1,w2:1})+fld('توضیحات','of_note',o.note||(S.param&&S.param.note)||'',{w2:1})+'</div></section>'
    +'<datalist id="prodList">'+S.products.map(function(p){return '<option value="'+esc(prodLabel(p))+'"></option>'}).join('')+'</datalist>'
    +'<div class="btns"><button class="btn pri" data-act="saveorder" data-id="'+esc(o.id||'')+'" type="button">ذخیره</button>'
@@ -1670,6 +1671,20 @@ function leadsHTML(){var L=newLeads();if(!L.length)return '';
 // the showcase piece a request was for: the server writes it as «name (code)»
 function leadVit(l){var w=String(l.what||'').trim(),hit=null;(S.vitrin||[]).forEach(function(v){if(!hit&&(v.name||'')+(v.code?' ('+v.code+')':'')===w)hit=v});
   if(!hit)(S.vitrin||[]).forEach(function(v){if(!hit&&v.name&&w.indexOf(v.name)===0)hit=v});return hit}
+function vitItem(v){return {desc:(v.name||'')+(v.code?' ('+v.code+')':''),qty:1,weight:v.weight?String(v.weight):'',carat:v.carat?String(Math.round(labOf(v.carat))):'',note:'',supId:v.supId&&partyById(v.supId)?v.supId:''}}
+function vitPick(){var all=(S.vitrin||[]).slice().sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1});
+  var m=document.createElement('div');m.className='modal ppk';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-label="انتخاب از ویترین"><div class="ppk-h"><b>انتخاب از ویترین</b><button class="btn sm" data-n type="button">بستن</button></div>'
+   +'<input class="srch" type="search" placeholder="جست‌وجوی نام، کد یا دسته" aria-label="جست‌وجو در ویترین"><div class="list ppk-l"></div></div>';
+  document.body.appendChild(m);var L=$('.ppk-l',m),q=$('input',m);
+  var draw=function(){var t=fanum(q.value).toLowerCase();L.innerHTML=all.filter(function(v){return !t||fanum([v.name,v.code,v.cat].join(' ')).toLowerCase().indexOf(t)>=0}).map(function(v){var ph=(v.media||[]).filter(function(y){return y.type!=='video'})[0],sp=v.supId&&partyById(v.supId);
+    return '<button class="row" type="button" data-v="'+esc(v.id)+'"><span class="t"><i class="thumb ppk-no"'+(ph&&vOnline()?' data-vm="'+esc(ph.id)+'"':'')+' aria-hidden="true"></i>'+esc(v.name||'—')+(v.code?'<span class="badge">'+esc(toFa(fanum(v.code)))+'</span>':'')+(vStock(v)==='none'?'<span class="badge lo">ناموجود</span>':'')+'</span>'
+     +'<span class="s">'+esc([vCatOf(v),v.weight?fmt(v.weight,3)+' گرم':'',v.carat?'عیار '+fmt(Math.round(labOf(v.carat))):'',sp?'از '+sp.name:v.own?'موجودی خودم':''].filter(Boolean).join(' · ')||' ')+'</span></button>'}).join('')||'<div class="empty">'+(all.length?'چیزی پیدا نشد.':'هنوز کاری در ویترین نیست.')+'</div>';
+    if(vOnline())vmFill(L)};
+  draw();q.addEventListener('input',draw);
+  m.addEventListener('click',function(e){var b=e.target.closest('[data-v]');if(b){var v=vitById(b.dataset.v);m.remove();if(v){var it=vitItem(v),last=S.oItems[S.oItems.length-1];
+      if(last&&!String(last.desc||'').trim())S.oItems[S.oItems.length-1]=it;else S.oItems.push(it);S.dirty=true;$('#oitems').innerHTML=oItemsHTML();toast('«'+v.name+'» اضافه شد؛ تعداد و مشخصات را بررسی کن')}return}
+    if(e.target.closest('[data-n]')||e.target===m)m.remove()})}
 function leadById(id){var l=null;(S.leads||[]).forEach(function(x){if(x.id===id)l=x});return l}
 // its status in the CRM panel: «در گفت‌وگو» once the owner has seen it or made an order of it
 async function leadSet(id,status,extra){var l=leadById(id);if(!l||!S.db)return false;var d=Object.assign({},l,extra||{},{status:status,upd:new Date().toISOString()});delete d.id;
@@ -1986,7 +2001,7 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +'<section class="sec"><h2>توضیحات</h2><label class="f w2"><span>هر چه مشتری باید بداند: نگین، اندازه، رنگ طلا، زمان آماده‌شدن…</span><textarea id="vt_desc" rows="4">'+esc(x.desc||'')+'</textarea></label>'
     +'<div class="vset"><label><input type="checkbox" id="vt_show"'+(x.show!==false?' checked':'')+'> نمایش در «حساب من»</label></div></section>'
     +vToHTML(x)
-    +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
+    +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn" data-act="vself" data-id="'+esc(x.id)+'" type="button">سفارش برای خودم</button><button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
   var fi=$('#vm_file');if(fi)fi.addEventListener('change',function(){vmAdd([].slice.call(fi.files||[]));fi.value=''});
   vToWire();if(vOnline())vmFill(main)}
 // whom a piece is shown to: every buyer (to empty), or only the parties ticked; the server keeps it from the rest (portal.mjs)
@@ -3077,6 +3092,8 @@ document.addEventListener('click',function(e){
     case 'order':S.oItems=null;go('oform',{id:id});break;
     case 'ofilter':S.ofilter=b.dataset.f;render();break;
     case 'oadd':S.oItems.push(blankItem());$('#oitems').innerHTML=oItemsHTML();break;
+    case 'ovit':vitPick();break;
+    case 'vself':{var vx=vitById(id);if(vx){S.oItems=[vitItem(vx)];go('oform',{self:true})}break}
     case 'orm':S.oItems.splice(+b.dataset.i,1);$('#oitems').innerHTML=oItemsHTML();break;
     case 'saveorder':saveOrder(id);break;
     case 'orderinv':orderToInvoice(id);break;
