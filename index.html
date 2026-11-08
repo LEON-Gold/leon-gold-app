@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:02</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:24</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -700,6 +700,9 @@ body.menu .nav{transform:none}
 .nav .mh i{width:22px;height:38px;background:var(--lion) center/contain no-repeat}.nav .mh b{flex:1;font-size:15px;font-weight:800}
 .nav .mh .x{font:inherit;font-size:20px;line-height:1;color:var(--gold-lt);background:transparent;border:1px solid rgba(232,207,142,.4);border-radius:10px;width:38px;height:38px;cursor:pointer}
 .nav .in{display:grid;gap:4px}
+.nav button.it .nb{margin-inline-start:auto;font-style:normal;background:#b3412e;color:#fff;border-radius:999px;min-width:20px;padding:0 7px;font-size:11.5px;line-height:20px;text-align:center}
+.row.lead{cursor:default}.row.lead .btns{grid-column:1/-1;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.leads h2 .badge{vertical-align:middle}
 .nav .grp{font-size:11px;color:var(--gold);opacity:.8;margin:14px 6px 4px;letter-spacing:.02em}
 .nav button.it{font:inherit;font-size:14.5px;font-weight:700;border:0;background:transparent;color:#f3ead0;padding:11px 12px;border-radius:12px;cursor:pointer;min-height:46px;display:flex;align-items:center;gap:12px;text-align:right;width:100%}
 .nav button.it svg{width:20px;height:20px;flex:none;stroke:var(--gold-lt);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -1541,7 +1544,7 @@ function orderRow(o){var late=isLate(o),its=(o.items||[]).filter(function(i){ret
 function vOrders(){var f=S.ofilter||'open',all=S.orders.slice().sort(function(a,b){var x=jkey(a.due)||'9',y=jkey(b.due)||'9';return x<y?-1:x>y?1:(a.ts<b.ts?1:-1)});
   var open=all.filter(isOpenOrder),late=open.filter(isLate),list=f==='open'?open:f==='self'?all.filter(function(o){return o.self}):f==='done'?all.filter(function(o){return !isOpenOrder(o)}):all,sl=shopList();
   setTop('سفارشات',fmt(open.length)+' سفارش باز',false);
-  main.innerHTML='<div class="btns"><button class="btn pri" data-act="neworder" type="button">+ سفارش جدید</button><button class="btn" data-act="newself" type="button">+ سفارش شخصی (برای خودم)</button></div>'
+  main.innerHTML=leadsHTML()+'<div class="btns"><button class="btn pri" data-act="neworder" type="button">+ سفارش جدید</button><button class="btn" data-act="newself" type="button">+ سفارش شخصی (برای خودم)</button></div>'
   +'<div class="kpis flat"><div class="kpi"><small>سفارش باز</small><b>'+fmt(open.length)+'</b><span class="sub">'+fmt(open.filter(function(o){return o.status==='ready'}).length)+' آماده تحویل</span></div><div class="kpi"><small>دیر شده</small><b>'+fmt(late.length)+'</b><span class="sub">موعد گذشته</span></div></div>'
   +(sl.length?'<section class="sec"><h2>لیست خرید (سفارش‌های ثبت‌شده و در حال تهیه)</h2><div class="list">'+sl.map(function(x,i){var st=x.p?S.stock[x.p.id]:null,hd=i===0||sl[i-1].sup!==x.sup;
     return (hd?'<p class="note" style="margin:6px 0 0;font-weight:800;color:var(--green)">'+(x.sup?'از '+esc(x.sup):'تأمین‌کننده مشخص نشده')+'</p>':'')+'<div class="row"><span class="t">'+esc(toFa(x.desc))+(st&&st.q>0?'<span class="badge">'+fmt(st.q)+' عدد در موجودی</span>':'')+'</span><span class="s">برای '+esc(x.who.join('، '))+'</span><span class="v"><span class="qty">'+fmt(x.q)+' عدد</span>'+(x.w?'<span class="d">حدود '+fmt(x.w,3)+' گرم</span>':'')+'</span></div>'}).join('')+'</div></section>':'')
@@ -1556,7 +1559,7 @@ function vOform(){var o=null;S.orders.forEach(function(x){if(S.param&&x.id===S.p
    +fld('تاریخ سفارش','of_date',o.date||jdate(Date.now()),{num:1})+fld('موعد تحویل','of_due',o.due||'',{num:1,ph:'۱۴۰۵/۰۸/۱۵'})
    +sel('وضعیت','of_status',OST,o.status||'new',{w2:1})+'</div></section>'
    +'<section class="sec"><h2>اقلام سفارش</h2><div id="oitems" style="display:grid;gap:8px">'+oItemsHTML()+'</div><button class="btn" data-act="oadd" type="button" style="margin-top:8px">+ افزودن قلم</button></section>'
-   +'<section class="sec"><h2>سایر</h2><div class="grid">'+fld('بیعانه (ریال، فقط برای یادداشت)','of_dep',o.deposit?plain(o.deposit):'',{num:1,w2:1})+fld('توضیحات','of_note',o.note||'',{w2:1})+'</div></section>'
+   +'<section class="sec"><h2>سایر</h2><div class="grid">'+fld('بیعانه (ریال، فقط برای یادداشت)','of_dep',o.deposit?plain(o.deposit):'',{num:1,w2:1})+fld('توضیحات','of_note',o.note||(S.param&&S.param.note)||'',{w2:1})+'</div></section>'
    +'<datalist id="prodList">'+S.products.map(function(p){return '<option value="'+esc(prodLabel(p))+'"></option>'}).join('')+'</datalist>'
    +'<div class="btns"><button class="btn pri" data-act="saveorder" data-id="'+esc(o.id||'')+'" type="button">ذخیره</button>'
    +(isNew||o.self?'':'<button class="btn" data-act="orderinv" data-id="'+esc(o.id)+'" type="button">صدور فاکتور خرده</button><button class="btn dng" data-act="delorder" data-id="'+esc(o.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>'
@@ -1573,7 +1576,7 @@ async function saveOrder(id){var pid=val('of_party'),self=pid==='__self';if(!pid
   if(!items.length){toast('حداقل یک قلم بنویس');return}
   var old=null;S.orders.forEach(function(x){if(x.id===id)old=x});var p=partyById(pid);
   var d={partyId:pid,partyName:self?'شخصی (برای خودم)':p?p.name:'',date:val('of_date'),due:val('of_due'),status:val('of_status'),items:items,deposit:num(val('of_dep'))||0,note:val('of_note'),ts:old&&old.ts?old.ts:new Date().toISOString(),invId:old&&old.invId||''};if(self)d.self=true;
-  if(await put('orders',id||newId('orders'),d)){S.oItems=null;S.dirty=false;toast('سفارش ذخیره شد');back()}}
+  var oid=id||newId('orders'),lead=S.param&&S.param.lead;if(await put('orders',oid,d)){if(lead)leadSet(lead,'talking',{orderId:oid});S.oItems=null;S.dirty=false;toast('سفارش ذخیره شد');back()}}
 function orderToInvoice(id){var o=null;S.orders.forEach(function(x){if(x.id===id)o=x});if(!o)return;S.oItems=null;
   openNewInvoice('retail',o.partyId);var trs=$$('#rt tbody tr');(o.items||[]).forEach(function(it,i){var tr=trs[i];if(!tr)return;var set=function(c,v){var e=$(c,tr);e.value=v;fire(e,'input')};
     var p=(it.pid&&prodById(it.pid))||prodMatch(it.desc);set('td:nth-child(2) input',p?prodLabel(p):it.desc);set('.q',it.qty?plain(it.qty):'');set('.w',it.weight?plain(it.weight,3):'');if(p&&p.ajrat)set('.aj',plain(p.ajrat,2))});
@@ -1643,9 +1646,27 @@ async function initDb(){
   [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses'],['vitrin','vitrin']].forEach(function(c){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
+  db.collection('crm_leads').onSnapshot(function(snap){S.leads=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});leadAlert();schedule()},function(){});
   render();
 }
 
+/* ---------- orders from «حساب من»: a customer ordered a showcase piece (leon-gold-server portal.mjs files it in crm_leads).
+   A message when one arrives (once per order on this device), a count on «سفارشات» in the menu, and the list on the home page
+   and the orders page until it is turned into an order or marked seen (it stays in the CRM panel either way). */
+function newLeads(){return (S.leads||[]).filter(function(l){return l.status==='new'&&l.source==='حساب من'}).sort(function(a,b){return a.ts<b.ts?1:-1})}
+function leadAlert(){var seen={},key='lg-leads-seen';try{seen=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+  var L=newLeads(),fresh=L.filter(function(l){return !seen[l.id]});
+  if(fresh.length){toast(fresh.length===1?'سفارش تازه از «حساب من»: '+(fresh[0].name||'')+' · '+toFa(fresh[0].what||''):fmt(fresh.length)+' سفارش تازه از «حساب من»');
+    fresh.forEach(function(l){seen[l.id]=1});try{localStorage.setItem(key,JSON.stringify(seen))}catch(e){}}
+  var it=$('#nav [data-tab=orders]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
+function leadsHTML(){var L=newLeads();if(!L.length)return '';
+  return '<section class="sec leads"><h2>سفارش تازه از «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(l){
+    return '<div class="row lead"><span class="t">'+esc(l.name||'—')+'</span><span class="s">'+esc(toFa(l.what||''))+(l.note?' · '+esc(toFa(l.note)):'')+'</span><span class="v"><span class="d">'+esc(jdate(l.ts))+' · '+esc(jtime(l.ts))+'</span></span>'
+     +'<span class="btns"><button class="btn sm pri" data-act="leadorder" data-id="'+esc(l.id)+'" type="button">ثبت سفارش</button><button class="btn sm" data-act="leadseen" data-id="'+esc(l.id)+'" type="button">دیدم</button>'+(l.phone?'<a class="btn sm" href="tel:'+esc(fanum(l.phone))+'">تماس</a>':'')+'</span></div>'}).join('')+'</div></section>'}
+function leadById(id){var l=null;(S.leads||[]).forEach(function(x){if(x.id===id)l=x});return l}
+// its status in the CRM panel: «در گفت‌وگو» once the owner has seen it or made an order of it
+async function leadSet(id,status,extra){var l=leadById(id);if(!l||!S.db)return false;var d=Object.assign({},l,extra||{},{status:status,upd:new Date().toISOString()});delete d.id;
+  try{await S.db.collection('crm_leads').doc(id).set(d);return true}catch(e){toast(dberr(e));return false}}
 /* ---------- render ---------- */
 function setTop(title,sub,backBtn){
   $('#topTitle').innerHTML=esc(title)+(sub?'<small>'+esc(sub)+'</small>':'');
@@ -1701,7 +1722,7 @@ function vHome(){
   var top=S.parties.slice().sort(function(a,b){return Math.abs(S.bal[b.id].g)*50+Math.abs(S.bal[b.id].r)/1e6-(Math.abs(S.bal[a.id].g)*50+Math.abs(S.bal[a.id].r)/1e6)}).filter(function(p){var b=S.bal[p.id];return Math.abs(b.g)>=0.0005||Math.abs(b.r)>=0.5}).slice(0,5);
   var rec=S.invoices.slice().sort(function(a,b){return a.ts<b.ts?1:-1}).slice(0,5);
   var oo=S.orders.filter(isOpenOrder),ol=oo.filter(isLate),low=S.products.filter(isLow),pend=rawGold().pend,nsrc=S.products.filter(isNeg).length+orphans().length;
-  main.innerHTML=priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
+  main.innerHTML=leadsHTML()+priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
   +'<div class="kpis flat"><div class="kpi"><small>طلب گرمی از طرف‌حساب‌ها</small><b>'+fmt(gp,3)+' گرم</b><span class="sub">جمع بدهکارها</span></div>'
   +'<div class="kpi"><small>بدهی گرمی من</small><b>'+fmt(gn,3)+' گرم</b><span class="sub">جمع بستانکارها</span></div>'
   +'<div class="kpi"><small>طلب ریالی</small><b>'+fmt(rp,0)+'</b><span class="sub">ریال</span></div>'
@@ -3011,6 +3032,8 @@ document.addEventListener('click',function(e){
     case 'prod':go('product',id);break;
     case 'neworder':S.oItems=null;go('oform',b.dataset.pid?{partyId:b.dataset.pid}:null);break;
     case 'newself':S.oItems=null;go('oform',{self:true});break;
+    case 'leadorder':{var ld=leadById(id);if(ld){S.oItems=[{desc:ld.what||'',qty:1,weight:'',carat:'',note:'',supId:''}];go('oform',{partyId:ld.partyId||'',lead:ld.id,note:ld.note||''})}break}
+    case 'leadseen':leadSet(id,'talking').then(function(ok){if(ok)toast('از فهرست سفارش‌های تازه برداشته شد')});break;
     case 'order':S.oItems=null;go('oform',{id:id});break;
     case 'ofilter':S.ofilter=b.dataset.f;render();break;
     case 'oadd':S.oItems.push(blankItem());$('#oitems').innerHTML=oItemsHTML();break;
