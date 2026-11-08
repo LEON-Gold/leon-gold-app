@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 14:25</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 15:17</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2358,7 +2358,19 @@ function vParty(){
   +'<section class="sec"><h2>صورت‌حساب</h2>'+(es.length?'<div class="stm">'+es.map(function(e){
     var lk=e.kind==='inv'?'<button class="lk" data-act="inv" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':e.kind==='set'?'<button class="lk" data-act="set" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':'<span>'+esc(e.label)+'</span>';
     return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div></div><div class="a">'+balHTML(e.d,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
+  ptInfo(p.id);
 }
+/* what the party wrote about itself in «حساب من» and each time it signed the rules there (its electronic signature:
+   time, internet address, device, and the exact text), from the sync server; shown only when this device is connected */
+var INFO_L=[['fullName','نام و نام خانوادگی'],['shop','فروشگاه یا کارگاه'],['mobile','موبایل'],['phone','تلفن ثابت'],['nationalId','کد ملی'],['birth','تاریخ تولد'],['email','ایمیل'],['postal','کد پستی'],['address','نشانی']];
+function devName(ua){ua=ua||'';return /iPhone/.test(ua)?'آیفون':/iPad/.test(ua)?'آیپد':/Android/.test(ua)?'اندروید':/Windows/.test(ua)?'ویندوز':/Mac OS/.test(ua)?'مک':'مرورگر'}
+function ptInfo(id){if(!window.__leonSync||!window.__leonSync.info().on)return;
+  srvApi('/api/portal/party?id='+encodeURIComponent(id)).then(function(j){if(S.view!=='party'||S.param!==id)return;var a=(j&&j.accepts)||[],inf=(j&&j.info)||null;
+    var h='<section class="sec" id="ptinfo"><h2>«حساب من»: امضای آیین‌نامه و اطلاعات</h2>';
+    h+=a.length?'<p class="note">آیین‌نامه را در '+esc(jdate(a[0].at))+'، ساعت '+esc(jtime(a[0].at))+' خوانده و با زدن تیک «'+esc(a[0].label)+'» پذیرفته است (دستگاه: '+esc(devName(a[0].ua))+'، نشانی اینترنت: <span class="num" dir="ltr">'+esc(a[0].ip||'—')+'</span>).'+(a.length>1?' '+fmt(a.length)+' بار امضا کرده است.':'')+'</p><details><summary>متن امضاشده</summary><pre style="white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.9">'+esc(a[0].text)+'</pre></details>'
+      :'<p class="note">هنوز آیین‌نامه را در «حساب من» نپذیرفته است.</p>';
+    if(inf){var rows=INFO_L.filter(function(x){return inf[x[0]]});h+=rows.length?'<div class="stm">'+rows.map(function(x){return '<div class="r"><div><span>'+esc(x[1])+'</span></div><div class="a">'+esc(toFa(inf[x[0]]))+'</div></div>'}).join('')+'</div><p class="note">نوشته‌ی خود طرف‌حساب، '+esc(jdate(inf.at))+'. کارت او در دفتر با این عوض نمی‌شود.</p>':''}
+    h+='</section>';var old=$('#ptinfo');if(old)old.remove();main.insertAdjacentHTML('beforeend',h)}).catch(function(){})}
 function vSettlements(){
   setTop('اسناد تسویه',fmt(S.settlements.length)+' سند',false);
   var a=S.settlements.slice().sort(function(x,y){return x.ts<y.ts?1:-1});
@@ -2866,7 +2878,7 @@ document.addEventListener('input',function(e){if(e.target&&e.target.id==='pq')pq
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='supq'){SUQ=e.target.value;var L=$('#suparties');if(L)L.innerHTML=supartiesHTML()}});
 function renderInvAfterParty(){if(S.view==='inv'){var ps=$('#partySel');vInv()}}
 async function saveSet(id){
-  var pid=val('sf_party'),amt=num(val('sf_amt'));if(!pid){toast('طرف‌حساب را انتخاب کن');return}if(!(amt>0)){toast('مقدار را بنویس');return}
+  var pid=val('sf_party'),amt=num(val('sf_amt'));amt=val('sf_unit')==='g'?Math.round(amt*1000)/1000:Math.round(amt);if(!pid){toast('طرف‌حساب را انتخاب کن');return}if(!(amt>0)){toast('مقدار را بنویس');return}
   var p=partyById(pid),old=null;S.settlements.forEach(function(s){if(s.id===id)old=s});
   var d={partyId:pid,partyName:p?p.name:'',dir:val('sf_dir'),unit:val('sf_unit'),amount:amt,date:val('sf_date'),note:val('sf_note'),ts:old&&old.ts?old.ts:new Date().toISOString()};
   if(old&&old.kind==='assay')['kind','invId','idx','purity','lab','ang','weight'].forEach(function(k){d[k]=old[k]});
@@ -3071,7 +3083,7 @@ function viewMode(){document.body.classList.add('viewmode');var sp=document.getE
   render();initDb()})();
 $('#lockBtn').addEventListener('click',function(){leaveGuard(lockAsk)});
 // tests open index.html as a file and reach the ledger's own sums through this; the published app never has it
-if(location.protocol==='file:')window.__leon={S:S,compute:compute,expSum:expSum,metrics:metrics,openNewInvoice:openNewInvoice,todayD:todayD,jdate:jdate};
+if(location.protocol==='file:')window.__leon={S:S,compute:compute,expSum:expSum,metrics:metrics,openNewInvoice:openNewInvoice,go:go,saveSet:saveSet,todayD:todayD,jdate:jdate};
 })();
 
 </script>
