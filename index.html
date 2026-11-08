@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 22:43</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 23:02</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1367,7 +1367,7 @@ function compute(){
     if(p.openG)ent[p.id].push({ts:p.ts||'',kind:'open',label:'مانده اول دوره (گرم)',u:'g',d:p.openG});
     if(p.openR)ent[p.id].push({ts:p.ts||'',kind:'open',label:'مانده اول دوره (ریال)',u:'r',d:p.openR})});
   S.invoices.forEach(function(i){if(!bal[i.partyId])return;var u=unitOf(i),d=(u==='g'?i.deltaG:i.deltaR)||0;
-    bal[i.partyId][u]+=d;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,label:invLabel(i)+' '+(i.no||''),u:u,d:d});
+    bal[i.partyId][u]+=d;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,label:invLabel(i)+' '+(i.no||''),u:u,d:d,gross:typeof i.amount==='number'&&isFinite(i.amount)?i.amount:null});
     if(u==='g'&&i.deltaR){bal[i.partyId].r+=i.deltaR;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,tr:1,label:(i.trade&&i.trade.type==='buy'?'خرید طلا':i.trade&&i.trade.type==='sell'?'فروش طلا':'نقدی')+(i.trade&&(i.trade.cin||i.trade.cout)&&i.trade.type?' و نقدی':'')+' · '+invLabel(i)+' '+(i.no||'')+(i.trade&&i.trade.note?' · '+i.trade.note:''),u:'r',d:i.deltaR})}});
   S.invoices.forEach(function(i){var h=i.hav;if(!h||!h.w||!bal[h.partyId])return;var d=(h.dir==='in'?1:-1)*h.w;
     bal[h.partyId].g+=d;ent[h.partyId].push({ts:i.ts,kind:'inv',id:i.id,hv:1,label:'حواله '+(h.dir==='in'?'به حساب لئون از ':'از حساب لئون به ')+(i.partyName||'')+' · '+invLabel(i)+' '+(i.no||''),u:'g',d:d})});
@@ -2175,6 +2175,7 @@ function loadLib(key,src,get){if(get())return Promise.resolve(get());
 function choose(title,opts){var m=document.createElement('div');m.className='modal';
   m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>'+esc(title)+'</p><div class="btns">'+opts.map(function(o,i){return '<button class="btn pri" data-c="'+i+'" type="button">'+esc(o[0])+'</button>'}).join('')+'<button class="btn" data-n type="button">انصراف</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(b){m.remove();opts[+b.dataset.c][1]()}else if(e.target.closest('[data-n]')||e.target===m)m.remove()})}
+function entSplit(e){var g=e.gross!=null?e.gross:e.d,pay=g-e.d;return {g:g,pay:pay,dr:Math.max(g,0)+Math.max(-pay,0),cr:Math.max(-g,0)+Math.max(pay,0)}}
 function balWord(v,u){var z=u==='g'?Math.abs(v)<0.0005:Math.abs(v)<0.5;return z?'تسویه':v>0?'بدهکار':'بستانکار'}
 function rnd(v,u){return u==='g'?+v.toFixed(3):Math.round(v)}
 var UNIT={g:{t:'حساب گرمی (گرم طلای ۷۵۰)',w:'گرم',d:3},r:{t:'حساب ریالی (ریال)',w:'ریال',d:0}};
@@ -2182,11 +2183,11 @@ function itemText(it,kind){if(it.gx)return gxText(it.gx);return [toFa(it.desc||'
   kind==='retail'&&it.amount?fmt(it.amount)+' ریال':'',kind==='whole'&&it.totalG?'جمع '+fmt(it.totalG,3)+' گرم':''].filter(Boolean).join(' · ')}
 function stmtRows(p){var inv={},st={},sec={g:[],r:[]};S.invoices.forEach(function(i){inv[i.id]=i});S.settlements.forEach(function(s){st[s.id]=s});
   (S.ent[p.id]||[]).forEach(function(e){var i=e.kind==='inv'?inv[e.id]:null,s=e.kind==='set'?st[e.id]:null;
-    sec[e.u].push({date:(i&&i.date)||(s&&s.date)||jdate(e.ts),label:e.label,dr:e.d>0?e.d:0,cr:e.d<0?-e.d:0,run:e.run,items:i&&!e.tr?(i.items||[]).concat((i.gold||[]).map(function(g){return {gx:g}})):[],kind:i?i.kind:''})});
+    var sp=entSplit(e);sec[e.u].push({date:(i&&i.date)||(s&&s.date)||jdate(e.ts),label:e.label+(Math.abs(sp.pay)>=(e.u==='g'?0.0005:0.5)?' (با '+(sp.pay>0?'دریافت':'پرداخت')+' '+fmt(Math.abs(sp.pay),e.u==='g'?3:0)+' '+(e.u==='g'?'گرم':'ریال')+' در همین فاکتور)':''),dr:sp.dr,cr:sp.cr,run:e.run,items:i&&!e.tr?(i.items||[]).concat((i.gold||[]).map(function(g){return {gx:g}})):[],kind:i?i.kind:''})});
   return sec}
 function summary(p){var o={},b=S.bal[p.id]||{g:0,r:0},n=0,last='';
   ['g','r'].forEach(function(u){o[u]={open:(u==='g'?p.openG:p.openR)||0,invDr:0,invCr:0,setIn:0,setOut:0,bal:b[u]}});
-  (S.ent[p.id]||[]).forEach(function(e){var x=o[e.u];if(e.kind==='inv'){if(e.d>0)x.invDr+=e.d;else x.invCr-=e.d}else if(e.kind==='set'){if(e.d<0)x.setIn-=e.d;else x.setOut+=e.d}if(e.kind!=='open'&&e.ts>last)last=e.ts});
+  (S.ent[p.id]||[]).forEach(function(e){var x=o[e.u];if(e.kind==='inv'){var sp=entSplit(e);x.invDr+=sp.dr;x.invCr+=sp.cr}else if(e.kind==='set'){if(e.d<0)x.setIn-=e.d;else x.setOut+=e.d}if(e.kind!=='open'&&e.ts>last)last=e.ts});
   S.invoices.forEach(function(i){if(i.partyId===p.id)n++});return {u:o,count:n,last:last?jdate(last):'—'}}
 function infoRows(p){return [['طرف‌حساب',p.name||''],['فروشگاه',p.shop||''],['تلفن',p.phone||''],['تاریخ گزارش',jdate(Date.now())]]}
 var SUMROWS=[['open','مانده اول دوره'],['invDr','جمع فاکتورهای بدهکار'],['invCr','جمع فاکتورهای بستانکار'],['setIn','دریافت از او (تسویه)'],['setOut','پرداخت به او (تسویه)']];
@@ -2386,7 +2387,8 @@ function vParty(){
   +'<div class="btns pdocs"><button class="btn" data-act="new" data-k="retail" data-p="'+esc(p.id)+'">فاکتور خرده</button><button class="btn" data-act="new" data-k="whole" data-p="'+esc(p.id)+'">فاکتور عمده</button><button class="btn" data-act="newset" data-p="'+esc(p.id)+'">سند تسویه</button><button class="btn" data-act="neworder" data-pid="'+esc(p.id)+'">سفارش</button></div><div class="chips pacts"><button class="chip" data-act="editparty" data-id="'+esc(p.id)+'">ویرایش مشخصات</button><button class="chip" data-act="stmt" data-id="'+esc(p.id)+'">ریز حساب</button><button class="chip" data-act="summ" data-id="'+esc(p.id)+'">کلیات حساب</button></div>'
   +'<section class="sec"><h2>صورت‌حساب</h2>'+(es.length?'<div class="stm">'+es.map(function(e){
     var lk=e.kind==='inv'?'<button class="lk" data-act="inv" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':e.kind==='set'?'<button class="lk" data-act="set" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':'<span>'+esc(e.label)+'</span>';
-    return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div></div><div class="a">'+balHTML(e.d,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
+    var sp=entSplit(e),paid=Math.abs(sp.pay)>=(e.u==='g'?0.0005:0.5);
+    return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div>'+(paid?'<div class="d">'+(sp.pay>0?'دریافت':'پرداخت')+' در همین فاکتور: '+balHTML(-sp.pay,e.u)+'</div>':'')+'</div><div class="a">'+balHTML(sp.g,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
   ptInfo(p.id);
 }
 /* what the party wrote about itself in «حساب من» and each time it signed the rules there (its electronic signature:
