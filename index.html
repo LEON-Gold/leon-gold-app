@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 15:46</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 15:59</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1785,7 +1785,9 @@ async function ptMake(id,quiet){var p=partyById(id);if(!p)return null;if(p.porta
   for(var k=0;k<4;k++){try{var r=await srvApi('/api/portal/login/set',{method:'POST',json:{partyId:id,username:u,password:pw}});if(PL)PL[id]=r.username||u;return {p:p,u:r.username||u,pw:pw}}
     catch(e){if(e&&e.body&&e.body.error==='username_taken'){u='leon'+ptPass().slice(0,4);continue}if(!quiet)toast(srvErrMsg(e));return null}}
   if(!quiet)toast('نام کاربری آزادی پیدا نشد؛ دوباره امتحان کن.');return null}
-function credMsg(c){return 'سلام '+(c.p.name||'')+'،\nورود به «حساب من» لئون گلد:\n'+hesabURL()+'\nنام کاربری: '+c.u+'\nرمز: '+c.pw+'\nبعد از ورود، از «تغییر رمز» رمز خودتان را بگذارید.'}
+// a VIP gets its own, more personal letter with the same sign-in details (owner, 2026-11-08)
+function credMsg(c){if(c.p&&c.p.vip)return '✦ '+(c.p.name||'')+' گرامی، سلام\n\nافتخار داریم شما را در جمع مشتریان ویژه‌ی لئون گلد داشته باشیم.\nکارت VIP شما در «حساب من» آماده است؛ جایی که مانده‌ی حساب، فاکتورها، سفارش‌ها و تازه‌ترین کارهای ویترین را هر وقت بخواهید می‌بینید.\n\nورود به «حساب من»:\n'+hesabURL()+'\n\nنام کاربری: '+c.u+'\nرمز: '+c.pw+'\n\nبرای آسودگی خاطر شما، پس از نخستین ورود از «پروفایل من» رمزی تازه برگزینید.\n\nبا احترام و سپاس،\nلئون گلد · طلا و جواهرات ✦';
+  return 'سلام '+(c.p.name||'')+'،\nورود به «حساب من» لئون گلد:\n'+hesabURL()+'\nنام کاربری: '+c.u+'\nرمز: '+c.pw+'\nبعد از ورود، از «تغییر رمز» رمز خودتان را بگذارید.'}
 function credModal(L){if(!L.length)return;var m=document.createElement('div');m.className='modal';
   m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p><b>'+(L.length>1?'نام کاربری و رمز '+fmt(L.length)+' طرف‌حساب':'نام کاربری و رمز «'+esc(L[0].p.name||'')+'»')+'</b><br>رمز فقط همین حالا دیده می‌شود؛ بفرست یا یادداشت کن. بعداً فقط می‌شود رمز تازه ساخت.</p>'
     +'<div class="creds">'+L.map(function(c,i){var wa=waPhone(c.p.phone);return '<div class="cred"><b>'+esc(c.p.name||'—')+'</b><span><small>نام کاربری</small><i dir="ltr">'+esc(c.u)+'</i></span><span><small>رمز</small><i dir="ltr">'+esc(c.pw)+'</i></span>'
