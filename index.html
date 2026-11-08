@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 17:44</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 22:43</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -808,6 +808,11 @@ body.noact{padding-bottom:24px}
 .modal{position:fixed;inset:0;z-index:70;background:rgba(5,20,13,.6);display:grid;place-items:center;padding:20px}
 .modal .box{background:#fffdf6;border:1px solid var(--gold);border-radius:16px;padding:18px;max-width:380px;width:100%;display:grid;gap:14px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 .modal p{margin:0;font-size:14px;line-height:1.8}
+.ppk .box{max-width:560px;max-height:86vh;grid-template-rows:auto auto auto 1fr;overflow:hidden}
+.ppk-h{display:flex;justify-content:space-between;align-items:center;gap:10px}.ppk-h b{font-size:16px;color:var(--green)}
+.ppk-l{overflow-y:auto;min-height:0;overscroll-behavior:contain}
+.ppk-no{display:inline-block;background:linear-gradient(135deg,#f5f0e3,#e8dcc0)}
+.ppk-b{justify-self:start;margin-top:-2px}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--green-d);color:#f6e9c4;border:1px solid var(--gold);border-radius:12px;padding:10px 16px;font-size:13.5px;max-width:90vw}
 #form input:disabled,#form select:disabled,#partySel:disabled{background:#f6f3ec;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
 .lockbar{background:#eef5ef;border:1px solid #9cc2a5;color:#1f4d2c;border-radius:12px;padding:12px;font-size:13px;line-height:1.8}
@@ -1382,6 +1387,27 @@ function toFa(s){return String(s==null?'':s).replace(/[0-9]/g,function(d){return
 // phone numbers read left to right inside Persian lines: an LTR isolate stops «+98 912 421 0712» from showing as «0712 421 912 98+»
 function phoneTxt(s){return s?'⁦'+toFa(s)+'⁩':''}
 function prodLabel(p){return (p.code?toFa(fanum(p.code))+' ':'')+p.name}
+// one piece's weight: as stock holds it (its grams over its pieces), else the product card's «وزن هر عدد» (owner, 2026-11-08)
+function prodUnitW(p){var s=S.stock&&S.stock[p.id];return s&&s.q>0&&s.g>0.0005?Math.round(s.g/s.q*1000)/1000:(p.unitW||0)}
+// an invoice row from a product: its label, weight for the count, purity and wage; the owner corrects it if needed
+function prodFill(tr,p){var q=num($('.q',tr).value)||1,set=function(c,v){var e=$(c,tr);if(e)e.value=v};
+  set('td:nth-child(2) input',prodLabel(p));set('.q',plain(q));var uw=prodUnitW(p);set('.w',uw?plain(Math.round(uw*q*1000)/1000,3):'');
+  var pl=Math.round(labOf(p.carat||(S.kind==='whole'?750:18))),kc=karatOf(p.carat||18);set('.c',S.kind==='whole'?(pl!==750?plain(pl):''):(kc!==18?plain(kc):''));
+  set('.aj',p.ajrat?plain(p.ajrat,2):'');fire($('.w',tr),'input');S.dirty=true}
+/* pick a product for an invoice row: every product with its photo, what is in stock first */
+function prodPick(i){computeStock();
+  var all=S.products.slice().sort(function(a,b){var x=(S.stock[a.id]||{q:0}).q>0,y=(S.stock[b.id]||{q:0}).q>0;return (y-x)||(a.name||'').localeCompare(b.name||'','fa')}),only=false;
+  var m=document.createElement('div');m.className='modal ppk';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-label="انتخاب کالا"><div class="ppk-h"><b>انتخاب از کالاها و موجودی</b><button class="btn sm" data-n type="button">بستن</button></div>'
+   +'<input class="srch" type="search" placeholder="جست‌وجوی نام یا کد" aria-label="جست‌وجوی کالا"><div class="chips"><button class="chip" type="button" data-f="all" aria-pressed="true">همه‌ی کالاها</button><button class="chip" type="button" data-f="in" aria-pressed="false">فقط موجود</button></div><div class="list ppk-l"></div></div>';
+  document.body.appendChild(m);var L=$('.ppk-l',m),q=$('input',m);
+  var draw=function(){var t=fanum(q.value).toLowerCase();L.innerHTML=all.filter(function(p){var st=S.stock[p.id]||{q:0,g:0};return (!only||st.q>0)&&(!t||fanum(prodLabel(p)).toLowerCase().indexOf(t)>=0)}).map(function(p){var st=S.stock[p.id]||{q:0,g:0},uw=prodUnitW(p);
+    return '<button class="row" type="button" data-p="'+esc(p.id)+'"><span class="t">'+(p.photo?'<img class="thumb" src="'+esc(photoURL(p.photo))+'" alt="" loading="lazy">':'<i class="thumb ppk-no" aria-hidden="true"></i>')+esc(p.name)+(p.code?'<span class="badge">'+esc(toFa(fanum(p.code)))+'</span>':'')+(st.q>0?'':'<span class="badge lo">ناموجود</span>')+'</span>'
+     +'<span class="s">'+esc([uw?'هر عدد '+fmt(uw,3)+' گرم':'',p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+qtyHTML(st)+'</span></button>'}).join('')||'<div class="empty">کالایی پیدا نشد.</div>'};
+  draw();q.addEventListener('input',draw);
+  m.addEventListener('click',function(e){var c=e.target.closest('[data-f]');if(c){only=c.dataset.f==='in';$$('[data-f]',m).forEach(function(b){b.setAttribute('aria-pressed',String(b===c))});draw();return}
+    var b=e.target.closest('[data-p]');if(b){var p=prodById(b.dataset.p),tr=rows()[i];m.remove();if(p&&tr){prodFill(tr,p);var y=window.scrollY;renderForm();updateTotals();window.scrollTo(0,y);toast('«'+p.name+'» اضافه شد؛ وزن و اجرت را بررسی کن')}return}
+    if(e.target.closest('[data-n]')||e.target===m)m.remove()})}
 // retail sales and wholesale "paid" docs take goods out; wholesale "received" docs bring goods in
 function computeStock(){var st={},mv={};
   S.products.forEach(function(p){st[p.id]={q:p.openQ||0,g:p.openG||0};mv[p.id]=[]});
@@ -1510,30 +1536,30 @@ function shopList(){var m={};S.orders.forEach(function(o){if(o.status!=='new'&&o
   if(!m[k])m[k]={p:p,desc:p?prodLabel(p):it.desc,q:0,w:0,who:[],sup:sp?sp.name:(it.supName||'')};m[k].q+=+it.qty||0;m[k].w+=+it.weight||0;if(m[k].who.indexOf(o.partyName)<0)m[k].who.push(o.partyName||'—')})});
   return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return (!a.sup)-(!b.sup)||(a.sup||'').localeCompare(b.sup||'','fa')||b.q-a.q})}
 function orderRow(o){var late=isLate(o),its=(o.items||[]).filter(function(i){return i.desc});
-  return '<button class="row" data-act="order" data-id="'+esc(o.id)+'" type="button"><span class="t">'+esc(o.partyName||'—')+'<span class="badge'+(o.status==='cancel'?' dl':'')+'">'+esc(ostLabel(o.status))+'</span>'+(late?'<span class="badge lo">دیر شده</span>':'')+'</span>'
+  return '<button class="row" data-act="order" data-id="'+esc(o.id)+'" type="button"><span class="t">'+esc(o.partyName||'—')+(o.self?'<span class="badge g">شخصی</span>':'')+'<span class="badge'+(o.status==='cancel'?' dl':'')+'">'+esc(ostLabel(o.status))+'</span>'+(late?'<span class="badge lo">دیر شده</span>':'')+'</span>'
   +'<span class="s">'+esc(its.slice(0,3).map(function(i){return toFa(i.desc)+(i.qty?' × '+fmt(i.qty):'')+(i.supName?' (از '+i.supName+')':'')}).join('، ')+(its.length>3?' …':''))+'</span><span class="v"><span class="qty">'+fmt(its.length)+' قلم</span><span class="d">'+(o.due?'موعد '+esc(toFa(o.due)):esc(o.date||''))+'</span></span></button>'}
 function vOrders(){var f=S.ofilter||'open',all=S.orders.slice().sort(function(a,b){var x=jkey(a.due)||'9',y=jkey(b.due)||'9';return x<y?-1:x>y?1:(a.ts<b.ts?1:-1)});
-  var open=all.filter(isOpenOrder),late=open.filter(isLate),list=f==='open'?open:f==='done'?all.filter(function(o){return !isOpenOrder(o)}):all,sl=shopList();
+  var open=all.filter(isOpenOrder),late=open.filter(isLate),list=f==='open'?open:f==='self'?all.filter(function(o){return o.self}):f==='done'?all.filter(function(o){return !isOpenOrder(o)}):all,sl=shopList();
   setTop('سفارشات',fmt(open.length)+' سفارش باز',false);
-  main.innerHTML='<button class="btn pri" data-act="neworder" type="button">+ سفارش جدید</button>'
+  main.innerHTML='<div class="btns"><button class="btn pri" data-act="neworder" type="button">+ سفارش جدید</button><button class="btn" data-act="newself" type="button">+ سفارش شخصی (برای خودم)</button></div>'
   +'<div class="kpis flat"><div class="kpi"><small>سفارش باز</small><b>'+fmt(open.length)+'</b><span class="sub">'+fmt(open.filter(function(o){return o.status==='ready'}).length)+' آماده تحویل</span></div><div class="kpi"><small>دیر شده</small><b>'+fmt(late.length)+'</b><span class="sub">موعد گذشته</span></div></div>'
   +(sl.length?'<section class="sec"><h2>لیست خرید (سفارش‌های ثبت‌شده و در حال تهیه)</h2><div class="list">'+sl.map(function(x,i){var st=x.p?S.stock[x.p.id]:null,hd=i===0||sl[i-1].sup!==x.sup;
     return (hd?'<p class="note" style="margin:6px 0 0;font-weight:800;color:var(--green)">'+(x.sup?'از '+esc(x.sup):'تأمین‌کننده مشخص نشده')+'</p>':'')+'<div class="row"><span class="t">'+esc(toFa(x.desc))+(st&&st.q>0?'<span class="badge">'+fmt(st.q)+' عدد در موجودی</span>':'')+'</span><span class="s">برای '+esc(x.who.join('، '))+'</span><span class="v"><span class="qty">'+fmt(x.q)+' عدد</span>'+(x.w?'<span class="d">حدود '+fmt(x.w,3)+' گرم</span>':'')+'</span></div>'}).join('')+'</div></section>':'')
-  +'<div class="chips" id="ochips">'+[['open','باز'],['done','تحویل‌شده و لغو'],['all','همه']].map(function(c){return '<button class="chip" data-act="ofilter" data-f="'+c[0]+'" aria-pressed="'+(f===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'
+  +'<div class="chips" id="ochips">'+[['open','باز'],['self','شخصی (برای خودم)'],['done','تحویل‌شده و لغو'],['all','همه']].map(function(c){return '<button class="chip" data-act="ofilter" data-f="'+c[0]+'" aria-pressed="'+(f===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'
   +'<div class="list">'+(list.length?list.map(orderRow).join(''):'<div class="empty">'+(S.orders.length?'سفارشی در این دسته نیست.':'هنوز سفارشی ثبت نشده. با «+ سفارش جدید» شروع کن.')+'</div>')+'</div>'}
 function blankItem(){return {desc:'',qty:1,weight:'',carat:'',note:'',supId:''}}
 function vOform(){var o=null;S.orders.forEach(function(x){if(S.param&&x.id===S.param.id)o=x});var isNew=!o;o=o||{};
   if(!S.oItems)S.oItems=(o.items&&o.items.length?o.items:[blankItem()]).map(function(i){return Object.assign({},i)});
   setTop(isNew?'سفارش جدید':'سفارش '+(o.partyName||''),isNew?'':ostLabel(o.status),true);
-  var po=[['','— انتخاب مشتری —']].concat(S.parties.map(function(p){return [p.id,p.name]}));
-  main.innerHTML='<section class="sec"><h2>مشتری و زمان</h2><div class="grid">'+sel('مشتری','of_party',po,o.partyId||(S.param&&S.param.partyId)||'',{w2:1})
+  var po=[['','— انتخاب مشتری —'],['__self','شخصی (برای خودم، بدون مشتری)']].concat(S.parties.map(function(p){return [p.id,p.name]}));
+  main.innerHTML='<section class="sec"><h2>مشتری و زمان</h2><div class="grid">'+sel('مشتری','of_party',po,o.self?'__self':(o.partyId||(S.param&&S.param.partyId)||(S.param&&S.param.self?'__self':'')),{w2:1})
    +fld('تاریخ سفارش','of_date',o.date||jdate(Date.now()),{num:1})+fld('موعد تحویل','of_due',o.due||'',{num:1,ph:'۱۴۰۵/۰۸/۱۵'})
    +sel('وضعیت','of_status',OST,o.status||'new',{w2:1})+'</div></section>'
    +'<section class="sec"><h2>اقلام سفارش</h2><div id="oitems" style="display:grid;gap:8px">'+oItemsHTML()+'</div><button class="btn" data-act="oadd" type="button" style="margin-top:8px">+ افزودن قلم</button></section>'
    +'<section class="sec"><h2>سایر</h2><div class="grid">'+fld('بیعانه (ریال، فقط برای یادداشت)','of_dep',o.deposit?plain(o.deposit):'',{num:1,w2:1})+fld('توضیحات','of_note',o.note||'',{w2:1})+'</div></section>'
    +'<datalist id="prodList">'+S.products.map(function(p){return '<option value="'+esc(prodLabel(p))+'"></option>'}).join('')+'</datalist>'
    +'<div class="btns"><button class="btn pri" data-act="saveorder" data-id="'+esc(o.id||'')+'" type="button">ذخیره</button>'
-   +(isNew?'':'<button class="btn" data-act="orderinv" data-id="'+esc(o.id)+'" type="button">صدور فاکتور خرده</button><button class="btn dng" data-act="delorder" data-id="'+esc(o.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>'
+   +(isNew||o.self?'':'<button class="btn" data-act="orderinv" data-id="'+esc(o.id)+'" type="button">صدور فاکتور خرده</button><button class="btn dng" data-act="delorder" data-id="'+esc(o.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>'
    +(o.invId?'<p class="note">برای این سفارش فاکتور صادر شده است.</p>':'')}
 function oItemsHTML(){return S.oItems.map(function(it,i){var F=function(lbl,k,o){o=o||{};return '<label class="f'+(o.w2?' w2':'')+'"><span>'+lbl+'</span><input data-oi="'+i+'" data-k="'+k+'" type="text" value="'+esc(it[k]==null?'':toFa(String(it[k])))+'"'+(o.num?' class="num" inputmode="decimal"':'')+(o.list?' list="prodList"':'')+(o.ph?' placeholder="'+esc(o.ph)+'"':'')+'></label>'};
   return '<div class="item"><div class="hd2"><span>قلم '+fmt(i+1)+'</span>'+(S.oItems.length>1?'<button class="lnk" data-act="orm" data-i="'+i+'" type="button">حذف</button>':'')+'</div>'
@@ -1542,11 +1568,11 @@ function oItemsHTML(){return S.oItems.map(function(it,i){var F=function(lbl,k,o)
 function supSel(it,i){var ps=S.parties.slice().sort(function(a,b){return (b.kind!=='customer')-(a.kind!=='customer')||(a.name||'').localeCompare(b.name||'','fa')});
   return '<label class="f w2"><span>تأمین‌کننده</span><select data-oi="'+i+'" data-k="supId"><option value="">— هنوز مشخص نیست —</option>'+ps.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===it.supId?' selected':'')+'>'+esc(p.name)+(p.kind==='customer'?'':' · تأمین‌کننده')+'</option>'}).join('')+'</select></label>'}
 ['input','change'].forEach(function(ev){document.addEventListener(ev,function(e){var x=e.target;if(S.view!=='oform'||!x.dataset||x.dataset.oi==null)return;var it=S.oItems[+x.dataset.oi];if(!it)return;it[x.dataset.k]=x.value;S.dirty=true})});
-async function saveOrder(id){var pid=val('of_party');if(!pid){toast('مشتری را انتخاب کن');return}
+async function saveOrder(id){var pid=val('of_party'),self=pid==='__self';if(!pid){toast('مشتری را انتخاب کن، یا «شخصی (برای خودم)»');return}if(self)pid='';
   var items=S.oItems.filter(function(i){return String(i.desc||'').trim()}).map(function(i){var p=prodMatch(i.desc);return {desc:String(i.desc).trim(),pid:p?p.id:'',qty:num(i.qty)||1,weight:num(i.weight)||0,carat:num(i.carat)||0,note:String(i.note||'').trim(),supId:i.supId||'',supName:i.supId&&partyById(i.supId)?partyById(i.supId).name:''}});
   if(!items.length){toast('حداقل یک قلم بنویس');return}
   var old=null;S.orders.forEach(function(x){if(x.id===id)old=x});var p=partyById(pid);
-  var d={partyId:pid,partyName:p?p.name:'',date:val('of_date'),due:val('of_due'),status:val('of_status'),items:items,deposit:num(val('of_dep'))||0,note:val('of_note'),ts:old&&old.ts?old.ts:new Date().toISOString(),invId:old&&old.invId||''};
+  var d={partyId:pid,partyName:self?'شخصی (برای خودم)':p?p.name:'',date:val('of_date'),due:val('of_due'),status:val('of_status'),items:items,deposit:num(val('of_dep'))||0,note:val('of_note'),ts:old&&old.ts?old.ts:new Date().toISOString(),invId:old&&old.invId||''};if(self)d.self=true;
   if(await put('orders',id||newId('orders'),d)){S.oItems=null;S.dirty=false;toast('سفارش ذخیره شد');back()}}
 function orderToInvoice(id){var o=null;S.orders.forEach(function(x){if(x.id===id)o=x});if(!o)return;S.oItems=null;
   openNewInvoice('retail',o.partyId);var trs=$$('#rt tbody tr');(o.items||[]).forEach(function(it,i){var tr=trs[i];if(!tr)return;var set=function(c,v){var e=$(c,tr);e.value=v;fire(e,'input')};
@@ -2796,10 +2822,11 @@ function itemCard(i){var kind=S.kind,c=document.createElement('div');c.className
   var h=document.createElement('div');h.className='hd2';h.innerHTML='<span>کالای '+fmt(i+1)+'</span><em data-row="'+i+'"></em>';c.appendChild(h);
   var T=function(s){return function(){return $(s,rows()[i])}};
   var dw=mk('شرح کالا / کد',T('td:nth-child(2) input')),di=dw.querySelector('input');c.appendChild(dw);
+  if(S.products.length){var pb=document.createElement('button');pb.type='button';pb.className='btn sm ppk-b';pb.textContent='انتخاب از کالاها و موجودی';pb.addEventListener('click',function(){prodPick(i)});c.appendChild(pb)}
   if(di&&S.products.length){di.setAttribute('list','prodList');di.addEventListener('change',function(){var p=prodMatch(di.value),tr=rows()[i];if(!p||!tr)return;var ch=false;
     if(!$('.c',tr).value&&p.carat){var pl=Math.round(labOf(p.carat)),kc=karatOf(p.carat);if(S.kind==='whole'&&pl!==750){$('.c',tr).value=plain(pl);ch=true}else if(S.kind==='retail'&&kc!==18){$('.c',tr).value=plain(kc);ch=true}}
     if(!$('.aj',tr).value&&p.ajrat){$('.aj',tr).value=plain(p.ajrat,2);ch=true}
-    if(!$('.w',tr).value&&p.unitW){$('.w',tr).value=plain(p.unitW*(num($('.q',tr).value)||1),3);ch=true}
+    var uw=prodUnitW(p);if(!$('.w',tr).value&&uw){$('.w',tr).value=plain(Math.round(uw*(num($('.q',tr).value)||1)*1000)/1000,3);ch=true}
     if(ch){fire($('.w',tr),'input');var y=window.scrollY;renderForm();window.scrollTo(0,y)}})}
   var g=document.createElement('div');g.className='grid3';
   g.appendChild(mk('تعداد',T('.q'),{num:1}));g.appendChild(mk('وزن (گرم)',T('.w'),{num:1}));g.appendChild(mk(kind==='whole'?'عیار آزمایشگاهی':'عیار',T('.c'),{num:1,ph:kind==='whole'?'۷۵۰':'۱۸'}));g.appendChild(mk('اجرت ٪',T('.aj'),{num:1}));
@@ -2826,6 +2853,7 @@ function renderForm(){
   var n=Math.min(Math.max(shown[kind],filled),total);shown[kind]=n;
   var box=document.createElement('section');box.className='sec';var hh=document.createElement('h2');hh.textContent='اقلام فاکتور';box.appendChild(hh);
   for(var i=0;i<n;i++)box.appendChild(itemCard(i));
+  if(S.products.length){var pk=document.createElement('button');pk.type='button';pk.className='btn pri';pk.textContent='+ افزودن از کالاها (با عکس)';pk.addEventListener('click',function(){var R=rows(),k=-1;for(var j=0;j<R.length;j++){if(!$('td:nth-child(2) input',R[j]).value&&!$('.w',R[j]).value){k=j;break}}if(k<0){toast('همه‌ی ردیف‌های این صفحه پر است');return}shown[kind]=Math.max(shown[kind],k+1);prodPick(k)});box.appendChild(pk)}
   var add=document.createElement('button');add.type='button';add.className='btn';add.textContent='+ افزودن کالا';
   if(n>=total){add.disabled=true;add.textContent='حداکثر '+fmt(total)+' ردیف در یک صفحه A4'}
   add.addEventListener('click',function(){shown[kind]=Math.min(total,n+1);var y=window.scrollY;renderForm();window.scrollTo(0,y);var it=$$('.item');if(it.length)it[it.length-1].scrollIntoView({block:'center'})});
@@ -2980,6 +3008,7 @@ document.addEventListener('click',function(e){
     case 'stmt':case 'summ':{var pp=partyById(id),ty=a==='stmt'?'detail':'summary';if(pp)choose((ty==='detail'?'ریز حساب ':'کلیات حساب ')+pp.name+' را با چه قالبی می‌خواهی؟',[['اکسل',function(){exportParty(id,ty,'xlsx')}],['PDF',function(){exportParty(id,ty,'pdf')}]]);break}
     case 'prod':go('product',id);break;
     case 'neworder':S.oItems=null;go('oform',b.dataset.pid?{partyId:b.dataset.pid}:null);break;
+    case 'newself':S.oItems=null;go('oform',{self:true});break;
     case 'order':S.oItems=null;go('oform',{id:id});break;
     case 'ofilter':S.ofilter=b.dataset.f;render();break;
     case 'oadd':S.oItems.push(blankItem());$('#oitems').innerHTML=oItemsHTML();break;
