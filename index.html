@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 15:17</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-08 15:46</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -735,6 +735,7 @@ body.noact{padding-bottom:24px}
 .row .t{font-weight:700;font-size:14px;min-width:0;overflow-wrap:anywhere}
 .row .s{font-size:12px;color:var(--muted);grid-column:1}
 .row .v{grid-row:1/span 2;grid-column:2;text-align:left;display:grid;gap:2px;justify-items:end;font-size:12.5px}
+.badge.vip{background:linear-gradient(135deg,#f6e3a8,#c59a50);color:#3a2a08;border-color:#b08a3e;font-weight:800;letter-spacing:.06em}
 .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;border:1px solid var(--gold);color:var(--gold-ink);margin-inline-start:6px;vertical-align:middle}
 .badge.g{background:var(--green);color:var(--gold-lt);border-color:var(--green)}
 .empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px;border:1px dashed var(--line);border-radius:12px}
@@ -1644,8 +1645,8 @@ function render(){
 /* gram balance valued at today's 18-carat gram price, plus the rial balance; null when no price is set */
 function totalR(b){return null}   // gram balances are never converted to rial at today's price
 function partyRow(p,sub){var b=S.bal[p.id]||{g:0,r:0};
-  return '<button class="row" data-act="party" data-id="'+esc(p.id)+'"><span class="t">'+esc(p.name)+(p.kind==='supplier'?'<span class="badge g">تأمین‌کننده</span>':p.kind==='both'?'<span class="badge">مشتری و تأمین‌کننده</span>':'')+'</span>'
-  +'<span class="s">'+esc(sub||[p.shop,phoneTxt(p.phone)].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+balHTML(b.g,'g')+balHTML(b.r,'r')+(Math.abs(b.g)>=0.0005&&totalR(b)!==null?'<span class="d">کل ریالی: '+balHTML(totalR(b),'r')+'</span>':'')+'</span></button>'}
+  return '<button class="row" data-act="party" data-id="'+esc(p.id)+'"><span class="t">'+esc(p.name)+(p.kind==='supplier'?'<span class="badge g">تأمین‌کننده</span>':p.kind==='both'?'<span class="badge">مشتری و تأمین‌کننده</span>':'')+(p.vip?'<span class="badge vip">VIP</span>':'')+'</span>'
+  +'<span class="s">'+esc(sub||[p.shop,bizName(p.biz),phoneTxt(p.phone)].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+balHTML(b.g,'g')+balHTML(b.r,'r')+(Math.abs(b.g)>=0.0005&&totalR(b)!==null?'<span class="d">کل ریالی: '+balHTML(totalR(b),'r')+'</span>':'')+'</span></button>'}
 // a wholesale doc with no goods total (a gold-for-rial trade) shows what it moved, not a misleading «۰ گرم تسویه»
 function invRow(i){var u=unitOf(i),amt=i.amount||0,v=balHTML(amt,u);
   if(i.kind==='whole'&&Math.abs(amt)<0.0005&&(Math.abs(i.deltaG||0)>=0.0005||Math.abs(i.deltaR||0)>=0.5))v=(Math.abs(i.deltaG||0)>=0.0005?balHTML(i.deltaG,'g'):'')+(Math.abs(i.deltaR||0)>=0.5?balHTML(i.deltaR,'r'):'');
@@ -2562,12 +2563,17 @@ async function saveExpense(id){var cat=val('x_cat'),r=Math.round(num(val('x_r'))
   var d={date:date,cat:cat,note:val('x_note'),r:r>0?r:0,w:w>0?w:0,lab:lab,g:w>0?w*lab/750:0,ts:old&&old.ts?old.ts:new Date().toISOString()};if(curUser())d.by=curUser();
   if(await put('expenses',id||newId('expenses'),d)){toast('هزینه ثبت شد');var j=parseJ(date);if(!old&&j!=null){var c=period('m',0);S.xoff=0;while(j<c.s&&S.xoff>-240){S.xoff--;c=period('m',S.xoff)}}back()}}
 
+// what kind of business a party runs, picked on its card (owner, 2026-11-08)
+var BIZ=[['','—'],['home','خانگی'],['gallery','گالری'],['melt','آبشده‌فروش'],['dist','دفتر پخش'],['bonak','بنکداری']];
+function bizName(k){for(var i=1;i<BIZ.length;i++)if(BIZ[i][0]===k)return BIZ[i][1];return ''}
 function vPform(){
   var p=S.param&&S.param.id?partyById(S.param.id):null,isNew=!p;p=p||{};
   setTop(isNew?'طرف‌حساب جدید':'ویرایش طرف‌حساب','',true);
   var nn=isNew&&S.newName||'';S.newName='';
   main.innerHTML='<section class="sec"><h2>مشخصات</h2><div class="grid">'+fld('نام *','pf_name',p.name||nn,{w2:1})
    +sel('نوع','pf_kind',[['customer','مشتری'],['supplier','تأمین‌کننده'],['both','هر دو']],p.kind||'customer',{w2:1})
+   +sel('نوع کسب‌وکار','pf_biz',BIZ,p.biz||'',{w2:1})
+   +sel('سطح مشتری (کارت «حساب من»)','pf_vip',[['','عادی'],['1','VIP']],p.vip?'1':'',{w2:1})
    +fld('فروشگاه / دفتر','pf_shop',p.shop,{w2:1})+fld('تلفن','pf_phone',p.phone,{tel:1,w2:1})+fld('آدرس','pf_addr',p.address,{w2:1})+fld('یادداشت','pf_note',p.note,{w2:1})+'</div></section>'
    +'<section class="sec"><h2>مانده اول دوره</h2><p class="note">اگر از قبل با این شخص حساب داری، مانده فعلی را اینجا بنویس. بدهکار یعنی او به تو بدهکار است.</p><div class="grid">'
    +signedField('مانده گرمی (گرم ۷۵۰)','pf_g',p.openG,'g')+signedField('مانده ریالی (ریال)','pf_r',p.openR,'r')+'</div></section>'
@@ -2863,7 +2869,9 @@ async function saveParty(id){
   var name=val('pf_name');if(!name){toast('نام را بنویس');return}
   var sg=function(v,t,u){var n=num(v);return (t==='cr'?-1:1)*(u==='g'?Math.round(n*1000)/1000:Math.round(n))};
   var old=id?partyById(id):null;
-  var d={name:name,kind:val('pf_kind'),shop:val('pf_shop'),phone:val('pf_phone'),address:val('pf_addr'),note:val('pf_note'),openG:sg(val('pf_g'),val('pf_gt'),'g'),openR:sg(val('pf_r'),val('pf_rt'),'r'),ts:old&&old.ts?old.ts:new Date().toISOString()};
+  // fields this form does not show (portalOff and the like) stay as they were
+  var d=Object.assign({},old||{},{name:name,kind:val('pf_kind'),shop:val('pf_shop'),phone:val('pf_phone'),address:val('pf_addr'),note:val('pf_note'),openG:sg(val('pf_g'),val('pf_gt'),'g'),openR:sg(val('pf_r'),val('pf_rt'),'r'),ts:old&&old.ts?old.ts:new Date().toISOString()});delete d.id;
+  var bz=val('pf_biz');if(bz)d.biz=bz;else delete d.biz;if(val('pf_vip')==='1')d.vip=true;else delete d.vip;
   var pid=id||newId('parties');if(await put('parties',pid,d)){toast('ذخیره شد');S.partyId=pid;var r=S.ret;S.ret=null;
     if(r==='inv'){back();S.partyId=pid;var p=Object.assign({id:pid},d);S.parties=S.parties.filter(function(x){return x.id!==pid}).concat([p]);compute();applyParty(p);renderInvAfterParty()}else back()}
 }
