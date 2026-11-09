@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 00:41</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 10:47</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -820,6 +820,7 @@ body.noact{padding-bottom:24px}
 .ppk-l{overflow-y:auto;min-height:0;overscroll-behavior:contain}
 .ppk-no{display:inline-block;background:linear-gradient(135deg,#f5f0e3,#e8dcc0)}
 .ppk-b{justify-self:start;margin-top:-2px}
+.nfm{z-index:90}.nfm .box{text-align:center;justify-items:center}.nfm .btns{justify-content:center}.nfi{font-size:34px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#f6ecd2,#e8d5a6);border:1px solid var(--gold)}.nfb{color:var(--muted,#5b6b62);text-align:right}.nfo{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:4px}
 .ppk-l i.thumb{background-size:cover;background-position:center}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--green-d);color:#f6e9c4;border:1px solid var(--gold);border-radius:12px;padding:10px 16px;font-size:13.5px;max-width:90vw}
 #form input:disabled,#form select:disabled,#partySel:disabled{background:#f6f3ec;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
@@ -1705,7 +1706,8 @@ function render(){
   if(!S.db){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   if(S.noaccess){setTop('دفتر لئون گلد','',false);$('#nav').hidden=true;$('#menuBtn').hidden=true;main.innerHTML='<div class="warn">به این دفتر دسترسی نداری. برای ورود، از مالک دفتر بخواه تو را با سطح «Contributor» یا «Editor» به این صفحه اضافه کند.</div>';return}
   if(!S.loaded.settings){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
-  gateCheck();if(isLocked()){main.innerHTML='';return}
+  gateCheck();if(isLocked()){main.innerHTML='';NF_FOR=null;return}
+  setTimeout(nfCheck,900);
   document.body.classList.toggle('limited',!!myPerms());$$('#nav [data-tab]').forEach(function(b){b.style.display=canSee(b.dataset.tab)?'':'none'});if(mp&&!canSee('admin'))mp.hidden=true;
   if(!canSee(v)){toast('به این بخش دسترسی ندارید.');S.stack=[];S.param=null;S.view=v=firstAllowed()}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
@@ -2174,6 +2176,38 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
     if(us&&h===us.hash)enter(us,h);
     else{FAILS++;if(FAILS>=5){WAITTILL=Date.now()+30000;FAILS=0;bad('۵ بار اشتباه؛ ۳۰ ثانیه صبر کن')}else bad('نام کاربری یا رمز اشتباه است')}});
 }
+/* ---------- notifications on this device (owner, 2026-11-09). Not a switch in the profile: right after sign-in, anyone
+   who has not turned them on here gets a sheet asking to. The sync server then tells this device of every save, edit or
+   delete the other ledger users make in the sections this user may open, and of each new order from «حساب من»
+   (leon-gold-server/notify.mjs). An iPhone gets them only in the app added to the home screen (iOS 16.4+). ---------- */
+var NF_FOR=null;
+function nfIOS(){return /iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+function nfStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}
+function nfCan(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
+function nfKey(k){var b=atob(k.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-k.length%4)%4)),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function nfSub(){var r=await navigator.serviceWorker.getRegistration();if(!r)throw new Error('no service worker');var s=await r.pushManager.getSubscription();
+  if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:nfKey((await srvApi('/api/notify/key')).key)});
+  var j=s.toJSON();await srvApi('/api/notify/sub',{method:'POST',json:{endpoint:j.endpoint,keys:j.keys,u:curUser()}});lsSet('lg-nf',curUser()+'\n'+j.endpoint);return j}
+async function nfCheck(){if(isLocked()){NF_FOR=null;return}
+  if(NF_FOR===curUser()||$('#nfSheet')||!vOnline()||!/^https?:$/.test(location.protocol))return;NF_FOR=curUser();
+  try{if(!nfCan()){if(nfIOS()&&!nfStandalone())nfSheet('home');return}
+    if(Notification.permission==='denied'){nfSheet('denied');return}
+    var r=await navigator.serviceWorker.getRegistration(),s=r&&await r.pushManager.getSubscription();
+    if(Notification.permission==='granted'&&s){if(lsGet('lg-nf')!==curUser()+'\n'+s.endpoint)nfSub().catch(function(){});return}
+    nfSheet('ask')}catch(e){}}
+function nfSheet(kind){var old=$('#nfSheet');if(old)old.remove();var m=document.createElement('div');m.className='modal nfm';m.id='nfSheet';
+  var ios=nfIOS(),T={
+    ask:['اعلان‌های دفتر را روشن کن','هر فاکتور، سفارش، تسویه، هزینه یا کالایی که بقیه ثبت یا عوض کنند، و هر سفارش تازه از «حساب من»، همان لحظه روی '+(ios||/Android/.test(navigator.userAgent)?'گوشی‌ات':'این دستگاه')+' می‌آید.','<button class="btn pri" type="button" data-nf="on">روشن کن</button>'],
+    home:['اول دفتر را به صفحه‌ی اصلی اضافه کن','آیفون اعلان را فقط به برنامه‌ی روی صفحه‌ی اصلی می‌دهد:<ol class="nfo"><li>دکمه‌ی <b>Share</b> (مربع با فلش رو به بالا) را بزن.</li><li><b>Add to Home Screen</b> را بزن و بعد <b>Add</b>.</li><li>دفتر را از همان آیکون باز کن و وارد شو؛ همین پیام برای روشن کردن اعلان می‌آید.</li></ol>',''],
+    denied:['اعلان‌ها برای دفتر بسته است',ios?'در <b>Settings ← Notifications</b> برنامه‌ی دفتر را پیدا کن و <b>Allow Notifications</b> را روشن کن، بعد دفتر را دوباره باز کن.':'روی آیکون قفل کنار نشانی صفحه بزن، <b>Notifications</b> را <b>Allow</b> کن و صفحه را دوباره باز کن.','']}[kind];
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-labelledby="nfT"><div class="nfi" aria-hidden="true">🔔</div><p><b id="nfT">'+T[0]+'</b></p><p class="nfb">'+T[1]+'</p><p class="err" id="nfErr" style="color:#b3261e;min-height:0;margin:0"></p><div class="btns">'+T[2]+'<button class="btn" type="button" data-nf="later">بعداً</button></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',async function(e){var b=e.target.closest('[data-nf]');if(!b)return;
+    if(b.dataset.nf==='later'){m.remove();return}
+    b.disabled=true;b.textContent='صبر کن…';
+    try{var p=await Notification.requestPermission();if(p!=='granted'){m.remove();nfSheet('denied');return}
+      var j=await nfSub();m.remove();toast('اعلان‌ها روشن شد.');srvApi('/api/notify/test',{method:'POST',json:{endpoint:j.endpoint}}).catch(function(){})}
+    catch(x){b.disabled=false;b.textContent='دوباره امتحان کن';$('#nfErr',m).textContent='روشن نشد'+(x&&x.login?': دوباره به سرور وصل شو.':'؛ اینترنت را بررسی کن و دوباره بزن.')}})}
 function lockNow(){UNLOCKED=null;ssSet('leon_unlock',null);render()}
 ['pointerdown','keydown'].forEach(function(ev){document.addEventListener(ev,function(){LASTACT=Date.now()},true)});
 setInterval(function(){if(lockOn()&&!isLocked()&&Date.now()-LASTACT>IDLE_MIN*60000&&!S.dirty)lockNow()},30000);
