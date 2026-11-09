@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 11:56</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 12:24</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1652,6 +1652,7 @@ async function initDb(){
   [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses'],['vitrin','vitrin']].forEach(function(c){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
+  db.collection('signups').onSnapshot(function(snap){S.signups=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});signupAlert();schedule()},function(){});
   db.collection('crm_leads').onSnapshot(function(snap){S.leads=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});leadAlert();schedule()},function(){});
   render();
 }
@@ -1665,6 +1666,39 @@ function leadAlert(){var seen={},key='lg-leads-seen';try{seen=JSON.parse(localSt
   if(fresh.length){toast(fresh.length===1?'سفارش تازه از «حساب من»: '+(fresh[0].name||'')+' · '+toFa(fresh[0].what||''):fmt(fresh.length)+' سفارش تازه از «حساب من»');
     fresh.forEach(function(l){seen[l.id]=1});try{localStorage.setItem(key,JSON.stringify(seen))}catch(e){}}
   var it=$('#nav [data-tab=orders]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
+/* ---------- «ثبت نام» from «حساب من» (owner, 2026-11-09): someone asks for an account with their own username and password;
+   it waits here until it is tied to a party (a new one, or one already in the ledger) or turned down
+   (leon-gold-server/portal.mjs /api/portal/signup*). The password never reaches the ledger. ---------- */
+function pendingSignups(){return (S.signups||[]).filter(function(x){return x.status==='pending'}).sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1})}
+function suMatch(x){var m=fanum(x.mobile||'').replace(/\D/g,'');if(!m)return null;for(var i=0;i<S.parties.length;i++)if(fanum(S.parties[i].phone||'').replace(/\D/g,'').slice(-10)===m.slice(-10))return S.parties[i];return null}
+function signupAlert(){var seen={},key='lg-su-seen';try{seen=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+  var L=pendingSignups(),fresh=L.filter(function(x){return !seen[x.id]});
+  if(fresh.length){toast(fresh.length===1?'ثبت‌نام تازه در «حساب من»: '+(fresh[0].fullName||''):fmt(fresh.length)+' ثبت‌نام تازه در «حساب من»');fresh.forEach(function(x){seen[x.id]=1});try{localStorage.setItem(key,JSON.stringify(seen))}catch(e){}}
+  var it=$('#nav [data-tab=parties]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
+function signupsHTML(){var L=pendingSignups();if(!L.length)return '';
+  return '<section class="sec leads" id="suSec"><h2>ثبت‌نام تازه در «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(x){var mt=suMatch(x);
+    return '<div class="row lead"><span class="t">'+esc(x.fullName||'—')+'<span class="badge">'+(x.kind==='supplier'?'همکار / تأمین‌کننده':'مشتری')+'</span></span>'
+     +'<span class="s">'+esc([toFa(x.mobile||''),x.shop,x.city,x.birth?'تولد '+toFa(x.birth):'','نام کاربری: '+(x.username||'')].filter(Boolean).join(' · '))+(x.note?'<br>'+esc(x.note):'')+(mt?'<br><b>شاید همان «'+esc(mt.name)+'» در دفتر باشد (همین شماره).</b>':'')+'</span>'
+     +'<span class="v"><span class="d">'+esc(jdate(x.ts))+' · '+esc(jtime(x.ts))+'</span></span>'
+     +'<span class="btns">'+(mt?'<button class="btn sm pri" data-act="sulink" data-id="'+esc(x.id)+'" type="button">تایید و وصل به «'+esc(mt.name)+'»</button><button class="btn sm" data-act="sunew" data-id="'+esc(x.id)+'" type="button">طرف‌حساب تازه</button>'
+       :'<button class="btn sm pri" data-act="sunew" data-id="'+esc(x.id)+'" type="button">تایید (طرف‌حساب تازه)</button><button class="btn sm" data-act="sulink" data-id="'+esc(x.id)+'" type="button">وصل به طرف‌حساب موجود</button>')
+     +'<button class="btn sm dng" data-act="surej" data-id="'+esc(x.id)+'" type="button">رد</button>'+(x.mobile?'<a class="btn sm" href="tel:'+esc(fanum(x.mobile))+'">تماس</a>':'')+'</span></div>'}).join('')
+   +'</div><p class="note">بعد از تایید، با همان نام کاربری و رمزی که خودش ساخته وارد «حساب من» می‌شود و حساب همان طرف‌حساب را می‌بیند.</p></section>'}
+function suById(id){var r=null;(S.signups||[]).forEach(function(x){if(x.id===id)r=x});return r}
+async function suApprove(su,pid){if(!vOnline()){toast('برای تایید باید به سرور وصل باشی.');return false}
+  try{for(var i=0;;i++){try{await window.__leonSync.now();await srvApi('/api/portal/signup/approve',{method:'POST',json:{id:su.id,partyId:pid}});break}
+      catch(e){if(e&&e.body&&e.body.error==='no_party'&&i<3){await new Promise(function(r){setTimeout(r,1500)});continue}throw e}}
+    window.__leonSync.now();toast('تایید شد: «'+su.fullName+'» با نام کاربری '+su.username+' وارد «حساب من» می‌شود.');return true}
+  catch(e){var c=e&&e.body&&e.body.error;toast(c==='has_login'?'این طرف‌حساب از قبل نام کاربری «حساب من» دارد؛ طرف‌حساب دیگری انتخاب کن.':c==='username_taken'?'این نام کاربری را کس دیگری گرفته.':c==='signup_done'?'این درخواست قبلاً بررسی شده.':srvErrMsg(e));return false}}
+async function suNew(su){if(!vOnline()){toast('برای تایید باید به سرور وصل باشی.');return}
+  var pid=newId('parties'),d={name:su.fullName,kind:su.kind==='supplier'?'supplier':'customer',phone:fanum(su.mobile||''),shop:su.shop||'',address:su.city||'',note:'از ثبت‌نام «حساب من»',openG:0,openR:0,ts:new Date().toISOString()};
+  if(await put('parties',pid,d))await suApprove(su,pid)}
+function suLinkDialog(su){var mt=suMatch(su),ps=S.parties.slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}),m=document.createElement('div');m.className='modal';
+  m.innerHTML='<form class="box" role="dialog" aria-modal="true"><p><b>وصل «'+esc(su.fullName)+'» به طرف‌حساب</b><br>حساب کدام طرف‌حساب دفتر را ببیند؟</p>'
+   +'<label class="f"><span>طرف‌حساب</span><select id="suP"><option value="">— انتخاب کن —</option>'+ps.map(function(p){return '<option value="'+esc(p.id)+'"'+(mt&&mt.id===p.id?' selected':'')+'>'+esc(p.name)+(p.phone?' · '+esc(toFa(p.phone)):'')+'</option>'}).join('')+'</select></label>'
+   +'<div class="btns"><button class="btn pri" type="submit">تایید</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
+  document.body.appendChild(m);m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]'))m.remove()});
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();var pid=$('#suP',m).value;if(!pid){toast('یک طرف‌حساب انتخاب کن');return}if(await suApprove(su,pid))m.remove()})}
 function leadsHTML(){var L=newLeads();if(!L.length)return '';
   return '<section class="sec leads"><h2>سفارش تازه از «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(l){
     return '<div class="row lead"><span class="t">'+esc(l.name||'—')+'</span><span class="s">'+esc(toFa(l.what||''))+(l.note?' · '+esc(toFa(l.note)):'')+'</span><span class="v"><span class="d">'+esc(jdate(l.ts))+' · '+esc(jtime(l.ts))+'</span></span>'
@@ -1748,7 +1782,7 @@ function vHome(){
   var top=S.parties.slice().sort(function(a,b){return Math.abs(S.bal[b.id].g)*50+Math.abs(S.bal[b.id].r)/1e6-(Math.abs(S.bal[a.id].g)*50+Math.abs(S.bal[a.id].r)/1e6)}).filter(function(p){var b=S.bal[p.id];return Math.abs(b.g)>=0.0005||Math.abs(b.r)>=0.5}).slice(0,5);
   var rec=S.invoices.slice().sort(function(a,b){return a.ts<b.ts?1:-1}).slice(0,5);
   var oo=S.orders.filter(isOpenOrder),ol=oo.filter(isLate),low=S.products.filter(isLow),pend=rawGold().pend,nsrc=S.products.filter(isNeg).length+orphans().length;
-  main.innerHTML=leadsHTML()+priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
+  main.innerHTML=signupsHTML()+leadsHTML()+priceCard()+todayCard()+(oo.length?'<button class="row" data-act="tab" data-t="orders" type="button"><span class="t">'+fmt(oo.length)+' سفارش باز'+(ol.length?'<span class="badge lo">'+fmt(ol.length)+' دیر شده</span>':'')+'</span><span class="s">'+esc(oo.slice(0,3).map(function(o){return o.partyName}).join('، '))+'</span></button>':'')+(nsrc?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(nsrc)+' کالای بدون منبع با موجودی منفی<span class="badge lo">منفی</span></span><span class="s">منبع این کالاها را در بخش کالاها ثبت کن</span></button>':'')+(pend.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(pend.length)+' آبشده شرطی منتظر تعیین عیار<span class="badge lo">شرطی</span></span><span class="s">قدیمی‌ترین: '+esc(pend[0].inv.partyName||'')+' · '+fmt(daysAgo(pend[0].inv.ts))+' روز</span></button>':'')+(low.length?'<button class="row" data-act="tab" data-t="products" type="button"><span class="t">'+fmt(low.length)+' کالا به حداقل موجودی رسیده<span class="badge lo">کم‌موجودی</span></span><span class="s">'+esc(low.slice(0,3).map(function(p){return p.name}).join('، '))+'</span></button>':'')+'<div class="qa"><button class="btn pri" data-act="new" data-k="retail">+ فاکتور خرده</button><button class="btn pri" data-act="new" data-k="whole">+ فاکتور عمده</button><button class="btn" data-act="newset">+ سند تسویه</button></div>'
   +'<div class="kpis flat"><div class="kpi"><small>طلب گرمی از طرف‌حساب‌ها</small><b>'+fmt(gp,3)+' گرم</b><span class="sub">جمع بدهکارها</span></div>'
   +'<div class="kpi"><small>بدهی گرمی من</small><b>'+fmt(gn,3)+' گرم</b><span class="sub">جمع بستانکارها</span></div>'
   +'<div class="kpi"><small>طلب ریالی</small><b>'+fmt(rp,0)+'</b><span class="sub">ریال</span></div>'
@@ -2515,7 +2549,7 @@ function listParties(){
 }
 function vParties(){
   setTop('طرف‌حساب‌ها',fmt(S.parties.length)+' نفر',false);
-  main.innerHTML='<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها"><div class="list" id="lst">'+listParties()+'</div>';
+  main.innerHTML=signupsHTML()+'<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها"><div class="list" id="lst">'+listParties()+'</div>';
 }
 function vParty(){
   var p=partyById(S.param);if(!p){back();return}
@@ -3150,6 +3184,9 @@ document.addEventListener('click',function(e){
     case 'neworder':S.oItems=null;go('oform',b.dataset.pid?{partyId:b.dataset.pid}:null);break;
     case 'newself':S.oItems=null;go('oform',{self:true});break;
     case 'leadorder':{var ld=leadById(id);if(ld){var vx=leadVit(ld);S.oItems=[{desc:ld.what||'',qty:1,weight:vx&&vx.weight?String(vx.weight):'',carat:vx&&vx.carat?String(Math.round(labOf(vx.carat))):'',note:'',supId:vx&&vx.supId&&partyById(vx.supId)?vx.supId:''}];go('oform',{partyId:ld.partyId||'',lead:ld.id,note:ld.note||''})}break}
+    case 'sunew':{var su=suById(id);if(su)suNew(su);break}
+    case 'sulink':{var su2=suById(id);if(su2){var mt=suMatch(su2);if(mt&&b.textContent.indexOf(mt.name)>=0)suApprove(su2,mt.id);else suLinkDialog(su2)}break}
+    case 'surej':{var su3=suById(id);if(su3)ask('درخواست ثبت‌نام «'+su3.fullName+'» رد شود؟ اگر با همین نام کاربری وارد شود، می‌بیند که رد شده.',async function(){try{await srvApi('/api/portal/signup/reject',{method:'POST',json:{id:su3.id}});window.__leonSync.now();toast('رد شد.')}catch(e){toast(srvErrMsg(e))}},'رد کن');break}
     case 'leadseen':leadSet(id,'talking').then(function(ok){if(ok)toast('از فهرست سفارش‌های تازه برداشته شد')});break;
     case 'order':S.oItems=null;go('oform',{id:id});break;
     case 'ofilter':S.ofilter=b.dataset.f;render();break;
