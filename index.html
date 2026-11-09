@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 13:48</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 13:57</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2789,7 +2789,7 @@ async function saveExpense(id){var cat=val('x_cat'),r=Math.round(num(val('x_r'))
    buys for themselves). Kept in settings/biz {types:[{k,name,group}]}; the key stays when the name changes, so parties keep
    theirs. The group decides the rules a «حساب من» user signs and the fields its sign-up asks; a showcase piece can carry
    a different wage for any of them (leon-gold-server/portal.mjs bizTypes, wageFor). */
-var BIZ_DEFAULT=[{k:'home',name:'خانگی',group:'retail'},{k:'retail',name:'مشتری تک‌فروشی',group:'retail'},{k:'gallery',name:'گالری',group:'colleague'},{k:'melt',name:'آبشده‌فروش',group:'colleague'},{k:'dist',name:'دفتر پخش',group:'colleague'},{k:'bonak',name:'بنکداری',group:'colleague'}];
+var BIZ_DEFAULT=[{k:'home',name:'خانگی',group:'retail',off:true},{k:'retail',name:'مشتری تک‌فروشی',group:'retail'},{k:'gallery',name:'گالری',group:'colleague'},{k:'melt',name:'آبشده‌فروش',group:'colleague'},{k:'dist',name:'دفتر پخش',group:'colleague'},{k:'bonak',name:'بنکداری',group:'colleague'}];
 function bizList(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='biz'&&Array.isArray(S.settings[i].types)&&S.settings[i].types.length)return S.settings[i].types.filter(function(x){return x&&x.k&&!x.off});return BIZ_DEFAULT}
 function bizAll(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='biz'&&Array.isArray(S.settings[i].types)&&S.settings[i].types.length)return S.settings[i].types;return BIZ_DEFAULT}
 function bizOpts(cur){var L=[['','—']].concat(bizList().map(function(b){return [b.k,b.name+(b.group==='colleague'?' (همکار)':'')]}));if(cur&&!L.some(function(o){return o[0]===cur}))L.push([cur,bizName(cur)||cur]);return L}
@@ -2797,9 +2797,9 @@ function bizName(k){var L=bizAll();for(var i=0;i<L.length;i++)if(L[i].k===k)retu
 function bizDialog(){var L=bizAll().map(function(x){return Object.assign({},x)}),used={};S.parties.forEach(function(p){if(p.biz)used[p.biz]=(used[p.biz]||0)+1});
   var m=document.createElement('div');m.className='modal';
   var row=function(b,i){return '<div class="bzr" data-i="'+i+'"><input class="bzn" value="'+esc(b.name||'')+'" placeholder="نام نوع کسب‌وکار" maxlength="30"><select class="bzg"><option value="retail"'+(b.group!=='colleague'?' selected':'')+'>مشتری تک‌فروشی</option><option value="colleague"'+(b.group==='colleague'?' selected':'')+'>همکار</option></select>'
-    +(used[b.k]?'<small>'+fmt(used[b.k])+' طرف‌حساب</small>':'<button class="lnk" type="button" data-rm="'+i+'">حذف</button>')+'</div>'};
+    +(used[b.k]?'<button class="lnk" type="button" data-rm="'+i+'">پنهان ('+fmt(used[b.k])+' طرف‌حساب)</button>':'<button class="lnk" type="button" data-rm="'+i+'">حذف</button>')+'</div>'};
   var draw=function(){$('#bzList',m).innerHTML=L.map(function(b,i){return b.off?'':row(b,i)}).join('')};
-  m.innerHTML='<form class="box bzbox" role="dialog" aria-modal="true"><p><b>انواع کسب‌وکار</b><br>نام هر نوع را عوض کن یا نوع تازه بساز. «همکار» یعنی از صنف (گالری، پخش…)؛ «مشتری تک‌فروشی» یعنی برای خودش می‌خرد. نوعی که طرف‌حساب دارد حذف نمی‌شود.</p>'
+  m.innerHTML='<form class="box bzbox" role="dialog" aria-modal="true"><p><b>انواع کسب‌وکار</b><br>نام هر نوع را عوض کن یا نوع تازه بساز. «همکار» یعنی از صنف (گالری، پخش…)؛ «مشتری تک‌فروشی» یعنی برای خودش می‌خرد. نوعی که طرف‌حساب دارد پنهان می‌شود: دیگر در ثبت‌نام و انتخاب‌ها نمی‌آید، ولی روی همان طرف‌حساب‌ها می‌ماند.</p>'
    +'<div id="bzList"></div><button class="btn sm" type="button" data-add>+ نوع تازه</button><p class="err" id="bzErr" style="color:#b3261e;min-height:18px"></p>'
    +'<div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
   document.body.appendChild(m);draw();
@@ -2807,9 +2807,9 @@ function bizDialog(){var L=bizAll().map(function(x){return Object.assign({},x)})
   m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]')){m.remove();return}
     if(e.target.closest('[data-add]')){grab();L.push({k:'b'+Date.now().toString(36),name:'',group:'retail'});draw();var q=$$('.bzn',m);q[q.length-1].focus();return}
     var rm=e.target.closest('[data-rm]');if(rm){grab();L[+rm.dataset.rm].off=true;draw()}});
-  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();grab();var keep=L.filter(function(b){return !b.off||used[b.k]}).map(function(b){var y={k:b.k,name:b.name,group:b.group==='colleague'?'colleague':'retail'};return y}).filter(function(b){return b.name});
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();grab();var keep=L.filter(function(b){return !b.off||used[b.k]}).map(function(b){var y={k:b.k,name:b.name,group:b.group==='colleague'?'colleague':'retail'};if(b.off)y.off=true;return y}).filter(function(b){return b.name});
     var names={};for(var i=0;i<keep.length;i++){if(names[keep[i].name]){$('#bzErr',m).textContent='«'+keep[i].name+'» دو بار آمده.';return}names[keep[i].name]=1}
-    if(!keep.length){$('#bzErr',m).textContent='حداقل یک نوع بماند.';return}
+    if(!keep.some(function(b){return !b.off})){$('#bzErr',m).textContent='حداقل یک نوع بماند.';return}
     try{await S.db.collection('settings').doc('biz').set({types:keep,ts:Date.now()});m.remove();toast('انواع کسب‌وکار ذخیره شد.');render()}catch(x){$('#bzErr',m).textContent=dberr(x)}})}
 function vPform(){
   var p=S.param&&S.param.id?partyById(S.param.id):null,isNew=!p;p=p||{};
