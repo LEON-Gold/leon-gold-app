@@ -58,8 +58,10 @@
     if(r.status===401){var e=new Error('login');e.login=true;throw e}
     if(!r.ok){var e2=new Error('server '+r.status);try{e2.body=await r.json()}catch(x){}throw e2}
     return o.raw?r:r.json()}
+  var pend=[];
   async function syncNow(){
-    if(!S.on)return;if(busy){again=true;return}busy=true;setState('busy');
+    // a sync asked for while one runs waits for the next full run (so «now» always means fresh data)
+    if(!S.on)return;if(busy){again=true;return new Promise(function(r){pend.push(r)})}busy=true;setState('busy');
     var touched={};
     try{
       // 1. send what is waiting here
@@ -88,7 +90,7 @@
     }catch(e){setState(e.login?'login':navigator.onLine===false?'wait':'err',String(e.message||e))}
     // pages already applied stay on screen even when a later page or the connection fails
     Object.keys(touched).forEach(emit);
-    busy=false;if(again){again=false;soon()}}
+    busy=false;var ws=pend;pend=[];if(again){again=false;syncNow().then(function(){ws.forEach(function(f){f()})})}else ws.forEach(function(f){f()})}
   function count(){var t=0;for(var c in docs)t+=Object.keys(docs[c]).length;return t}
   // first connection: an empty server takes this device's data; otherwise this device takes the server's (after saving a backup file)
   async function connect(url,u,p){
@@ -102,20 +104,31 @@
       await exportAll();
       for(c in docs)for(id in docs[c])await put(c,id,undefined,true);
       for(c in subs)emit(c)}
-    S.on=true;await saveS();await syncNow();return true}
+    S.on=true;await saveS();await syncNow();watch();return true}
   // an expired login (a new password, or 180 days) signs in again and keeps the outbox and the data as they are
   async function relogin(u,p){
     var r=await api('/api/login',{method:'POST',json:{u:u,p:p,device:navigator.platform+' '+(navigator.maxTouchPoints?'touch':'')}});
-    S.token=r.token;S.user=r.user;S.owner=!!r.isOwner;await saveS();await syncNow();return true}
+    S.token=r.token;S.user=r.user;S.owner=!!r.isOwner;await saveS();await syncNow();watch();return true}
   async function disconnect(){try{if(S.token)await api('/api/logout',{method:'POST',json:{}})}catch(e){}
     for(var k in obox)await write('outbox',k,undefined);obox={};S={};await saveS();setState('off')}
   setInterval(function(){if(S.on&&document.visibilityState==='visible')syncNow()},20000);
+  // (owner, 2026-11-09) always listening: one request stays open at the server and is answered the moment anything is saved
+  // (a new order from «حساب من», another user's invoice), then the ledger syncs at once. A server without /api/wait: every 5 s.
+  var watching=false,noWait=false;
+  async function watch(){if(watching||!S.on||!S.token||document.visibilityState!=='visible')return;watching=true;var pause=150;
+    try{if(noWait){await syncNow();pause=5000}else{var r=await api('/api/wait?since='+(S.rev||0));if(r&&r.rev>(S.rev||0))await syncNow()}}
+    catch(e){if(e&&/ 404$/.test(e.message||'')){noWait=true;pause=0}else pause=e&&e.login?60000:4000}
+    finally{watching=false;setTimeout(watch,pause)}}
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')watch()});
+  addEventListener('online',function(){watch()});
+  // a notification arrived (sw.js tells the open ledger): sync now
+  if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.leonSync&&S.on)syncNow()});
   addEventListener('online',function(){if(S.on)syncNow()});
   document.addEventListener('visibilitychange',function(){if(S.on&&document.visibilityState==='visible')syncNow()});
   // the server moved to the owner's own domain (Liara's free *.liara.run address lasts 7 days): a device still holding
   // the old address follows this build's one, with the same sign-in (same server, same data)
   ready.then(function(){if(S.url&&SYNC_URL&&S.url!==SYNC_URL&&/^https:\/\/[\w-]+\.liara\.run$/.test(S.url)){S.url=SYNC_URL;saveS()}
-    if(S.on)syncNow();else setState('off')});
+    if(S.on){syncNow();watch()}else setState('off')});
   window.__leonSync={now:syncNow,connect:connect,relogin:relogin,disconnect:disconnect,ready:ready,api:api,
     // only the owner can sign in to the server now, so a device holding a token is the owner's (old tokens never carried the flag)
     info:function(){return {on:!!S.on,url:S.url||SYNC_URL,user:S.user||'',owner:!!S.token,at:S.at||'',state:state,err:lastErr,waiting:Object.keys(obox).length}}};
@@ -157,7 +170,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 17:37</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 19:29</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
