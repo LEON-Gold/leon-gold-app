@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 10:47</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 11:36</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2119,10 +2119,9 @@ function vProfile(){setTop('پروفایل من','',true);var cu=curUser(),r=cu&
     if(lockUsers().some(function(x){return x.u!==old&&normU(x.u)===normU(name)})){m.textContent='این نام کاربری قبلاً ثبت شده.';return}
     try{await updUser(old,{u:name});toast('نام کاربری به «'+name+'» تغییر کرد.')}catch(x){m.textContent=dberr(x)}});
   $('#pfPassF').addEventListener('submit',async function(e){e.preventDefault();var m=$('#pfPassMsg'),rec=userRec(curUser()),o=fanum($('#pfOld').value).replace(/\D/g,''),a=fanum($('#pfN1').value).replace(/\D/g,''),b=fanum($('#pfN2').value).replace(/\D/g,'');
-    if(!rec)return;if(await pinHash(o,rec.salt||'')!==rec.hash){m.textContent='رمز فعلی درست نیست.';return}
+    if(!rec)return;if(await pinHash(o,rec.salt||'',rec.kdf)!==rec.hash){m.textContent='رمز فعلی درست نیست.';return}
     if(a.length<4){m.textContent='رمز جدید باید حداقل ۴ رقم باشد.';return}if(a!==b){m.textContent='دو رمز جدید یکی نیستند.';return}
-    var salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
-    try{await updUser(rec.u,{hash:await pinHash(a,salt),salt:salt});['#pfOld','#pfN1','#pfN2'].forEach(function(s){$(s).value=''});m.textContent='';$('#pdPass').open=false;toast('رمز عوض شد.')}catch(x){m.textContent=dberr(x)}});
+    try{await updUser(rec.u,await pinMake(a));['#pfOld','#pfN1','#pfN2'].forEach(function(s){$(s).value=''});m.textContent='';$('#pdPass').open=false;toast('رمز عوض شد.')}catch(x){m.textContent=dberr(x)}});
 }
 function shrinkImg(file,size){return new Promise(function(res,rej){var u=URL.createObjectURL(file),im=new Image();
   im.onload=function(){var s=Math.min(im.naturalWidth,im.naturalHeight),c=document.createElement('canvas');c.width=c.height=size;var x=c.getContext('2d');x.imageSmoothingQuality='high';
@@ -2141,7 +2140,19 @@ function curUser(){var U=lockUsers();for(var i=0;i<U.length;i++)if(UNLOCKED===U[
 function isLocked(){return lockOn()&&!curUser()}
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-async function pinHash(pin,salt){var s=salt+'|'+fanum(String(pin)).replace(/\D/g,'');
+/* a password set from now on is kept as PBKDF2-SHA256 (150 000 rounds, kdf:'p2'): each guess costs that much, so a copy
+   of the data (a lost phone, a backup) no longer gives a numeric password away in a second (owner, 2026-11-09, after the
+   password-security video). Older ones (no kdf) are still read the old way until that user sets a new password.
+   leon-gold-server/server.mjs checkLock() reads both. */
+var PIN_ITER=150000;
+async function pinMake(pin){var salt=Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random().toString(36).slice(2);
+  if(window.crypto&&crypto.subtle)try{return {hash:await pinHash(pin,salt,'p2'),salt:salt,kdf:'p2'}}catch(e){}
+  return {hash:await pinHash(pin,salt),salt:salt,kdf:''}}
+async function pinHash(pin,salt,kdf){
+  if(kdf==='p2'){if(!(window.crypto&&crypto.subtle))return 'no-webcrypto';var en=new TextEncoder(),d=fanum(String(pin)).replace(/\D/g,'');
+    var k=await crypto.subtle.importKey('raw',en.encode(d),'PBKDF2',false,['deriveBits']);
+    var b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:en.encode(salt),iterations:PIN_ITER},k,256);
+    return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}var s=salt+'|'+fanum(String(pin)).replace(/\D/g,'');
   try{var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
   catch(e){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return 'f'+h.toString(16)}}
 function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn();$('#lockBtn').textContent='قفل';
@@ -2166,13 +2177,13 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   var idle=0;inp.addEventListener('input',async function(){clearTimeout(idle);if(Date.now()<WAITTILL){idle=setTimeout(function(){card.requestSubmit()},1500);return}
     if(inp.value){er.textContent='نام کاربری و رمز را وارد کن';er.classList.remove('bad')}
     var v=inp.value,us=who();if(!v)return;
-    if(us){var h=await pinHash(v,us.salt||'');if(h===us.hash&&inp.value===v&&$('#gate')){enter(us,h);return}}
+    if(us){var h=await pinHash(v,us.salt||'',us.kdf);if(h===us.hash&&inp.value===v&&$('#gate')){enter(us,h);return}}
     idle=setTimeout(function(){if(inp.value===v&&$('#gate'))card.requestSubmit()},1500)});
   card.addEventListener('submit',async function(ev){ev.preventDefault();clearTimeout(idle);
     if(Date.now()<WAITTILL){bad('چند بار اشتباه زدی؛ '+fmt(Math.ceil((WAITTILL-Date.now())/1000))+' ثانیه صبر کن');return}
     if(!normU(un.value)){er.textContent='نام کاربری را بنویس';er.classList.add('bad');un.focus();return}
     if(!inp.value){bad('رمز را وارد کن');return}
-    var us=who(),h=await pinHash(inp.value,us?us.salt||'':'x');
+    var us=who(),h=await pinHash(inp.value,us?us.salt||'':'x',us&&us.kdf);
     if(us&&h===us.hash)enter(us,h);
     else{FAILS++;if(FAILS>=5){WAITTILL=Date.now()+30000;FAILS=0;bad('۵ بار اشتباه؛ ۳۰ ثانیه صبر کن')}else bad('نام کاربری یا رمز اشتباه است')}});
 }
@@ -2231,8 +2242,8 @@ function pinDialog(edit){var m=document.createElement('div');m.className='modal'
     if(!name){er.textContent='نام کاربری را بنویس.';return}
     if(!edit&&U.some(function(x){return normU(x.u)===normU(name)})){er.textContent='این نام کاربری قبلاً ثبت شده.';return}
     if(a.length<4){er.textContent='رمز باید حداقل ۴ رقم باشد.';return}if(a!==b){er.textContent='دو رمز یکی نیستند.';return}
-    var salt=Math.random().toString(36).slice(2)+Date.now().toString(36),h=await pinHash(a,salt),first=!U.length,wasMe=edit&&edit===curUser();
-    var prev=null;U.forEach(function(x){if(x.u===name)prev=x});U=U.filter(function(x){return x.u!==name});U.push(Object.assign({},prev||{},{u:name,hash:h,salt:salt}));
+    var made=await pinMake(a),h=made.hash,first=!U.length,wasMe=edit&&edit===curUser();
+    var prev=null;U.forEach(function(x){if(x.u===name)prev=x});U=U.filter(function(x){return x.u!==name});U.push(Object.assign({},prev||{},{u:name},made));
     try{await saveUsers(U);if(first||wasMe){UNLOCKED=name+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',name)}m.remove();toast(edit?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.');if(!edit&&!first)setTimeout(function(){permDialog(name)},300)}catch(x){er.textContent=dberr(x)}})}
 function renameDialog(old){var m=document.createElement('div');m.className='modal';
   m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>تغییر نام کاربری «'+esc(old)+'»</b><br>رمز همان قبلی می‌ماند.</p><label class="f"><span>نام کاربری جدید</span><input id="rnU" maxlength="30" autocapitalize="off"></label>'
