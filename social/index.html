@@ -53,6 +53,11 @@ details.tips li { margin-bottom: 6px; }
 .toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: var(--emerald); color: var(--gold-lt);
   padding: 10px 18px; border-radius: 99px; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
 .toast.on { opacity: 1; }
+.reels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 6px 16px 14px; }
+.reels figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.reels video { width: 100%; aspect-ratio: 9 / 16; background: #07190f; border: 1px solid var(--line); display: block; }
+.reels figcaption { font-weight: 700; color: var(--emerald); font-size: 15px; }
+.reels .btn { padding: 10px 8px; font-size: 14px; text-align: center; }
 footer { text-align: center; font-size: 13px; color: var(--muted); padding: 10px 16px 40px; }
 </style>
 </head>
@@ -85,6 +90,20 @@ footer { text-align: center; font-size: 13px; color: var(--muted); padding: 10px
       <li>قیمت و وزن را فقط در دایرکت بگویید، با نرخ همان ساعت.</li>
     </ul>
   </details>
+  <!-- ready-made reels (2026-11-09, owner: "the hash explainer" and "the collage story" styles), rendered by scripts/reel.mjs -->
+  <section class="day" id="reels">
+    <div class="dh"><div><div class="d">آماده‌ی پست · هر وقت خواستید</div><h2>ریلزهای آماده</h2><div class="k">بی‌صدا ساخته شده‌اند؛ در اینستاگرام یک موسیقی آرام از کتابخانه‌ی خودش رویش بگذارید.</div></div></div>
+    <div class="reels">
+      <figure><video src="out/reel-ayar.mp4#t=1.5" controls playsinline preload="metadata" muted></video><figcaption>عیار ۷۵۰ یعنی چه؟ (۴۰ ثانیه)</figcaption>
+        <button class="btn ink" data-vsave="ayar">ذخیره‌ی ویدیو</button><button class="btn" data-vcopy="ayar">کپی متن و هشتگ‌ها</button></figure>
+      <figure><video src="out/reel-safar.mp4#t=1.5" controls playsinline preload="metadata" muted></video><figcaption>قبل از خرید، این سه تا را بپرس (۳۹ ثانیه)</figcaption>
+        <button class="btn ink" data-vsave="safar">ذخیره‌ی ویدیو</button><button class="btn" data-vcopy="safar">کپی متن و هشتگ‌ها</button></figure>
+    </div>
+    <div class="sub"><h3>نکته</h3><ul>
+      <li>کاور: یک لحظه از اول ویدیو (عدد ۷۵۰ / عکس گوشواره) را در «Cover» انتخاب کنید.</li>
+      <li>در استوری هم بگذارید؛ برای اولی برچسب «سؤال» بگذارید: «سؤالت درباره‌ی طلا چیه؟»</li>
+      <li>کامنت‌ها را در همان ساعت اول جواب بدهید.</li></ul></div>
+  </section>
   <div id="days"></div>
 </main>
 <footer>این صفحه فقط برای شماست. چیزی خودکار پست نمی‌شود.</footer>
@@ -137,6 +156,24 @@ document.addEventListener("click", async (e) => {
 });
 document.addEventListener("change", (e) => { const id = e.target.dataset.done; if (!id) return;
   store.set("done-" + id, e.target.checked ? "1" : ""); document.getElementById(id).classList.toggle("done", e.target.checked); });
+const REEL_CAP = {
+  ayar: "روی طلا نوشته ۷۵۰. یعنی چی؟\n\nطلا رو هزار قسمت کن: ۷۵۰ قسمتش طلای خالصه و ۲۵۰ قسمت مس و نقره. طلای خالص (۲۴ عیار) نرمه، زود خط می‌افته و خم می‌شه؛ برای همین جواهر رو ۱۸ عیار می‌سازن.\n\nپس ۷۵۰ یعنی ۱۸ عیار، یعنی ۷۵ درصد طلا.\n\nسؤال بعدی‌ات درباره‌ی طلا چیه؟ کامنت کن تا جوابش رو ویدیو کنیم.",
+  safar: "یه کار رو دیدی و دلت رفت؟ قبل از خرید این سه تا رو بپرس:\n\n۱. عیار: روی فاکتور نوشته بشه (۷۵۰ یعنی ۱۸ عیار)\n۲. وزن: با ترازو، جلوی چشم خودت\n۳. اجرت و سود: جدا از قیمت طلا\n\nقیمت هر کار = وزن × نرخ روز + اجرت + سود + مالیات\n\nاینو برای کسی که می‌خواد طلا بخره بفرست. سؤالی داری؟ دایرکت بده.",
+};
+const REEL_TAGS = "#طلا #عیار_طلا #دانستنی_طلا #خرید_طلا #لئون_گلد";
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-vsave],[data-vcopy]"); if (!b) return;
+  if (b.dataset.vcopy) {
+    const text = REEL_CAP[b.dataset.vcopy] + "\n\n" + REEL_TAGS;
+    try { await navigator.clipboard.writeText(text); toast("کپی شد"); }
+    catch { const x = document.createElement("textarea"); x.value = text; document.body.append(x); x.select(); document.execCommand("copy"); x.remove(); toast("کپی شد"); }
+    return;
+  }
+  const u = "out/reel-" + b.dataset.vsave + ".mp4"; b.disabled = true;
+  try { const file = new File([await (await fetch(u)).blob()], "leon-reel-" + b.dataset.vsave + ".mp4", { type: "video/mp4" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] }); else window.open(u, "_blank"); } catch {}
+  b.disabled = false;
+});
 const t = document.querySelector(".today"); if (t) t.scrollIntoView({ block: "start" });
 </script>
 </body>
