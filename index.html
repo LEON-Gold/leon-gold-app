@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 12:24</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 13:40</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -820,7 +820,7 @@ body.noact{padding-bottom:24px}
 .ppk-l{overflow-y:auto;min-height:0;overscroll-behavior:contain}
 .ppk-no{display:inline-block;background:linear-gradient(135deg,#f5f0e3,#e8dcc0)}
 .ppk-b{justify-self:start;margin-top:-2px}
-.nfm{z-index:90}.pwm{z-index:95}.nfm .box{text-align:center;justify-items:center}.nfm .btns{justify-content:center}.nfi{font-size:34px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#f6ecd2,#e8d5a6);border:1px solid var(--gold)}.nfb{color:var(--muted,#5b6b62);text-align:right}.nfo{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:4px}
+.nfm{z-index:90}.bzbox{max-height:88vh;overflow:auto}.bzr{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin-bottom:8px}.bzr input,.bzr select{min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font:inherit;background:#fff}.bzr small{color:var(--muted);font-size:12px}.vpr{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:10px;display:grid;gap:6px}.pwm{z-index:95}.nfm .box{text-align:center;justify-items:center}.nfm .btns{justify-content:center}.nfi{font-size:34px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#f6ecd2,#e8d5a6);border:1px solid var(--gold)}.nfb{color:var(--muted,#5b6b62);text-align:right}.nfo{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:4px}
 .ppk-l i.thumb{background-size:cover;background-position:center}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--green-d);color:#f6e9c4;border:1px solid var(--gold);border-radius:12px;padding:10px 16px;font-size:13.5px;max-width:90vw}
 #form input:disabled,#form select:disabled,#partySel:disabled{background:#f6f3ec;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
@@ -1669,7 +1669,8 @@ function leadAlert(){var seen={},key='lg-leads-seen';try{seen=JSON.parse(localSt
 /* ---------- «ثبت نام» from «حساب من» (owner, 2026-11-09): someone asks for an account with their own username and password;
    it waits here until it is tied to a party (a new one, or one already in the ledger) or turned down
    (leon-gold-server/portal.mjs /api/portal/signup*). The password never reaches the ledger. ---------- */
-function pendingSignups(){return (S.signups||[]).filter(function(x){return x.status==='pending'}).sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1})}
+function suSeen(){try{return JSON.parse(localStorage.getItem('lg-su-ok')||'{}')}catch(e){return {}}}
+function pendingSignups(){var ok=suSeen();return (S.signups||[]).filter(function(x){return x.status==='pending'||(x.status==='auto'&&!ok[x.id])}).sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1})}
 function suMatch(x){var m=fanum(x.mobile||'').replace(/\D/g,'');if(!m)return null;for(var i=0;i<S.parties.length;i++)if(fanum(S.parties[i].phone||'').replace(/\D/g,'').slice(-10)===m.slice(-10))return S.parties[i];return null}
 function signupAlert(){var seen={},key='lg-su-seen';try{seen=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
   var L=pendingSignups(),fresh=L.filter(function(x){return !seen[x.id]});
@@ -1677,13 +1678,17 @@ function signupAlert(){var seen={},key='lg-su-seen';try{seen=JSON.parse(localSto
   var it=$('#nav [data-tab=parties]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
 function signupsHTML(){var L=pendingSignups();if(!L.length)return '';
   return '<section class="sec leads" id="suSec"><h2>ثبت‌نام تازه در «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(x){var mt=suMatch(x);
+    if(x.status==='auto')return '<div class="row lead"><span class="t">'+esc(x.fullName||'—')+'<span class="badge'+(x.group==='colleague'?' lo':'')+'">'+esc(x.bizName||'')+(x.group==='colleague'?' · همکار':'')+'</span></span>'
+     +'<span class="s">'+esc([toFa(x.mobile||''),x.nationalId?'کد ملی '+toFa(x.nationalId):'',x.shop,x.city,'نام کاربری: '+(x.username||'')].filter(Boolean).join(' · '))+(x.group==='colleague'?'<br><b>ادعای همکاری؛ بررسی کن:</b> پروانه کسب '+esc(toFa(x.licence||''))+' · عضویت اتحادیه '+esc(toFa(x.union||''))+' · '+esc(x.shopAddr||''):'')+(x.note?'<br>'+esc(x.note):'')+'</span>'
+     +'<span class="v"><span class="d">'+esc(jdate(x.ts))+' · '+esc(jtime(x.ts))+'</span></span>'
+     +'<span class="btns"><button class="btn sm pri" data-act="suok" data-id="'+esc(x.id)+'" type="button">دیدم</button>'+(x.partyId&&partyById(x.partyId)?'<button class="btn sm" data-act="party" data-id="'+esc(x.partyId)+'" type="button">طرف‌حساب</button>':'')+(x.mobile?'<a class="btn sm" href="tel:'+esc(fanum(x.mobile))+'">تماس</a>':'')+'</span></div>';
     return '<div class="row lead"><span class="t">'+esc(x.fullName||'—')+'<span class="badge">'+(x.kind==='supplier'?'همکار / تأمین‌کننده':'مشتری')+'</span></span>'
      +'<span class="s">'+esc([toFa(x.mobile||''),x.shop,x.city,x.birth?'تولد '+toFa(x.birth):'','نام کاربری: '+(x.username||'')].filter(Boolean).join(' · '))+(x.note?'<br>'+esc(x.note):'')+(mt?'<br><b>شاید همان «'+esc(mt.name)+'» در دفتر باشد (همین شماره).</b>':'')+'</span>'
      +'<span class="v"><span class="d">'+esc(jdate(x.ts))+' · '+esc(jtime(x.ts))+'</span></span>'
      +'<span class="btns">'+(mt?'<button class="btn sm pri" data-act="sulink" data-id="'+esc(x.id)+'" type="button">تایید و وصل به «'+esc(mt.name)+'»</button><button class="btn sm" data-act="sunew" data-id="'+esc(x.id)+'" type="button">طرف‌حساب تازه</button>'
        :'<button class="btn sm pri" data-act="sunew" data-id="'+esc(x.id)+'" type="button">تایید (طرف‌حساب تازه)</button><button class="btn sm" data-act="sulink" data-id="'+esc(x.id)+'" type="button">وصل به طرف‌حساب موجود</button>')
      +'<button class="btn sm dng" data-act="surej" data-id="'+esc(x.id)+'" type="button">رد</button>'+(x.mobile?'<a class="btn sm" href="tel:'+esc(fanum(x.mobile))+'">تماس</a>':'')+'</span></div>'}).join('')
-   +'</div><p class="note">بعد از تایید، با همان نام کاربری و رمزی که خودش ساخته وارد «حساب من» می‌شود و حساب همان طرف‌حساب را می‌بیند.</p></section>'}
+   +'</div><p class="note">حساب هر کس همان لحظه‌ی ثبت‌نام ساخته شده و طرف‌حسابش در دفتر هست؛ نوع کسب‌وکار را خودش انتخاب کرده. اگر ادعای همکاری درست نبود، نوع کسب‌وکار طرف‌حساب را عوض کن.</p></section>'}
 function suById(id){var r=null;(S.signups||[]).forEach(function(x){if(x.id===id)r=x});return r}
 async function suApprove(su,pid){if(!vOnline()){toast('برای تایید باید به سرور وصل باشی.');return false}
   try{for(var i=0;;i++){try{await window.__leonSync.now();await srvApi('/api/portal/signup/approve',{method:'POST',json:{id:su.id,partyId:pid}});break}
@@ -2013,7 +2018,7 @@ function vVitrin(){var L=S.vitrin.slice().sort(function(a,b){return (b.ts||'')<(
     +'<div class="vgrid">'+(shown.length?shown.map(function(x){var m=(x.media||[]).filter(function(y){return y.type!=='video'})[0];
       return '<button class="vcard" data-act="editvit" data-id="'+esc(x.id)+'" type="button"><span class="vth"'+(m?' data-vm="'+esc(m.id)+'"':'')+'>'+((x.media||[]).some(function(y){return y.type==='video'})?'<i class="vplay" aria-label="فیلم دارد">▶</i>':'')+'</span>'
         +'<b>'+esc(x.name)+'</b><span>'+[x.cat,x.weight?fmt(x.weight,3)+' گرم':'',x.supId&&partyById(x.supId)?'از '+partyById(x.supId).name:x.own?'موجودی خودم':''].filter(Boolean).map(esc).join(' · ')+'</span>'
-        +(x.show!==false&&x.to&&x.to.length?'<em class="badge lo">فقط '+fmt(x.to.length)+' نفر</em>':'')+(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'با این انتخاب کاری نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
+        +(x.show!==false&&x.to&&x.to.length?'<em class="badge lo">فقط '+fmt(x.to.length)+' نفر</em>':'')+(x.site?'<em class="badge">روی سایت</em>':'')+(x.show===false?'<em class="badge lo">پنهان</em>':vStock(x)==='none'?'<em class="badge">ناموجود</em>':vStock(x)==='qty'?'<em class="badge g">'+fmt(x.qty||0)+' عدد</em>':'<em class="badge g">موجود</em>')+'</button>'}).join(''):'<div class="empty">'+(L.length?'با این انتخاب کاری نیست.':'هنوز کاری در ویترین نیست. با «+ کار تازه» شروع کن.')+'</div>')+'</div>';
   var a1=$('#vstSel'),a2=$('#vctSel');if(a1)a1.addEventListener('change',function(){S.vst=a1.value;render()});if(a2)a2.addEventListener('change',function(){S.vcat=a2.value;render()});
   if(vOnline())vmFill(main)}
 // whose work a showcase piece is: picked once here, it fills the supplier of every order made from it (owner, 2026-11-08)
@@ -2028,8 +2033,13 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +'<section class="sec"><h2>مشخصات</h2><div class="grid">'+fld('نام کار *','vt_name',x.name,{w2:1,ph:'مثلاً انگشتر سولیتر'})
     +'<label class="f"><span>دسته</span><input id="vt_cat" list="vt_cats" value="'+esc(x.cat||'')+'" placeholder="انگشتر، گردنبند…"><datalist id="vt_cats">'+VCATS.map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist></label>'
     +fld('کد (اختیاری)','vt_code',x.code,{ph:'مثلاً R12'})+vSupSel(x)+fld('وزن (گرم) *','vt_w',n(x.weight,3),{num:1})+fld('عیار (آزمایشگاهی)','vt_carat',n(x.carat||750,0),{num:1})
-    +fld('اجرت (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
-    +'<p class="note">قیمت در «حساب من» با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود + ۱۰٪ مالیات بر اجرت و سود.</p></section>'
+    +fld('اجرت پایه (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود پایه (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
+    +'<p class="note">قیمت با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود + ۱۰٪ مالیات بر اجرت و سود. اجرت پایه برای همه‌ی خریدارهای «حساب من» است، مگر نوع کسب‌وکارشان در یکی از اجرت‌های پایین باشد.</p></section>'
+    +'<section class="sec"><h2>اجرت برای نوع کسب‌وکار</h2><p class="note">مثلاً اجرت بالاتر برای «خانگی» و «مشتری تک‌فروشی»، و اجرت پایه برای همکاران. هر نوع فقط در یک ردیف.</p><div id="vprs">'+(x.prices||[]).map(vPrRow).join('')+'</div>'
+    +'<div class="btns"><button class="btn sm" data-act="vpradd" type="button">+ اجرت دیگر برای نوع کسب‌وکار</button></div></section>'
+    +'<section class="sec"><h2>سایت لئون گلد</h2><div class="vset"><label><input type="checkbox" id="vt_site"'+(x.site?' checked':'')+'> روی سایت هم نشان بده (برای بازدیدکننده‌های بیرون، نه همکاران)</label></div>'
+    +'<div class="grid" id="vsiteF"'+(x.site?'':' hidden')+'>'+fld('اجرت سایت (درصد) *','vt_saj',n(x.siteAjrat,2),{num:1,ph:'مثلاً ۲۵'})+fld('سود سایت (درصد)','vt_spr',x.siteProfit==null||x.siteProfit===''?'':n(x.siteProfit,2),{num:1,ph:'خالی = سود پایه'})+'</div>'
+    +'<p class="note">روی سایت هر کسی کار را با این اجرت و قیمت تقریبی می‌بیند؛ «ثبت سفارش» او را به «حساب من» می‌برد تا وارد شود یا حساب بسازد. «نمایش به» پایین فقط برای «حساب من» است.</p></section>'
     +'<section class="sec"><h2>موجودی</h2><div class="vset">'+VSTOCK.map(function(s){return '<label><input type="radio" name="vt_stock" value="'+s[0]+'"'+(vStock(x)===s[0]?' checked':'')+'> '+esc(s[1])+'</label>'}).join('')+'</div>'
     +fld('تعداد (برای «تعداد موجودی»)','vt_qty',n(x.qty==null?1:x.qty,0),{num:1})+'<p class="note">«موجود» یعنی الان در دست نیست ولی سفارش گرفته می‌شود؛ «ناموجود» یعنی سفارش هم گرفته نمی‌شود.</p></section>'
     +'<section class="sec"><h2>مدت تسویه</h2><div class="vset">'+VSET.map(function(s,i){return '<label><input type="checkbox" id="vt_s'+i+'"'+(set.indexOf(s)>=0?' checked':'')+'> '+esc(s)+'</label>'}).join('')+'</div>'
@@ -2039,7 +2049,10 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +vToHTML(x)
     +'<div class="btns"><button class="btn pri" data-act="savevit" data-id="'+esc(x.id||'')+'" type="button">ذخیره</button>'+(isNew?'':'<button class="btn" data-act="vself" data-id="'+esc(x.id)+'" type="button">سفارش برای خودم</button><button class="btn dng" data-act="delvit" data-id="'+esc(x.id)+'" type="button">حذف</button>')+'<button class="btn" data-act="back" type="button">انصراف</button></div>';
   var fi=$('#vm_file');if(fi)fi.addEventListener('change',function(){vmAdd([].slice.call(fi.files||[]));fi.value=''});
-  vToWire();if(vOnline())vmFill(main)}
+  vToWire();var vs=$('#vt_site');if(vs)vs.addEventListener('change',function(){$('#vsiteF').hidden=!vs.checked});if(vOnline())vmFill(main)}
+function vPrRow(r){r=r||{};var on=r.biz||[],n=function(v){return v||v===0?plain(v,2):''};
+  return '<div class="vpr"><div class="grid"><label class="f"><span>اجرت (درصد)</span><input class="num vpr_aj" inputmode="decimal" value="'+esc(n(r.ajrat))+'"></label><label class="f"><span>سود (درصد)</span><input class="num vpr_pr" inputmode="decimal" placeholder="خالی = سود پایه" value="'+esc(r.profit==null||r.profit===''?'':n(r.profit))+'"></label></div>'
+   +'<div class="vset">'+bizList().map(function(b){return '<label><input type="checkbox" class="vpr_b" value="'+esc(b.k)+'"'+(on.indexOf(b.k)>=0?' checked':'')+'> '+esc(b.name)+'</label>'}).join('')+'</div><button class="btn sm dng" data-act="vprrm" type="button" style="justify-self:start">حذف این اجرت</button></div>'}
 // whom a piece is shown to: every buyer (to empty), or only the parties ticked; the server keeps it from the rest (portal.mjs)
 var VKIND={customer:'مشتری',supplier:'تأمین‌کننده',both:'مشتری و تأمین‌کننده'};
 function vToHTML(x){var to=Array.isArray(x.to)?x.to:[],some=to.length>0;
@@ -2075,10 +2088,16 @@ async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
   var some=(($('input[name=vt_to]:checked')||{}).value)==='some',to=some?$$('.vtp:checked').map(function(c){return c.value}):[];
   if(some&&!to.length){toast('کسی را برای نمایش انتخاب نکرده‌ای؛ یا چند نفر را تیک بزن یا «همه‌ی خریدارها» را بزن.');return}
   var sup=val('vt_sup');if(!sup){toast('تأمین‌کننده‌ی این کار را انتخاب کن (یا «از موجودی خودم»).');var se=$('#vt_sup');if(se)se.focus();return}
+  var prices=[],seenB={},bad='';$$('.vpr').forEach(function(r){var bz=$$('.vpr_b:checked',r).map(function(c){return c.value}),aj=$('.vpr_aj',r).value.trim(),pr=$('.vpr_pr',r).value.trim();
+    if(!bz.length&&!aj)return;if(!bz.length){bad='برای اجرت '+toFa(aj)+'٪ نوع کسب‌وکار را تیک بزن.';return}if(!aj){bad='اجرت ردیف «'+bz.map(bizName).join('، ')+'» را بنویس.';return}
+    bz.forEach(function(k){if(seenB[k])bad='«'+bizName(k)+'» در دو ردیف اجرت آمده.';seenB[k]=1});prices.push({ajrat:num(aj),profit:pr===''?null:num(pr),biz:bz})});
+  if(bad){toast(bad);return}
+  var site=!!($('#vt_site')||{}).checked;if(site&&!val('vt_saj').trim()){toast('اجرت سایت را بنویس.');var sa=$('#vt_saj');if(sa)sa.focus();return}
   var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
     ajrat:num(val('vt_aj'))||0,profit:val('vt_pr').trim()===''?7:num(val('vt_pr')),settle:VSET.filter(function(s,i){var c=$('#vt_s'+i);return c&&c.checked}),settleNote:val('vt_sn').trim(),
     desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),to:to,ts:old&&old.ts||new Date().toISOString()};
   if(sup==='__own')d.own=true;else{d.supId=sup;d.supName=(partyById(sup)||{}).name||''}
+  if(prices.length)d.prices=prices;d.site=site;if(site){d.siteAjrat=num(val('vt_saj'));d.siteProfit=val('vt_spr').trim()===''?null:num(val('vt_spr'))}
   var nid=id||'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» '+(to.length?fmt(to.length)+' نفر':'همه')+' دیده می‌شود.':'.'));back()}}
 async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
@@ -2207,7 +2226,7 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   var inp=$('#gatePin'),card=g.querySelector('.card'),er=$('#gateErr');
   function bad(msg){er.textContent=msg;er.classList.add('bad');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');inp.value=''}
   var un=$('#gateUser');un.value=lsGet('leon_user')||'';var rr=userRec(un.value);if(rr&&rr.photo){var av=document.createElement('div');av.innerHTML=avHTML(rr.u,rr.photo);card.insertBefore(av.firstChild,card.querySelector('.wm'));card.querySelector('.lg').remove()}un.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();inp.focus()}});
-  var kb=function(){var r=who();inp.inputMode=r&&r.alpha?'text':'numeric'};un.addEventListener('input',kb);
+  var kb=function(){var r=who();inp.inputMode=r&&r.alpha?'text':'numeric'};un.addEventListener('input',kb);kb();
   (un.value?inp:un).focus();
   function enter(us,h){UNLOCKED=us.u+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',us.u);FAILS=0;LASTACT=Date.now();render()}
   function who(){return lockUsers().filter(function(x){return normU(x.u)===normU(un.value)})[0]}
@@ -2766,15 +2785,39 @@ async function saveExpense(id){var cat=val('x_cat'),r=Math.round(num(val('x_r'))
   if(await put('expenses',id||newId('expenses'),d)){toast('هزینه ثبت شد');var j=parseJ(date);if(!old&&j!=null){var c=period('m',0);S.xoff=0;while(j<c.s&&S.xoff>-240){S.xoff--;c=period('m',S.xoff)}}back()}}
 
 // what kind of business a party runs, picked on its card (owner, 2026-11-08)
-var BIZ=[['','—'],['home','خانگی'],['gallery','گالری'],['melt','آبشده‌فروش'],['dist','دفتر پخش'],['bonak','بنکداری']];
-function bizName(k){for(var i=1;i<BIZ.length;i++)if(BIZ[i][0]===k)return BIZ[i][1];return ''}
+/* kinds of business (owner, 2026-11-09): the owner adds, renames and groups them («همکار» = the trade, «مشتری تک‌فروشی» =
+   buys for themselves). Kept in settings/biz {types:[{k,name,group}]}; the key stays when the name changes, so parties keep
+   theirs. The group decides the rules a «حساب من» user signs and the fields its sign-up asks; a showcase piece can carry
+   a different wage for any of them (leon-gold-server/portal.mjs bizTypes, wageFor). */
+var BIZ_DEFAULT=[{k:'home',name:'خانگی',group:'retail'},{k:'retail',name:'مشتری تک‌فروشی',group:'retail'},{k:'gallery',name:'گالری',group:'colleague'},{k:'melt',name:'آبشده‌فروش',group:'colleague'},{k:'dist',name:'دفتر پخش',group:'colleague'},{k:'bonak',name:'بنکداری',group:'colleague'}];
+function bizList(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='biz'&&Array.isArray(S.settings[i].types)&&S.settings[i].types.length)return S.settings[i].types.filter(function(x){return x&&x.k&&!x.off});return BIZ_DEFAULT}
+function bizAll(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='biz'&&Array.isArray(S.settings[i].types)&&S.settings[i].types.length)return S.settings[i].types;return BIZ_DEFAULT}
+function bizOpts(cur){var L=[['','—']].concat(bizList().map(function(b){return [b.k,b.name+(b.group==='colleague'?' (همکار)':'')]}));if(cur&&!L.some(function(o){return o[0]===cur}))L.push([cur,bizName(cur)||cur]);return L}
+function bizName(k){var L=bizAll();for(var i=0;i<L.length;i++)if(L[i].k===k)return L[i].name;return ''}
+function bizDialog(){var L=bizAll().map(function(x){return Object.assign({},x)}),used={};S.parties.forEach(function(p){if(p.biz)used[p.biz]=(used[p.biz]||0)+1});
+  var m=document.createElement('div');m.className='modal';
+  var row=function(b,i){return '<div class="bzr" data-i="'+i+'"><input class="bzn" value="'+esc(b.name||'')+'" placeholder="نام نوع کسب‌وکار" maxlength="30"><select class="bzg"><option value="retail"'+(b.group!=='colleague'?' selected':'')+'>مشتری تک‌فروشی</option><option value="colleague"'+(b.group==='colleague'?' selected':'')+'>همکار</option></select>'
+    +(used[b.k]?'<small>'+fmt(used[b.k])+' طرف‌حساب</small>':'<button class="lnk" type="button" data-rm="'+i+'">حذف</button>')+'</div>'};
+  var draw=function(){$('#bzList',m).innerHTML=L.map(function(b,i){return b.off?'':row(b,i)}).join('')};
+  m.innerHTML='<form class="box bzbox" role="dialog" aria-modal="true"><p><b>انواع کسب‌وکار</b><br>نام هر نوع را عوض کن یا نوع تازه بساز. «همکار» یعنی از صنف (گالری، پخش…)؛ «مشتری تک‌فروشی» یعنی برای خودش می‌خرد. نوعی که طرف‌حساب دارد حذف نمی‌شود.</p>'
+   +'<div id="bzList"></div><button class="btn sm" type="button" data-add>+ نوع تازه</button><p class="err" id="bzErr" style="color:#b3261e;min-height:18px"></p>'
+   +'<div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
+  document.body.appendChild(m);draw();
+  var grab=function(){$$('.bzr',m).forEach(function(r){var b=L[+r.dataset.i];b.name=$('.bzn',r).value.replace(/\s+/g,' ').trim();b.group=$('.bzg',r).value})};
+  m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-n]')){m.remove();return}
+    if(e.target.closest('[data-add]')){grab();L.push({k:'b'+Date.now().toString(36),name:'',group:'retail'});draw();var q=$$('.bzn',m);q[q.length-1].focus();return}
+    var rm=e.target.closest('[data-rm]');if(rm){grab();L[+rm.dataset.rm].off=true;draw()}});
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();grab();var keep=L.filter(function(b){return !b.off||used[b.k]}).map(function(b){var y={k:b.k,name:b.name,group:b.group==='colleague'?'colleague':'retail'};return y}).filter(function(b){return b.name});
+    var names={};for(var i=0;i<keep.length;i++){if(names[keep[i].name]){$('#bzErr',m).textContent='«'+keep[i].name+'» دو بار آمده.';return}names[keep[i].name]=1}
+    if(!keep.length){$('#bzErr',m).textContent='حداقل یک نوع بماند.';return}
+    try{await S.db.collection('settings').doc('biz').set({types:keep,ts:Date.now()});m.remove();toast('انواع کسب‌وکار ذخیره شد.');render()}catch(x){$('#bzErr',m).textContent=dberr(x)}})}
 function vPform(){
   var p=S.param&&S.param.id?partyById(S.param.id):null,isNew=!p;p=p||{};
   setTop(isNew?'طرف‌حساب جدید':'ویرایش طرف‌حساب','',true);
   var nn=isNew&&S.newName||'';S.newName='';
   main.innerHTML='<section class="sec"><h2>مشخصات</h2><div class="grid">'+fld('نام *','pf_name',p.name||nn,{w2:1})
    +sel('نوع','pf_kind',[['customer','مشتری'],['supplier','تأمین‌کننده'],['both','هر دو']],p.kind||'customer',{w2:1})
-   +sel('نوع کسب‌وکار','pf_biz',BIZ,p.biz||'',{w2:1})
+   +sel('نوع کسب‌وکار','pf_biz',bizOpts(p.biz||''),p.biz||'',{w2:1})+'<div class="f w2" style="margin-top:-6px"><button class="lnk" data-act="bizedit" type="button">ویرایش و افزودن انواع کسب‌وکار</button></div>'
    +sel('سطح مشتری (کارت «حساب من»)','pf_vip',[['','عادی'],['1','VIP']],p.vip?'1':'',{w2:1})
    +fld('فروشگاه / دفتر','pf_shop',p.shop,{w2:1})+fld('تلفن','pf_phone',p.phone,{tel:1,w2:1})+fld('آدرس','pf_addr',p.address,{w2:1})+fld('یادداشت','pf_note',p.note,{w2:1})+'</div></section>'
    +'<section class="sec"><h2>مانده اول دوره</h2><p class="note">اگر از قبل با این شخص حساب داری، مانده فعلی را اینجا بنویس. بدهکار یعنی او به تو بدهکار است.</p><div class="grid">'
@@ -3184,6 +3227,10 @@ document.addEventListener('click',function(e){
     case 'neworder':S.oItems=null;go('oform',b.dataset.pid?{partyId:b.dataset.pid}:null);break;
     case 'newself':S.oItems=null;go('oform',{self:true});break;
     case 'leadorder':{var ld=leadById(id);if(ld){var vx=leadVit(ld);S.oItems=[{desc:ld.what||'',qty:1,weight:vx&&vx.weight?String(vx.weight):'',carat:vx&&vx.carat?String(Math.round(labOf(vx.carat))):'',note:'',supId:vx&&vx.supId&&partyById(vx.supId)?vx.supId:''}];go('oform',{partyId:ld.partyId||'',lead:ld.id,note:ld.note||''})}break}
+    case 'suok':{var ok=suSeen();ok[id]=1;try{localStorage.setItem('lg-su-ok',JSON.stringify(ok))}catch(e){}render();signupAlert();break}
+    case 'bizedit':bizDialog();break;
+    case 'vpradd':{var w=document.createElement('div');w.innerHTML=vPrRow({});$('#vprs').appendChild(w.firstChild);S.dirty=true;break}
+    case 'vprrm':{var rr=b.closest('.vpr');if(rr)rr.remove();S.dirty=true;break}
     case 'sunew':{var su=suById(id);if(su)suNew(su);break}
     case 'sulink':{var su2=suById(id);if(su2){var mt=suMatch(su2);if(mt&&b.textContent.indexOf(mt.name)>=0)suApprove(su2,mt.id);else suLinkDialog(su2)}break}
     case 'surej':{var su3=suById(id);if(su3)ask('درخواست ثبت‌نام «'+su3.fullName+'» رد شود؟ اگر با همین نام کاربری وارد شود، می‌بیند که رد شده.',async function(){try{await srvApi('/api/portal/signup/reject',{method:'POST',json:{id:su3.id}});window.__leonSync.now();toast('رد شد.')}catch(e){toast(srvErrMsg(e))}},'رد کن');break}
