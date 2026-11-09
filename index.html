@@ -1,4 +1,28 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#06140e;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"><link rel="icon" href="icon-180.png?v=2"></head><body>
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#06140e;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
+   lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
+@media (min-width:1100px){
+  :root{--side:272px}
+  .nav{transform:none!important;visibility:visible!important;width:var(--side);box-shadow:none;z-index:40;transition:none}
+  .nav .mh .x,#menuBtn,.scrim{display:none!important}
+  body.menu .nav .in>*{animation:none}
+  .top{margin-right:var(--side)}
+  html body .top .in{max-width:1180px}
+  html body #main{max-width:1180px;margin-right:calc(var(--side) + max(24px,(100vw - var(--side) - 1180px)/2));margin-left:max(24px,(100vw - var(--side) - 1180px)/2);padding-inline:0;gap:16px}
+  html body .fab{right:calc(var(--side) + 28px);left:auto}
+  html body .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  html body .grid .w2{grid-column:span 2}
+  /* home: two columns of cards; the price card and the summaries across */
+  body[data-view=home] #main{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  body[data-view=home] #main>.btns,body[data-view=home] #main>.leads,body[data-view=home] #main>#suSec,body[data-view=home] #main>.warn{grid-column:1/-1}
+  /* lists: two columns */
+  body[data-view=parties] .list,body[data-view=invoices] .list,body[data-view=orders] .list,body[data-view=settlements] .list,body[data-view=products] .list,body[data-view=expenses] .list,body[data-view=log] .list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body[data-view=parties] .list .empty,body[data-view=invoices] .list .empty,body[data-view=orders] .list .empty{grid-column:1/-1}
+  html body .vgrid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+  html body .vfilt{max-width:720px}
+  html body .btns{grid-template-columns:repeat(auto-fit,minmax(160px,220px));justify-content:start}
+  html body .modal .box{max-width:460px}
+}
+</style><link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"><link rel="icon" href="icon-180.png?v=2"></head><body>
 <div id="splash" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#06140e;color:#e8cf8e;font:700 26px/1.4 serif;letter-spacing:0">دفتر لئون</div>
 <title>دفتر لئون گلد</title>
 <script>
@@ -170,7 +194,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 19:29</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 20:51</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1760,7 +1784,7 @@ function setTop(title,sub,backBtn){
 var lastVK='',vinT=0;
 function render(){
   var sp=document.getElementById('splash');if(sp)sp.remove();
-  var v=S.view,editing=EDITING[v];$('#fab').hidden=true;
+  var v=S.view,editing=EDITING[v];document.body.dataset.view=v;$('#fab').hidden=true;
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();var mp=$('#menuPanel');if(mp)mp.hidden=!panelOK();menuProf();
   $$('#nav button').forEach(function(b){b.setAttribute('aria-current',(b.dataset.tab===v||(v==='party'&&b.dataset.tab==='parties')||(v==='product'&&b.dataset.tab==='products')||(v==='oform'&&b.dataset.tab==='orders')||(v==='tform'&&b.dataset.tab==='targets')||(v==='xform'&&b.dataset.tab==='expenses')||(v==='aparty'&&b.dataset.tab==='admin')||(v==='vform'&&b.dataset.tab==='vitrin'))?'page':'false')});
   if(S.nodb){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="warn">ذخیره‌سازی در این نمایش فعال نیست. صفحه را داخل حساب Claude خودت و با همان مرورگر یا برنامه‌ای که وارد آن هستی باز کن.</div>';return}
