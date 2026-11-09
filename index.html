@@ -215,7 +215,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 21:28</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 23:30</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1737,7 +1737,7 @@ function signupAlert(){var seen={},key='lg-su-seen';try{seen=JSON.parse(localSto
 function signupsHTML(){var L=pendingSignups();if(!L.length)return '';
   return '<section class="sec leads" id="suSec"><h2>ثبت‌نام تازه در «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(x){var mt=suMatch(x);
     if(x.status==='auto')return '<div class="row lead"><span class="t">'+esc(x.fullName||'—')+'<span class="badge'+(x.group==='colleague'?' lo':'')+'">'+esc(x.bizName||'')+(x.group==='colleague'?' · همکار':'')+'</span></span>'
-     +'<span class="s">'+esc([toFa(x.mobile||''),x.nationalId?'کد ملی '+toFa(x.nationalId):'',x.shop,x.city,'نام کاربری: '+(x.username||'')].filter(Boolean).join(' · '))+(x.group==='colleague'?'<br><b>ادعای همکاری؛ بررسی کن:</b> پروانه کسب '+esc(toFa(x.licence||''))+' · عضویت اتحادیه '+esc(toFa(x.union||''))+' · '+esc(x.shopAddr||''):'')+(x.note?'<br>'+esc(x.note):'')+'</span>'
+     +'<span class="s">'+esc([toFa(x.mobile||''),x.nationalId?'کد ملی '+toFa(x.nationalId):'',x.shop,x.city,'نام کاربری: '+(x.username||'')].filter(Boolean).join(' · '))+(x.group==='colleague'?'<br><b>ادعای همکاری؛ بررسی کن:</b> پروانه کسب '+esc(toFa(x.licence||''))+' · عضویت اتحادیه '+esc(toFa(x.union||''))+' · '+esc(x.shopAddr||''):'')+(x.refName?'<br>با دعوت: '+esc(x.refName):'')+(x.note?'<br>'+esc(x.note):'')+'</span>'
      +'<span class="v"><span class="d">'+esc(jdate(x.ts))+' · '+esc(jtime(x.ts))+'</span></span>'
      +'<span class="btns"><button class="btn sm pri" data-act="suok" data-id="'+esc(x.id)+'" type="button">دیدم</button>'+(x.partyId&&partyById(x.partyId)?'<button class="btn sm" data-act="party" data-id="'+esc(x.partyId)+'" type="button">طرف‌حساب</button>':'')+(x.mobile?'<a class="btn sm" href="tel:'+esc(fanum(x.mobile))+'">تماس</a>':'')+'</span></div>';
     return '<div class="row lead"><span class="t">'+esc(x.fullName||'—')+'<span class="badge">'+(x.kind==='supplier'?'همکار / تأمین‌کننده':'مشتری')+'</span></span>'
@@ -2658,7 +2658,7 @@ function listParties(){
 }
 function vParties(){
   setTop('طرف‌حساب‌ها',fmt(S.parties.length)+' نفر',false);
-  main.innerHTML=signupsHTML()+'<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها"><div class="list" id="lst">'+listParties()+'</div>';
+  main.innerHTML=signupsHTML()+refSummary()+'<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها"><div class="list" id="lst">'+listParties()+'</div>';
 }
 function vParty(){
   var p=partyById(S.param);if(!p){back();return}
@@ -2670,6 +2670,7 @@ function vParty(){
     var lk=e.kind==='inv'?'<button class="lk" data-act="inv" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':e.kind==='set'?'<button class="lk" data-act="set" data-id="'+esc(e.id)+'">'+esc(e.label)+'</button>':'<span>'+esc(e.label)+'</span>';
     var sp=entSplit(e),paid=Math.abs(sp.pay)>=(e.u==='g'?0.0005:0.5);
     return '<div class="r"><div>'+lk+'<div class="d">'+esc(jdate(e.ts))+'</div>'+(paid?'<div class="d">'+(sp.pay>0?'دریافت':'پرداخت')+' در همین فاکتور: '+balHTML(-sp.pay,e.u)+'</div>':'')+'</div><div class="a">'+balHTML(sp.g,e.u)+'<span class="d">مانده: '+balHTML(e.run,e.u)+'</span></div></div>'}).join('')+'</div>':'<div class="empty">هنوز گردشی ثبت نشده.</div>')+'</section>';
+  main.insertAdjacentHTML('beforeend',refHTML(p));
   ptInfo(p.id);
 }
 /* what the party wrote about itself in «حساب من» and each time it signed the rules there (its electronic signature:
@@ -2731,6 +2732,36 @@ function metrics(s,e){var M={sale:0,wage:0,ret:0,buy:0,retSup:0,gain:0,loss:0,re
       else if(!out&&it.ret){M.ret+=p;if(m!=null)M.retM+=m}
       else if(!out)M.buy+=p;else M.retSup+=p})});
   M.net=M.sale-M.ret;M.profit=M.gain-M.loss-M.retM;return M}
+/* ---------- referrals (owner, 2026-11-09): a party brought by another (refBy: set when it signed up in «حساب من» with that
+   party's invite code, or by hand in its form) earns its referrer refPct% of Leon's net profit on what it buys, counted the
+   way the reports count it: wholesale in grams, pure × (sale wage − purchase wage); retail in rials. A return takes its
+   share back. A line with no purchase wage has no known profit and is left out (and counted, to show). Nothing is
+   credited by itself: the owner pays it with a settlement. Example: 100 g sold at 1% wage, bought at 0 → 1 g; at 20% → 0.200 g. ---------- */
+function refProfit(pid){var p=partyById(pid),from=p&&p.refAt?invDay({ts:p.refAt}):null,R={g:0,r:0,noCost:0,inv:0};
+  S.invoices.forEach(function(i){if(i.partyId!==pid||(from!=null&&invDay(i)<from))return;
+    if(i.kind!=='whole'){(i.items||[]).forEach(function(it){var a=+it.amount||0,g=+it.gold||0;R.r+=a-g-Math.round(g*(+it.ajrat||0)/100)});R.inv++;return}
+    var out=i.doc!=='rc',any=0;(i.items||[]).forEach(function(it){var q=pureOf(it),c=costOf(it),m=c==null?null:q*((+it.ajrat||0)-c)/100;
+      if(out&&!it.ret){any=1;if(m==null)R.noCost++;else R.g+=m}else if(!out&&it.ret){any=1;if(m!=null)R.g-=m}});if(any)R.inv++});
+  return R}
+function refsOf(pid){return S.parties.filter(function(x){return x.refBy===pid&&x.id!==pid})}
+function refEarn(pid){var p=partyById(pid),pct=+(p&&p.refPct)||0,T={g:0,r:0,noCost:0,rows:[]};
+  refsOf(pid).forEach(function(x){var R=refProfit(x.id),g=R.g*pct/100,r=Math.round(R.r*pct/100);T.rows.push({p:x,R:R,g:g,r:r});T.g+=g;T.r+=r;T.noCost+=R.noCost});return {pct:pct,T:T}}
+function refAmt(g,r){var a=[];if(Math.abs(g)>=0.0005)a.push(gr(g)+' گرم');if(Math.abs(r)>=1)a.push(fmt(r)+' ریال');return a.join(' + ')||'۰'}
+function refHTML(p){var by=p.refBy&&partyById(p.refBy),L=refsOf(p.id);if(!by&&!L.length&&!(+p.refPct))return '';
+  var h='<section class="sec" id="refsec"><h2>معرفی و سهم سود</h2>';
+  if(by)h+='<p class="note">معرفِ این شخص: <button class="lk" data-act="party" data-id="'+esc(by.id)+'">'+esc(by.name)+'</button>'+(p.refAt?' (ثبت‌نام با کد دعوت، '+esc(jdate(p.refAt))+')':'')+'</p>';
+  if(L.length||+p.refPct){var E=refEarn(p.id);
+    h+='<p class="note">'+(E.pct?'سهم این شخص: <b>'+fmt(E.pct,2)+'٪</b> از سود خالص لئون روی خریدهای کسانی که معرفی کرده.':'<b>درصد سهم تعیین نشده.</b> از «ویرایش مشخصات» بزن.')+'</p>';
+    h+=L.length?'<div class="stm">'+E.T.rows.map(function(x){return '<div class="r"><div><button class="lk" data-act="party" data-id="'+esc(x.p.id)+'">'+esc(x.p.name)+'</button><div class="d">'+fmt(x.R.inv)+' فاکتور · سود خالص لئون: '+refAmt(x.R.g,x.R.r)+(x.R.noCost?' · '+fmt(x.R.noCost)+' ردیف بی‌اجرت خرید':'')+'</div></div><div class="a">'+refAmt(x.g,x.r)+'</div></div>'}).join('')
+      +'<div class="r"><div><b>جمع سهم</b></div><div class="a"><b>'+refAmt(E.T.g,E.T.r)+'</b></div></div></div>'
+      +(E.T.noCost?'<p class="note">'+fmt(E.T.noCost)+' ردیف اجرت خرید ندارد؛ سودشان معلوم نیست و حساب نشده. اجرت خرید را در کارت کالا بنویس.</p>':'')
+      +'<p class="note">این سهم خودکار به حسابش نمی‌رود؛ هر وقت خواستی با یک سند تسویه بپردازش.</p>'
+      :'<div class="empty">هنوز کسی با کد دعوت این شخص ثبت‌نام نکرده.</div>'}
+  return h+'</section>'}
+// the referrers at a glance, atop «طرف‌حساب‌ها»
+function refSummary(){var by={};S.parties.forEach(function(x){if(x.refBy&&partyById(x.refBy))(by[x.refBy]=by[x.refBy]||0,by[x.refBy]++)});var ids=Object.keys(by);if(!ids.length)return '';
+  return '<details class="sec refsum"><summary>معرفی‌ها و سهم سود ('+fmt(ids.length)+' معرف)</summary><div class="stm">'+ids.map(function(id){var p=partyById(id),E=refEarn(id);
+    return '<div class="r"><div><button class="lk" data-act="party" data-id="'+esc(id)+'">'+esc(p.name)+'</button><div class="d">'+fmt(by[id])+' نفر معرفی · '+(E.pct?fmt(E.pct,2)+'٪':'درصد تعیین نشده')+'</div></div><div class="a">'+refAmt(E.T.g,E.T.r)+'</div></div>'}).join('')+'</div></details>'}
 function gr(v){return fmt(v,3)}
 function stRow(l,v,u,strong){return '<div class="r"><span>'+esc(l)+'</span><span class="a u">'+(strong?'<b>':'')+v+(strong?'</b>':'')+(u?' <small>'+u+'</small>':'')+'</span></div>'}
 function kpiT(l,v,sub){return '<div class="kpi"><small>'+esc(l)+'</small><b>'+v+'</b><span class="sub">'+sub+'</span></div>'}
@@ -2910,6 +2941,9 @@ function vPform(){
    +sel('نوع کسب‌وکار','pf_biz',bizOpts(p.biz||''),p.biz||'',{w2:1})+'<div class="f w2" style="margin-top:-6px"><button class="lnk" data-act="bizedit" type="button">ویرایش و افزودن انواع کسب‌وکار</button></div>'
    +sel('سطح مشتری (کارت «حساب من»)','pf_vip',[['','عادی'],['1','VIP']],p.vip?'1':'',{w2:1})
    +fld('فروشگاه / دفتر','pf_shop',p.shop,{w2:1})+fld('تلفن','pf_phone',p.phone,{tel:1,w2:1})+fld('آدرس','pf_addr',p.address,{w2:1})+fld('یادداشت','pf_note',p.note,{w2:1})+'</div></section>'
+   +'<section class="sec"><h2>معرفی (کد دعوت «حساب من»)</h2><p class="note">کسی که با کد دعوت این شخص ثبت‌نام کند خودکار «معرفی‌شده»ی او می‌شود. درصد سهم: چند درصد از سود خالص لئون روی خریدهای آن‌ها به این شخص می‌رسد.</p><div class="grid">'
+   +fld('درصد سهم از سود معرفی‌ها (٪)','pf_refpct',p.refPct!=null&&p.refPct!==''?toFa(p.refPct):'',{num:1,w2:1})
+   +sel('معرفِ این شخص','pf_ref',[['','— ندارد —']].concat(S.parties.filter(function(x){return x.id!==p.id}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}).map(function(x){return [x.id,x.name+(x.shop?' · '+x.shop:'')]})),p.refBy||'',{w2:1})+'</div></section>'
    +'<section class="sec"><h2>مانده اول دوره</h2><p class="note">اگر از قبل با این شخص حساب داری، مانده فعلی را اینجا بنویس. بدهکار یعنی او به تو بدهکار است.</p><div class="grid">'
    +signedField('مانده گرمی (گرم ۷۵۰)','pf_g',p.openG,'g')+signedField('مانده ریالی (ریال)','pf_r',p.openR,'r')+'</div></section>'
    +'<div class="btns"><button class="btn pri" data-act="saveparty" data-id="'+esc(p.id||'')+'">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delparty" data-id="'+esc(p.id)+'">حذف</button>')+'<button class="btn" data-act="back">انصراف</button></div>';
@@ -3209,6 +3243,8 @@ async function saveParty(id){
   // fields this form does not show (portalOff and the like) stay as they were
   var d=Object.assign({},old||{},{name:name,kind:val('pf_kind'),shop:val('pf_shop'),phone:val('pf_phone'),address:val('pf_addr'),note:val('pf_note'),openG:sg(val('pf_g'),val('pf_gt'),'g'),openR:sg(val('pf_r'),val('pf_rt'),'r'),ts:old&&old.ts?old.ts:new Date().toISOString()});delete d.id;
   var bz=val('pf_biz');if(bz)d.biz=bz;else delete d.biz;if(val('pf_vip')==='1')d.vip=true;else delete d.vip;
+  var rp=String(val('pf_refpct')).trim()===''?null:num(val('pf_refpct'));if(rp!=null&&(rp<0||rp>100)){toast('درصد سهم باید بین ۰ تا ۱۰۰ باشد');return}if(rp)d.refPct=Math.round(rp*100)/100;else delete d.refPct;
+  var rb=val('pf_ref');if(rb!==(old&&old.refBy||'')){if(rb)d.refBy=rb;else delete d.refBy;delete d.refAt}
   var pid=id||newId('parties');if(await put('parties',pid,d)){toast('ذخیره شد');S.partyId=pid;var r=S.ret;S.ret=null;
     if(r==='inv'){back();S.partyId=pid;var p=Object.assign({id:pid},d);S.parties=S.parties.filter(function(x){return x.id!==pid}).concat([p]);compute();applyParty(p);renderInvAfterParty()}else back()}
 }
