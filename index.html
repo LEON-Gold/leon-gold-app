@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 13:45</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 13:48</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2034,7 +2034,7 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +'<label class="f"><span>دسته</span><input id="vt_cat" list="vt_cats" value="'+esc(x.cat||'')+'" placeholder="انگشتر، گردنبند…"><datalist id="vt_cats">'+VCATS.map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist></label>'
     +fld('کد (اختیاری)','vt_code',x.code,{ph:'مثلاً R12'})+vSupSel(x)+fld('وزن (گرم) *','vt_w',n(x.weight,3),{num:1})+fld('عیار (آزمایشگاهی)','vt_carat',n(x.carat||750,0),{num:1})
     +fld('اجرت پایه (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود پایه (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
-    +'<p class="note">قیمت با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود + ۳٪ مالیات بر اجرت و سود. اجرت پایه برای همه‌ی خریدارهای «حساب من» است، مگر نوع کسب‌وکارشان در یکی از اجرت‌های پایین باشد.</p></section>'
+    +'<p class="note">قیمت با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود، و ۳٪ مالیات بر ارزش افزوده روی کل. اجرت پایه برای همه‌ی خریدارهای «حساب من» است، مگر نوع کسب‌وکارشان در یکی از اجرت‌های پایین باشد.</p></section>'
     +'<section class="sec"><h2>اجرت برای نوع کسب‌وکار</h2><p class="note">مثلاً اجرت بالاتر برای «خانگی» و «مشتری تک‌فروشی»، و اجرت پایه برای همکاران. هر نوع فقط در یک ردیف.</p><div id="vprs">'+(x.prices||[]).map(vPrRow).join('')+'</div>'
     +'<div class="btns"><button class="btn sm" data-act="vpradd" type="button">+ اجرت دیگر برای نوع کسب‌وکار</button></div></section>'
     +'<section class="sec"><h2>سایت لئون گلد</h2><div class="vset"><label><input type="checkbox" id="vt_site"'+(x.site?' checked':'')+'> روی سایت هم نشان بده (برای بازدیدکننده‌های بیرون، نه همکاران)</label></div>'
