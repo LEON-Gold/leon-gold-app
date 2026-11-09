@@ -157,7 +157,7 @@
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 11:36</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-09 11:56</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -820,7 +820,7 @@ body.noact{padding-bottom:24px}
 .ppk-l{overflow-y:auto;min-height:0;overscroll-behavior:contain}
 .ppk-no{display:inline-block;background:linear-gradient(135deg,#f5f0e3,#e8dcc0)}
 .ppk-b{justify-self:start;margin-top:-2px}
-.nfm{z-index:90}.nfm .box{text-align:center;justify-items:center}.nfm .btns{justify-content:center}.nfi{font-size:34px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#f6ecd2,#e8d5a6);border:1px solid var(--gold)}.nfb{color:var(--muted,#5b6b62);text-align:right}.nfo{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:4px}
+.nfm{z-index:90}.pwm{z-index:95}.nfm .box{text-align:center;justify-items:center}.nfm .btns{justify-content:center}.nfi{font-size:34px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#f6ecd2,#e8d5a6);border:1px solid var(--gold)}.nfb{color:var(--muted,#5b6b62);text-align:right}.nfo{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:4px}
 .ppk-l i.thumb{background-size:cover;background-position:center}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--green-d);color:#f6e9c4;border:1px solid var(--gold);border-radius:12px;padding:10px 16px;font-size:13.5px;max-width:90vw}
 #form input:disabled,#form select:disabled,#partySel:disabled{background:#f6f3ec;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
@@ -1707,7 +1707,7 @@ function render(){
   if(S.noaccess){setTop('دفتر لئون گلد','',false);$('#nav').hidden=true;$('#menuBtn').hidden=true;main.innerHTML='<div class="warn">به این دفتر دسترسی نداری. برای ورود، از مالک دفتر بخواه تو را با سطح «Contributor» یا «Editor» به این صفحه اضافه کند.</div>';return}
   if(!S.loaded.settings){setTop('دفتر لئون گلد','',false);main.innerHTML='<div class="empty">در حال اتصال…</div>';return}
   gateCheck();if(isLocked()){main.innerHTML='';NF_FOR=null;return}
-  setTimeout(nfCheck,900);
+  setTimeout(function(){if(!pwCheck())nfCheck()},900);
   document.body.classList.toggle('limited',!!myPerms());$$('#nav [data-tab]').forEach(function(b){b.style.display=canSee(b.dataset.tab)?'':'none'});if(mp&&!canSee('admin'))mp.hidden=true;
   if(!canSee(v)){toast('به این بخش دسترسی ندارید.');S.stack=[];S.param=null;S.view=v=firstAllowed()}
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
@@ -2110,7 +2110,7 @@ function vProfile(){setTop('پروفایل من','',true);var cu=curUser(),r=cu&
   +'<div class="pset"><details id="pdName"><summary><span class="ic">'+pico('user')+'</span><span><b>نام کاربری</b><small class="pnSub"></small></span><i></i></summary>'
   +'<form id="pfNameF"><label class="f"><span>نام کاربری جدید</span><input id="pfName" maxlength="30" autocapitalize="off"></label><p class="msg" id="pfNameMsg" role="status"></p><button class="btn pri" type="submit">ذخیره نام</button></form></details>'
   +'<details id="pdPass"><summary><span class="ic">'+pico('key')+'</span><span><b>رمز عبور</b><small>تغییر رمز ورود</small></span><i></i></summary>'
-  +'<form id="pfPassF" autocomplete="off"><label class="f"><span>رمز فعلی</span><input id="pfOld" type="password" inputmode="numeric" maxlength="12"></label><label class="f"><span>رمز جدید (۴ تا ۱۲ رقم)</span><input id="pfN1" type="password" inputmode="numeric" maxlength="12"></label><label class="f"><span>تکرار رمز جدید</span><input id="pfN2" type="password" inputmode="numeric" maxlength="12"></label><p class="msg" id="pfPassMsg" role="status"></p><button class="btn pri" type="submit">تغییر رمز</button></form></details></div>';
+  +'<form id="pfPassF" autocomplete="off"><label class="f"><span>رمز فعلی</span><input id="pfOld" type="password" maxlength="40" autocapitalize="off" autocomplete="current-password"></label><label class="f"><span>رمز جدید (حداقل ۶ حرف یا عدد؛ حروف و عدد با هم امن‌تر است)</span><input id="pfN1" type="password" maxlength="40" autocapitalize="off" autocomplete="new-password"></label><label class="f"><span>تکرار رمز جدید</span><input id="pfN2" type="password" maxlength="40" autocapitalize="off" autocomplete="new-password"></label><p class="msg" id="pfPassMsg" role="status"></p><button class="btn pri" type="submit">تغییر رمز</button></form></details></div>';
   main.querySelector('.phero .nm').textContent=r.u;main.querySelector('.pnSub').textContent=r.u;$('#pfName').value=r.u;
   $('#pfFile').addEventListener('change',async function(){var f=this.files&&this.files[0];if(!f)return;$('#pfMsg').textContent='در حال آماده‌سازی عکس…';
     try{var url=await shrinkImg(f,192);await updUser(curUser(),{photo:url});toast('عکس پروفایل ذخیره شد.')}catch(e){$('#pfMsg').textContent=e&&e.code==='img'?'این فایل عکس قابل خواندن نیست.':dberr(e)}});
@@ -2118,10 +2118,10 @@ function vProfile(){setTop('پروفایل من','',true);var cu=curUser(),r=cu&
     if(!name){m.textContent='نام کاربری را بنویس.';return}if(name===old){m.textContent='تغییری نکرده.';return}
     if(lockUsers().some(function(x){return x.u!==old&&normU(x.u)===normU(name)})){m.textContent='این نام کاربری قبلاً ثبت شده.';return}
     try{await updUser(old,{u:name});toast('نام کاربری به «'+name+'» تغییر کرد.')}catch(x){m.textContent=dberr(x)}});
-  $('#pfPassF').addEventListener('submit',async function(e){e.preventDefault();var m=$('#pfPassMsg'),rec=userRec(curUser()),o=fanum($('#pfOld').value).replace(/\D/g,''),a=fanum($('#pfN1').value).replace(/\D/g,''),b=fanum($('#pfN2').value).replace(/\D/g,'');
+  $('#pfPassF').addEventListener('submit',async function(e){e.preventDefault();var m=$('#pfPassMsg'),rec=userRec(curUser()),o=$('#pfOld').value,a=pwNorm($('#pfN1').value),b=pwNorm($('#pfN2').value);
     if(!rec)return;if(await pinHash(o,rec.salt||'',rec.kdf)!==rec.hash){m.textContent='رمز فعلی درست نیست.';return}
-    if(a.length<4){m.textContent='رمز جدید باید حداقل ۴ رقم باشد.';return}if(a!==b){m.textContent='دو رمز جدید یکی نیستند.';return}
-    try{await updUser(rec.u,await pinMake(a));['#pfOld','#pfN1','#pfN2'].forEach(function(s){$(s).value=''});m.textContent='';$('#pdPass').open=false;toast('رمز عوض شد.')}catch(x){m.textContent=dberr(x)}});
+    var bad=pwBad(a,b);if(bad){m.textContent=bad;return}
+    try{var made=await pwOwn(a);await updUser(rec.u,made);['#pfOld','#pfN1','#pfN2'].forEach(function(s){$(s).value=''});m.textContent='';$('#pdPass').open=false;toast('رمز عوض شد.')}catch(x){m.textContent=dberr(x)}});
 }
 function shrinkImg(file,size){return new Promise(function(res,rej){var u=URL.createObjectURL(file),im=new Image();
   im.onload=function(){var s=Math.min(im.naturalWidth,im.naturalHeight),c=document.createElement('canvas');c.width=c.height=size;var x=c.getContext('2d');x.imageSmoothingQuality='high';
@@ -2145,11 +2145,14 @@ function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
    password-security video). Older ones (no kdf) are still read the old way until that user sets a new password.
    leon-gold-server/server.mjs checkLock() reads both. */
 var PIN_ITER=150000;
+/* passwords with letters (owner, 2026-11-09): the first one a manager gives a user is numeric and marked «mustChange»;
+   right after signing in with it the user makes their own (6+ letters or digits). Persian digits count as Latin ones. */
+function pwNorm(p){return fanum(String(p==null?'':p)).normalize('NFKC')}
 async function pinMake(pin){var salt=Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random().toString(36).slice(2);
   if(window.crypto&&crypto.subtle)try{return {hash:await pinHash(pin,salt,'p2'),salt:salt,kdf:'p2'}}catch(e){}
   return {hash:await pinHash(pin,salt),salt:salt,kdf:''}}
 async function pinHash(pin,salt,kdf){
-  if(kdf==='p2'){if(!(window.crypto&&crypto.subtle))return 'no-webcrypto';var en=new TextEncoder(),d=fanum(String(pin)).replace(/\D/g,'');
+  if(kdf==='p2'){if(!(window.crypto&&crypto.subtle))return 'no-webcrypto';var en=new TextEncoder(),d=pwNorm(pin);
     var k=await crypto.subtle.importKey('raw',en.encode(d),'PBKDF2',false,['deriveBits']);
     var b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:en.encode(salt),iterations:PIN_ITER},k,256);
     return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}var s=salt+'|'+fanum(String(pin)).replace(/\D/g,'');
@@ -2163,13 +2166,14 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   g.innerHTML='<form class="card" id="gateForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
     +'<div class="rule">دفتر حساب طلا و جواهر</div>'
     +'<input id="gateUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="30">'
-    +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="رمز" aria-label="رمز ورود">'
+    +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="40" autocapitalize="off" placeholder="رمز" aria-label="رمز ورود">'
     +'<button type="submit" hidden></button><div class="err" id="gateErr" role="status">نام کاربری و رمز را وارد کن</div>'
     +'<div class="ft">بعد از '+fmt(IDLE_MIN)+' دقیقه بی‌کاری دفتر خودش قفل می‌شود</div></form>';
   document.body.appendChild(g);document.body.style.overflow='hidden';
   var inp=$('#gatePin'),card=g.querySelector('.card'),er=$('#gateErr');
   function bad(msg){er.textContent=msg;er.classList.add('bad');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');inp.value=''}
   var un=$('#gateUser');un.value=lsGet('leon_user')||'';var rr=userRec(un.value);if(rr&&rr.photo){var av=document.createElement('div');av.innerHTML=avHTML(rr.u,rr.photo);card.insertBefore(av.firstChild,card.querySelector('.wm'));card.querySelector('.lg').remove()}un.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();inp.focus()}});
+  var kb=function(){var r=who();inp.inputMode=r&&r.alpha?'text':'numeric'};un.addEventListener('input',kb);
   (un.value?inp:un).focus();
   function enter(us,h){UNLOCKED=us.u+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',us.u);FAILS=0;LASTACT=Date.now();render()}
   function who(){return lockUsers().filter(function(x){return normU(x.u)===normU(un.value)})[0]}
@@ -2200,7 +2204,7 @@ async function nfSub(){var r=await navigator.serviceWorker.getRegistration();if(
   if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:nfKey((await srvApi('/api/notify/key')).key)});
   var j=s.toJSON();await srvApi('/api/notify/sub',{method:'POST',json:{endpoint:j.endpoint,keys:j.keys,u:curUser()}});lsSet('lg-nf',curUser()+'\n'+j.endpoint);return j}
 async function nfCheck(){if(isLocked()){NF_FOR=null;return}
-  if(NF_FOR===curUser()||$('#nfSheet')||!vOnline()||!/^https?:$/.test(location.protocol))return;NF_FOR=curUser();
+  if(NF_FOR===curUser()||$('#nfSheet')||$('#pwSheet')||!vOnline()||!/^https?:$/.test(location.protocol))return;NF_FOR=curUser();
   try{if(!nfCan()){if(nfIOS()&&!nfStandalone())nfSheet('home');return}
     if(Notification.permission==='denied'){nfSheet('denied');return}
     var r=await navigator.serviceWorker.getRegistration(),s=r&&await r.pushManager.getSubscription();
@@ -2230,8 +2234,21 @@ function secHTML(){var U=lockUsers(),own=(S.me?S.me.isOwner:true)&&!myPerms(),cu
     +(own&&x.u!==cu?'<button class="btn sm pri" data-act="uperm" data-u="'+esc(x.u)+'" type="button">محدودیت</button> ':'')+(own?'<button class="btn sm" data-act="urename" data-u="'+esc(x.u)+'" type="button">تغییر نام</button> <button class="btn sm" data-act="pinset" data-u="'+esc(x.u)+'" type="button">تغییر رمز</button> <button class="btn sm" data-act="pinoff" data-u="'+esc(x.u)+'" type="button">حذف</button>':'')+'</span></div>'}).join('')+'</div>':'')
   +(own?'<div class="btns" style="margin-top:8px"><button class="btn sm" data-act="pinset" type="button">+ افزودن کاربر</button></div>':'')+'</section>'}
 async function saveUsers(U){await S.db.collection('settings').doc('lock').set({users:U,ts:Date.now()})}
+function pwBad(a,b){return a.length<6?'رمز جدید باید حداقل ۶ حرف یا عدد باشد.':/\s/.test(a)?'رمز فاصله نداشته باشد.':a!==b?'دو رمز جدید یکی نیستند.':''}
+async function pwOwn(a){var made=await pinMake(a);if(made.kdf!=='p2'&&/\D/.test(a))throw {code:'nocrypto'};return Object.assign(made,{alpha:/\D/.test(a),mustChange:false})}
+// right after signing in with the numeric password a manager gave: make your own before anything else
+function pwCheck(){if(isLocked())return false;var cu=curUser(),r=cu&&userRec(cu);if(!r||!r.mustChange)return false;if($('#pwSheet'))return true;
+  var m=document.createElement('div');m.className='modal pwm';m.id='pwSheet';
+  m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>رمز خودت را بساز</b><br>این رمز را مدیر برایت گذاشته. یک رمز تازه بساز که فقط خودت بدانی: حداقل ۶ حرف یا عدد؛ حروف انگلیسی و عدد با هم امن‌تر است.</p>'
+   +'<label class="f"><span>رمز تازه</span><input id="pwN1" type="password" maxlength="40" autocapitalize="off" autocomplete="new-password"></label><label class="f"><span>تکرار رمز تازه</span><input id="pwN2" type="password" maxlength="40" autocapitalize="off" autocomplete="new-password"></label>'
+   +'<p class="err" id="pwErr" style="color:#b3261e;min-height:18px"></p><div class="btns"><button class="btn pri" type="submit">ذخیره‌ی رمز تازه</button></div></form>';
+  document.body.appendChild(m);setTimeout(function(){var i=$('#pwN1');if(i)i.focus()},50);
+  m.querySelector('form').addEventListener('submit',async function(e){e.preventDefault();var er=$('#pwErr'),a=pwNorm($('#pwN1').value),b=pwNorm($('#pwN2').value),bad=pwBad(a,b);if(bad){er.textContent=bad;return}
+    var me=userRec(curUser());if(me&&await pinHash(a,me.salt||'',me.kdf)===me.hash){er.textContent='این همان رمزی است که مدیر داده؛ یک رمز تازه بساز.';return}
+    try{await updUser(curUser(),await pwOwn(a));m.remove();toast('رمز تازه ذخیره شد.');render()}catch(x){er.textContent=x&&x.code==='nocrypto'?'این مرورگر رمز با حروف را پشتیبانی نمی‌کند؛ فقط عدد بزن.':dberr(x)}});
+  return true}
 function pinDialog(edit){var m=document.createElement('div');m.className='modal';
-  m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>'+(edit?'تغییر رمز «'+esc(edit)+'»':'کاربر جدید')+'</b><br>رمز فقط عدد است، ۴ تا ۱۲ رقم.</p>'
+  m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>'+(edit?'تغییر رمز «'+esc(edit)+'»':'کاربر جدید')+'</b><br>رمز اول فقط عدد است، ۴ تا ۱۲ رقم. کاربر بعد از اولین ورود رمز خودش را می‌سازد (با حروف و عدد).</p>'
   +(edit?'':'<label class="f"><span>نام کاربری</span><input id="pnU" maxlength="30" autocapitalize="off"></label>')
   +'<label class="f"><span>رمز</span><input id="pn1" type="password" inputmode="numeric" maxlength="12"></label><label class="f"><span>تکرار رمز</span><input id="pn2" type="password" inputmode="numeric" maxlength="12"></label>'
   +'<p class="err" id="pnErr" style="color:#b3261e;min-height:18px"></p><div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
@@ -2243,7 +2260,7 @@ function pinDialog(edit){var m=document.createElement('div');m.className='modal'
     if(!edit&&U.some(function(x){return normU(x.u)===normU(name)})){er.textContent='این نام کاربری قبلاً ثبت شده.';return}
     if(a.length<4){er.textContent='رمز باید حداقل ۴ رقم باشد.';return}if(a!==b){er.textContent='دو رمز یکی نیستند.';return}
     var made=await pinMake(a),h=made.hash,first=!U.length,wasMe=edit&&edit===curUser();
-    var prev=null;U.forEach(function(x){if(x.u===name)prev=x});U=U.filter(function(x){return x.u!==name});U.push(Object.assign({},prev||{},{u:name},made));
+    var prev=null;U.forEach(function(x){if(x.u===name)prev=x});U=U.filter(function(x){return x.u!==name});U.push(Object.assign({},prev||{},{u:name},made,{alpha:false,mustChange:!(first||wasMe)}));
     try{await saveUsers(U);if(first||wasMe){UNLOCKED=name+'\n'+h;ssSet('leon_unlock',UNLOCKED);lsSet('leon_user',name)}m.remove();toast(edit?'رمز عوض شد.':'کاربر «'+name+'» اضافه شد.');if(!edit&&!first)setTimeout(function(){permDialog(name)},300)}catch(x){er.textContent=dberr(x)}})}
 function renameDialog(old){var m=document.createElement('div');m.className='modal';
   m.innerHTML='<form class="box" role="dialog" aria-modal="true" autocomplete="off"><p><b>تغییر نام کاربری «'+esc(old)+'»</b><br>رمز همان قبلی می‌ماند.</p><label class="f"><span>نام کاربری جدید</span><input id="rnU" maxlength="30" autocapitalize="off"></label>'
