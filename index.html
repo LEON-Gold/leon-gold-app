@@ -119,8 +119,114 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
 :root[data-theme="dark"] .dseg button.on{background:#e2cb94;color:#0c1d15}
 :root[data-theme="dark"] .dico{background:rgba(16,40,28,.86)}
 :root[data-theme="dark"] body[data-view=home]::before{background:radial-gradient(38vmax 38vmax at 92% 6%,rgba(201,162,75,.2),transparent 62%),radial-gradient(34vmax 34vmax at 6% 96%,rgba(47,155,108,.2),transparent 62%)}
-</style><link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"><link rel="icon" href="icon-180.png?v=2"></head><body>
-<div id="splash" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#07130e;color:#e2cb94;font:700 26px/1.4 serif;letter-spacing:0">دفتر لئون</div>
+</style><style id="me-css">
+/* Leon market engine: the look of «تحلیل بازار» (shared by the ledger and «حساب من»; colours validated with the dataviz
+   skill's checker: gold #9a6a0e / usd #0f7a52 on ivory, #b8872a / #2f9b6c on the night ground). Motion: lines draw in once
+   (state indication, ease-out), the live dot breathes, a moved number rolls in and its tile glows (WAAPI, in the engine),
+   event chips shine once. All of it stops under «reduce motion». */
+.me-page { --me-ink: #1b1a17; --me-mut: #6f6656; --me-card: #fffdf8; --me-line: rgba(140,111,67,.28); --me-grid: #ece4cf; --me-base: #c9bd9b;
+  --me-gold: #9a6a0e; --me-usd: #0f7a52; --me-oz: #5d5b8f; --me-up: #0f7a52; --me-dn: #a3392b; --me-tool: #6f6656; --me-bb: rgba(154,106,14,.10); --me-reg: #5d5b8f;
+  --me-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  display: grid; gap: 16px; color: var(--me-ink); min-width: 0; }
+:root[data-theme="dark"] .me-page { --me-ink: #f3ead9; --me-mut: #cfc7b0; --me-card: rgba(14,36,25,.82); --me-line: rgba(226,203,148,.26); --me-grid: rgba(226,203,148,.12); --me-base: rgba(226,203,148,.3);
+  --me-gold: #b8872a; --me-usd: #2f9b6c; --me-oz: #9d9be0; --me-up: #5fc79a; --me-dn: #ff9f8c; --me-tool: #cfc7b0; --me-bb: rgba(184,135,42,.14); --me-reg: #9d9be0; }
+.me-page * { box-sizing: border-box; }
+/* the verdict */
+.me-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 18px 18px 16px; color: #f6efdc;
+  background: radial-gradient(120% 140% at 100% 0%, rgba(226,203,148,.28), transparent 55%), linear-gradient(135deg, #153a2a, #07130e); border: 1px solid rgba(226,203,148,.35); }
+.me-hero.me-tone-down { background: radial-gradient(120% 140% at 100% 0%, rgba(255,159,140,.22), transparent 55%), linear-gradient(135deg, #3a1d15, #120806); }
+.me-hk { font-size: 11.5px; letter-spacing: .04em; color: #e2cb94; font-weight: 700; }
+.me-hero h2 { margin: 6px 0 4px; font-size: clamp(20px, 5vw, 28px); line-height: 1.45; color: #fff6dd; }
+.me-hero p { margin: 0; font-size: 13.5px; color: #e7dcc0; }
+.me-ev { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.me-e { position: relative; overflow: hidden; font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(226,203,148,.4); color: #fff2cf;
+  animation: meIn .5s var(--me-ease) both; animation-delay: calc(var(--i) * 70ms); }
+.me-e::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,240,200,.45) 50%, transparent 70%); transform: translateX(110%); animation: meShine 1.6s var(--me-ease) .4s 1 both; }
+.me-e-up { border-color: rgba(95,199,154,.6); } .me-e-down { border-color: rgba(255,159,140,.6); }
+/* live tiles */
+.me-now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.me-tile { display: grid; gap: 2px; align-content: start; padding: 13px 14px; border-radius: 18px; background: var(--me-card); border: 1px solid var(--me-line); min-width: 0; overflow: hidden; }
+.me-tile small { font-size: 12px; color: var(--me-mut); } .me-tile b { font-size: clamp(19px, 5vw, 24px); line-height: 1.35; display: block; } .me-tile span { font-size: 11.5px; color: var(--me-mut); } .me-tile em { font-style: normal; font-size: 11.5px; color: var(--me-mut); }
+.me-tile.is-up b { color: var(--me-up); } .me-tile.is-dn b { color: var(--me-dn); }
+/* range */
+.me-range { display: flex; gap: 6px; flex-wrap: wrap; }
+.me-range button, .me-tool { font: inherit; cursor: pointer; border-radius: 999px; border: 1px solid var(--me-line); background: transparent; color: var(--me-ink); transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+.me-range button { padding: 8px 15px; font-size: 13px; font-weight: 700; min-height: 40px; }
+.me-range button.on { background: #133423; color: #f1e7d2; border-color: #133423; }
+:root[data-theme="dark"] .me-range button.on { background: #e2cb94; color: #0c1d15; border-color: #e2cb94; }
+/* charts */
+.me-charts { display: grid; gap: 14px; }
+.me-fig { margin: 0; display: grid; gap: 8px; padding: 14px; border-radius: 20px; background: var(--me-card); border: 1px solid var(--me-line); min-width: 0; }
+.me-fig figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline; font-size: 14px; }
+.me-chg { font-size: 12.5px; font-weight: 700; } .me-chg.up, .me-read .up { color: var(--me-up); } .me-chg.dn, .me-read .dn { color: var(--me-dn); }
+.me-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.me-tools::-webkit-scrollbar { display: none; }
+.me-tool { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; font-size: 12px; color: var(--me-tool); min-height: 34px; }
+.me-tool i { width: 14px; height: 0; border-top: 2px solid currentColor; display: inline-block; }
+.me-tool.on { color: var(--me-ink); background: var(--me-bb); border-color: var(--me-base); }
+.me-k-ma20 i { border-top-color: var(--me-tool); } .me-k-ma50 i { border-top: 2px dashed var(--me-tool); } .me-k-bb i { height: 8px; border: 0; background: var(--me-bb); outline: 1px solid var(--me-base); }
+.me-k-reg i { border-top: 2px dotted var(--me-reg); } .me-k-sr i { border-top: 2px dashed var(--me-dn); }
+.me-read { margin: 0; min-height: 21px; font-size: 12.5px; color: var(--me-mut); } .me-read b { color: var(--me-ink); }
+.me-svg { width: 100%; height: auto; display: block; direction: ltr; touch-action: pan-y; overflow: visible; }
+.me-gl { stroke: var(--me-grid); stroke-width: 1; } .me-base { stroke: var(--me-base); stroke-width: 1; }
+.me-t { font: 10px/1 var(--text, Vazirmatn, Tahoma, sans-serif); fill: var(--me-mut); }
+.me-l { fill: none; stroke: var(--me-gold); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.me-usd .me-l { stroke: var(--me-usd); } .me-oz .me-l { stroke: var(--me-oz); } .me-bub .me-l { stroke: var(--me-ink); stroke-width: 1.8; }
+.me-area { fill: var(--me-gold); opacity: .07; } .me-usd .me-area { fill: var(--me-usd); } .me-oz .me-area { fill: var(--me-oz); }
+.me-m20 { fill: none; stroke: var(--me-tool); stroke-width: 1.3; opacity: .9; } .me-m50 { fill: none; stroke: var(--me-tool); stroke-width: 1.3; stroke-dasharray: 5 4; }
+.me-bb { fill: var(--me-bb); stroke: none; }
+.me-reg { fill: none; stroke: var(--me-reg); stroke-width: 1; stroke-dasharray: 2 3; opacity: .85; } .me-regm { fill: none; stroke: var(--me-reg); stroke-width: 1.2; opacity: .7; }
+.me-res, .me-sup { stroke-width: 1; stroke-dasharray: 6 4; } .me-res { stroke: var(--me-dn); } .me-sup { stroke: var(--me-up); }
+.me-tr, .me-ts { font: 700 9.5px/1 var(--text, Vazirmatn, Tahoma, sans-serif); } .me-tr { fill: var(--me-dn); } .me-ts { fill: var(--me-up); }
+.me-bub .me-tr { fill: var(--me-mut); }
+.me-dot { fill: var(--me-gold); stroke: var(--me-card); stroke-width: 2; } .me-usd .me-dot { fill: var(--me-usd); } .me-oz .me-dot { fill: var(--me-oz); } .me-bub .me-dot { fill: var(--me-ink); }
+.me-ring { fill: none; stroke: var(--me-gold); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: meBreathe 2.4s var(--me-ease) infinite; }
+.me-usd .me-ring { stroke: var(--me-usd); } .me-oz .me-ring { stroke: var(--me-oz); } .me-bub .me-ring { stroke: var(--me-ink); }
+.me-tag rect { fill: var(--me-gold); } .me-usd .me-tag rect { fill: var(--me-usd); } .me-oz .me-tag rect { fill: var(--me-oz); }
+.me-tag text { font: 700 9.5px/1 var(--text, Vazirmatn, Tahoma, sans-serif); fill: #fff; }
+.me-cur { stroke: var(--me-mut); stroke-width: 1; stroke-dasharray: 3 3; } .me-cd { fill: var(--me-card); stroke: var(--me-ink); stroke-width: 2; }
+.me-bpos { fill: var(--me-dn); opacity: .16; } .me-bneg { fill: var(--me-up); opacity: .18; } .me-zero { stroke: var(--me-ink); stroke-width: 1; opacity: .5; } .me-avg { stroke: var(--me-mut); stroke-dasharray: 5 4; }
+.me-rsiw { display: grid; gap: 2px; } .me-rsit { font-size: 11.5px; color: var(--me-mut); } .me-rsit b { color: var(--me-ink); }
+.me-rz { fill: var(--me-bb); } .me-rl { stroke: var(--me-base); stroke-dasharray: 3 3; } .me-rsi { fill: none; stroke: var(--me-reg); stroke-width: 1.5; }
+.me-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: meDraw 1.2s var(--me-ease) .1s forwards; }
+/* the reading */
+.me-reading { display: grid; gap: 12px; }
+.me-rc { padding: 14px 16px; border-radius: 20px; background: var(--me-card); border: 1px solid var(--me-line); }
+.me-rc h3 { margin: 0 0 8px; font-size: 16px; }
+.me-rc ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.me-li { position: relative; padding-inline-start: 18px; font-size: 14px; line-height: 1.9; }
+.me-li::before { content: ""; position: absolute; inset-inline-start: 2px; top: .75em; width: 8px; height: 8px; border-radius: 50%; background: var(--me-mut); }
+.me-li-up::before { background: var(--me-up); } .me-li-down::before { background: var(--me-dn); }
+.me-note { margin: 0; font-size: 12.5px; color: var(--me-mut); line-height: 1.9; }
+.me-load { display: grid; justify-items: center; gap: 10px; padding: 40px 0; color: var(--me-mut); font-size: 13px; }
+.me-load i { display: none; }
+.me-empty { padding: 30px; text-align: center; color: var(--me-mut); }
+@keyframes meDraw { to { stroke-dashoffset: 0; } }
+@keyframes meBreathe { 0% { transform: scale(1); opacity: .8; } 70% { transform: scale(3); opacity: 0; } 100% { transform: scale(3); opacity: 0; } }
+@keyframes meIn { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+@keyframes meShine { to { transform: translateX(-110%); } }
+@media (min-width: 900px) { .me-now { grid-template-columns: repeat(4, minmax(0, 1fr)); } .me-charts, .me-reading { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .me-draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; } .me-ring, .me-e, .me-e::after { animation: none; } .me-e::after { display: none; } }
+
+</style><!--me-css-->
+<style>.me-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:0 2px}.me-top span{display:flex;align-items:center;gap:6px}</style><style id="lg-motion">
+.lg-ld-w{display:grid;justify-items:center;align-content:center;gap:10px;padding:28px 0;color:#c9a24c}
+.lg-ld{width:96px;height:96px;overflow:visible}
+.lg-ld-ring{fill:none;stroke:#c9a24c;stroke-width:.6;opacity:.55;transform-origin:60px 60px;animation:lgLdTurn 14s linear infinite}
+.lg-ld-ring circle{stroke-width:1;opacity:.8}
+.lg-ld-leaf{fill:url(#lgLdG);fill-opacity:0;stroke:#d5b56d;stroke-width:1.6;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:lgLdDraw 2.4s cubic-bezier(0.77,0,0.175,1) infinite}
+.lg-ld-vein{fill:none;stroke:#7a5c25;stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1;animation:lgLdVein 2.4s cubic-bezier(0.77,0,0.175,1) infinite}
+.lg-ld-t{font-size:12.5px;letter-spacing:.02em;opacity:.85}
+@keyframes lgLdTurn{to{transform:rotate(360deg)}}
+@keyframes lgLdDraw{0%{stroke-dashoffset:1;fill-opacity:0}45%{stroke-dashoffset:0;fill-opacity:0}70%{stroke-dashoffset:0;fill-opacity:1}88%{stroke-dashoffset:0;fill-opacity:1}100%{stroke-dashoffset:-1;fill-opacity:0}}
+@keyframes lgLdVein{0%,40%{stroke-dashoffset:1}70%,88%{stroke-dashoffset:0}100%{stroke-dashoffset:-1}}
+@keyframes lgLdGlow{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.lg-ld-ring{animation:none}.lg-ld-leaf{animation:lgLdGlow 2.4s ease infinite;stroke-dashoffset:0;fill-opacity:1}.lg-ld-vein{animation:none;stroke-dashoffset:0}}
+.lg-morph{position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%,rgba(226,203,148,.55),rgba(201,162,76,.28) 45%,rgba(19,52,35,.22));-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);box-shadow:inset 0 0 0 1px rgba(226,203,148,.6)}
+@view-transition{navigation:auto}.top{view-transition-name:lg-bar}::view-transition-group(*){animation-duration:.42s;animation-timing-function:cubic-bezier(0.77,0,0.175,1)}@media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:.01s!important}}
+</style><!--lg-motion-->
+<link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"><link rel="icon" href="icon-180.png?v=2"></head><body>
+<div id="splash" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#07130e;color:#e2cb94;font:700 26px/1.4 serif;letter-spacing:0"><div class="lg-ld-w"><svg class="lg-ld" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="lgLdG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ac8641"/><stop offset=".45" stop-color="#f3ebdb"/><stop offset=".7" stop-color="#d5b56d"/><stop offset="1" stop-color="#9a6a0e"/></linearGradient></defs><g class="lg-ld-ring"><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(0 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(15 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(30 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(45 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(60 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(75 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(90 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(105 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(120 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(135 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(150 60 60)"/><ellipse cx="60" cy="60" rx="50" ry="22" transform="rotate(165 60 60)"/><circle cx="60" cy="60" r="54"/></g><path class="lg-ld-leaf" pathLength="1" d="M60 98C40 82 36 50 63 18c19 24 21 56-3 80Z"/><path class="lg-ld-vein" pathLength="1" d="M60 96C59 74 60 48 63 20"/></svg><span class="lg-ld-t">دفتر لئون گلد</span></div></div>
 <title>دفتر لئون گلد</title>
 <script>
 /* Offline stand-in for window.claude: the same db / user / downloads / assets calls the app makes,
@@ -291,7 +397,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-10 08:18</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-10 08:50</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1926,7 +2032,7 @@ function render(){
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
   ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,feed:vFeed,market:vMarket,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform,admin:vAdmin,aparty:vAParty,vitrin:vVitrin,vform:vVform})[v]();if(v==='prform')prformReady();
   $('#fab').hidden=!!editing||v==='home';
-  var vk=v+'|'+(S.param||'');if(vk!==lastVK){lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
+  var vk=v+'|'+(S.param||'');if(vk!==lastVK){if(lastVK)MORPH.go(main);lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
 /* gram balance valued at today's 18-carat gram price, plus the rial balance; null when no price is set */
 function totalR(b){return null}   // gram balances are never converted to rial at today's price
@@ -2768,26 +2874,283 @@ function mkHover(fig,e){var svg=$('svg',fig),d=(MK.cd||{})[fig.dataset.mk]||[],b
   cur.setAttribute('x1',X);cur.setAttribute('x2',X);cur.hidden=false;
   $('.mk-read',fig).innerHTML='<b>'+toFa(r[0])+'</b> · '+fmt(Math.round(r[1]/10))+' تومان <span>(میانگین ۳۰ روزه '+fmt(Math.round(r[2]/10))+')</span>'}
 function mkTile(k,v,sub){return '<div class="kpi"><small>'+k+'</small><b>'+v+'</b><span class="sub">'+sub+'</span></div>'}
-function vMarket(){setTop('تحلیل بازار','طلا و دلار',false);
-  var H=MK.hist,L=MK.live,r=MK.range,cut=function(a){return a?a.slice(-r):[]};
-  var G=H&&H.g?mkStats(H.g):null,D=H&&H.d?mkStats(H.d):null,J=H&&H.g&&H.d&&H.o?mkJoin(H):null;
-  var gNow=L&&L.gp||G&&G.last,dNow=L&&L.usd||D&&D.last;
-  main.innerHTML='<section class="sec mk"><h2>الان<span class="sp"></span><button class="lnk" data-act="mkrefresh" type="button">به‌روزرسانی</button></h2><div class="kpis">'
-    +mkTile('هر گرم طلای ۱۸ عیار',gNow?mkT(gNow):'—',(gNow?'تومان':'')+(L&&L.gp?' · اتحادیه، ساعت '+toFa(L.time):G?' · بسته‌شدن دیروز':'')+(function(){var pv=S.prices.filter(function(x){return x.id<localDay()&&x.gp}).sort(function(a,b){return a.id<b.id?1:-1})[0];return L&&L.gp&&pv?' · نسبت به '+jdate(pv.ts)+' '+mkPct(L.gp/pv.gp-1,2):G&&!(L&&L.gp)?' · '+mkPct(G.d1,2):''})())
-    +mkTile('دلار آزاد تهران',dNow?mkT(dNow):'—',(dNow?'تومان':'')+(L&&L.usd?' · '+esc(L.usdWhen||'زنده'):D?' · بسته‌شدن آخرین روز':'')+(D?' · '+mkPct(L&&L.usd&&H.d.length?L.usd/H.d[H.d.length-1].c-1:D.d1,2):''))
-    +(L&&L.ounce?mkTile('انس جهانی طلا',fmt(L.ounce),'دلار'):'')+'</div>'
-    +'<p class="note">هر ۲ دقیقه خودش به‌روز می‌شود'+(MK.liveAt?' · آخرین دریافت '+esc(jtime(MK.liveAt)):'')+'.</p></section>'
-    +(J||G?'<section class="sec mk"><h2>تحلیل امروز</h2><ul class="mk-an">'+mkRead(G,D,J,L).map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul><p class="note">این تحلیل از روی اعداد گذشته حساب شده و پیش‌بینی قطعی نیست؛ برای تصمیم خرید و فروش، کنار تجربه‌ی خودت ببین.</p></section>'
-      :'<section class="sec mk"><div class="empty">'+(MK.busy?'در حال آوردن تاریخچه‌ی قیمت…':'تاریخچه‌ی قیمت نیامد؛ اینترنت را بررسی کن.')+'</div></section>')
-    +'<div class="chips" role="group" aria-label="بازه">'+[[30,'۱ ماه'],[90,'۳ ماه'],[180,'۶ ماه'],[365,'۱ سال']].map(function(c){return '<button class="chip'+(r===c[0]?' on':'')+'" data-act="mkrange" data-r="'+c[0]+'" type="button">'+c[1]+'</button>'}).join('')+'</div>'
-    +(H?'<section class="sec mk">'+mkChart('g',cut(H.g),'mk-gold','طلای ۱۸ عیار (تومان، هر گرم)')+'</section><section class="sec mk">'+mkChart('d',cut(H.d),'mk-usd','دلار آزاد (تومان)')+'</section>'
-      +'<details class="sec mk"><summary>جدول اعداد ('+fmt(Math.min(r,H.g.length))+' روز)</summary><div class="tw"><table class="dtable"><thead><tr><th>روز</th><th>طلای ۱۸ (تومان)</th><th>دلار (تومان)</th><th>حباب</th></tr></thead><tbody>'
-      +(J||[]).slice(-r).reverse().map(function(x){return '<tr><td>'+toFa(x.j)+'</td><td>'+mkT(x.g)+'</td><td>'+mkT(x.usd)+'</td><td>'+fmt(x.prem*100,1)+'٪</td></tr>'}).join('')+'</tbody></table></div></details>':'');
-  $$('.mkc',main).forEach(function(f){var sv=$('svg',f);sv.addEventListener('pointermove',function(e){mkHover(f,e)});sv.addEventListener('pointerdown',function(e){mkHover(f,e)})});
-  if(!H||Date.now()-MK.histAt>3600000)mkHist().then(function(){if(S.view==='market')render()});
-  if(!L||Date.now()-MK.liveAt>100000)mkLive(true).then(function(){if(S.view==='market')render()})}
+var MKS={range:90,tools:null,anim:true,prev:null};
+function vMarket(){setTop('تحلیل بازار','طلا، دلار، انس و حباب',false);if(!MKS.tools)MKS.tools=ME.TOOLS0();
+  main.innerHTML='<div class="me-top"><span><i class="ddot on"></i>زنده · هر ۲ دقیقه'+(MK.liveAt?' · آخرین دریافت '+esc(jtime(MK.liveAt)):'')+'</span><button class="lnk" data-act="mkrefresh" type="button">به‌روزرسانی</button></div>'+ME.page(MK.hist,MK.live,MKS);
+  ME.bind(main);var now=ME.liveOf(MK.hist,MK.live);ME.flashAll(main,MKS.prev,now);MKS.prev=now;
+  if(MKS.anim&&MK.hist)setTimeout(function(){MKS.anim=false},1600);
+  if(!MK.hist||Date.now()-MK.histAt>3600000)mkHist().then(function(){if(S.view==='market'){MKS.anim=true;render()}});
+  if(!MK.live||Date.now()-MK.liveAt>100000)mkLive(true).then(function(){if(S.view==='market')render()})}
+// the chart tools and the range, inside the engine's page
+document.addEventListener('click',function(e){if(S.view!=='market')return;var r=e.target.closest('[data-me-range]'),t=e.target.closest('[data-me-tool]');
+  if(r){MKS.range=+r.dataset.meRange;MKS.anim=true;render()}
+  else if(t){var k=t.closest('.me-fig').dataset.kind,set=MKS.tools[k];if(!set)return;if(set.has(t.dataset.meTool))set.delete(t.dataset.meTool);else set.add(t.dataset.meTool);render()}});
 // every 2 minutes while the page is open and in front
-setInterval(function(){if(S.view==='market'&&document.visibilityState==='visible')mkLive(true).then(function(){if(S.view==='market'&&!$('.mk-cur:not([hidden])'))render()})},120000);
+setInterval(function(){if(S.view==='market'&&document.visibilityState==='visible')mkLive(true).then(function(){if(S.view==='market'&&!document.querySelector('.me-cur[visibility="visible"]'))render()})},120000);
+/* ==== MORPH:start (copied from leon-gold-site/lib/morph.js) ==== */
+/* The move between pages (owner, 2026-11-10: "as if you never left, only the shapes changed"): the button or card
+   you tapped grows, as a sheet of gold-tinted glass, into the page that opens, then melts away over it. Shared by
+   «حساب من» (Hesab.tsx) and the ledger (copied in by offline/me-ledger.cjs). Between the site's own pages the
+   browser's view transitions do the same (globals.css). Motion: clip-path only, a strong ease-in-out (on-screen
+   morph), 480 ms; under «reduce motion» nothing moves. */
+var MORPH = (function () {
+  let last = null;
+  const track = () => {
+    if (typeof document === "undefined" || track.on) return; track.on = 1;
+    document.addEventListener("pointerdown", e => { const el = e.target && e.target.closest && e.target.closest("button, a, [role=tab], .row, .dcard"); if (el) last = { r: el.getBoundingClientRect(), t: Date.now() }; }, { capture: true, passive: true });
+  };
+  // from the last tap (if it was a moment ago) into the element that now holds the new page
+  const go = to => {
+    const tap = last; last = null;
+    if (!tap || Date.now() - tap.t > 900 || !to || !document.body.animate) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const vw = innerWidth, vh = innerHeight, b = to.getBoundingClientRect(), r = tap.r;
+    const t = { top: Math.max(0, b.top), left: Math.max(0, b.left), right: Math.min(vw, b.right), bottom: Math.min(vh, b.bottom) };
+    if (t.bottom - t.top < 40 || t.right - t.left < 40) return;
+    const ins = (x, rad) => `inset(${x.top}px ${vw - x.right}px ${vh - x.bottom}px ${x.left}px round ${rad}px)`;
+    const g = document.createElement("div"); g.className = "lg-morph"; g.setAttribute("aria-hidden", "true"); document.body.appendChild(g);
+    const a = g.animate([{ clipPath: ins(r, 16), opacity: .95 }, { clipPath: ins(t, 26), opacity: .9, offset: .62 }, { clipPath: ins(t, 26), opacity: 0 }], { duration: 480, easing: "cubic-bezier(0.77, 0, 0.175, 1)" });
+    a.onfinish = a.oncancel = () => g.remove();
+    to.animate([{ opacity: .35, transform: "scale(.985)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 140, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "backwards" });
+  };
+  return { track, go };
+})();
+
+MORPH.track();
+/* ==== MORPH:end ==== */
+/* ==== ME:start (copied from leon-gold-site/lib/marketEngine.js by me-ledger.cjs) ==== */
+/* Leon market engine (owner, 2026-11-10): the analysis and charts behind «تحلیل بازار», shared word for word by the
+   ledger (leon-gold/index.html, copied in between markers by the ledger's market script) and «حساب من» (Market.tsx).
+   Plain functions that return HTML/SVG strings, so both can use them; bind(root) wires the finger readouts.
+   Input: daily rows oldest first {d: '2026/11/09', j: '1405/08/18', c: close in rial (ounce: dollars)}.
+   Tools drawn on a chart (each can be switched off): 20- and 50-day moving averages, Bollinger bands (20, 2σ),
+   the trend channel (log-linear regression ± 2σ over the range shown), support and resistance (the range's
+   lowest and highest close). Momentum below the price: RSI 14 with its 30 and 70 lines. Two prices never share
+   an axis. */
+var ME = (function () {
+  const OZ = 31.1034768;
+  const FD = "۰۱۲۳۴۵۶۷۸۹";
+  const toFa = s => String(s).replace(/\d/g, d => FD[d]);
+  const fa = (n, d = 0) => Number(n).toLocaleString("fa-IR", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+  const tm = r => fa(Math.round(r / 10));
+  const pct = (v, d = 1) => v == null || !isFinite(v) ? "—" : (v > 0 ? "▲ " : v < 0 ? "▼ " : "") + fa(Math.abs(v * 100), d) + "٪";
+  // signed percent, kept left-to-right inside Persian text so the sign stays in front of the number
+  const sgn = (v, d = 1) => v == null || !isFinite(v) ? "—" : "⁦" + (v > 0 ? "+" : v < 0 ? "−" : "") + fa(Math.abs(v * 100), d) + "٪⁩";
+  const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+  const sd = a => { const m = mean(a); return Math.sqrt(mean(a.map(x => (x - m) * (x - m)))); };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const sma = (c, n) => c.map((_, i) => i + 1 < n ? null : mean(c.slice(i + 1 - n, i + 1)));
+  function rsiS(c, n = 14) {
+    const out = c.map(() => null); if (c.length <= n) return out;
+    let g = 0, l = 0; for (let i = 1; i <= n; i++) { const d = c[i] - c[i - 1]; if (d > 0) g += d; else l -= d; }
+    g /= n; l /= n; out[n] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    for (let i = n + 1; i < c.length; i++) { const d = c[i] - c[i - 1]; g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n; out[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); }
+    return out;
+  }
+  // a log-linear trend over a stretch: growth per 30 days, and how far the last close sits from the line (in σ)
+  function trendOf(c) {
+    const n = c.length; if (n < 5) return null; const y = c.map(Math.log), xm = (n - 1) / 2, ym = mean(y);
+    let sxy = 0, sxx = 0; for (let i = 0; i < n; i++) { sxy += (i - xm) * (y[i] - ym); sxx += (i - xm) * (i - xm); }
+    const b = sxy / sxx, a = ym - b * xm, res = y.map((v, i) => v - (a + b * i)), s = sd(res);
+    let ss = 0, st = 0; for (let i = 0; i < n; i++) { ss += res[i] * res[i]; st += (y[i] - ym) * (y[i] - ym); }
+    return { a, b, s, m30: Math.exp(b * 30) - 1, r2: st ? 1 - ss / st : 0, z: s ? res[n - 1] / s : 0, at: i => Math.exp(a + b * i) };
+  }
+  function stats(rows) {
+    const c = rows.map(r => r.c), n = c.length; if (n < 20) return null;
+    const last = c[n - 1], ago = k => n > k ? last / c[n - 1 - k] - 1 : null, ret = [];
+    for (let i = Math.max(1, n - 30); i < n; i++) ret.push(c[i] / c[i - 1] - 1);
+    const m20 = sma(c, 20), m50 = sma(c, 50), rs = rsiS(c), w30 = c.slice(-30), w90 = c.slice(-90);
+    const s20 = m20[n - 1], s50 = m50[n - 1] ?? mean(c.slice(-50)), p50 = m50[Math.max(0, n - 11)] ?? s50;
+    let peak = -Infinity, dd = 0; for (const v of w90) { peak = Math.max(peak, v); dd = Math.min(dd, v / peak - 1); }
+    let streak = 0; for (let i = n - 1; i > 0; i--) { const s = Math.sign(c[i] - c[i - 1]); if (!s) break; if (!streak || Math.sign(streak) === s) streak += s; else break; }
+    const sd20 = sd(c.slice(-20)), t90 = trendOf(w90), t30 = trendOf(w30);
+    const trend = last > s50 && s20 > s50 && s50 >= p50 ? "up" : last < s50 && s20 < s50 && s50 <= p50 ? "down" : "flat";
+    return { last, d1: ago(1), d7: ago(7), d30: ago(30), d90: ago(90), d180: ago(180), d365: ago(365), s20, s50, slope50: p50 ? s50 / p50 - 1 : 0,
+      lo30: Math.min(...w30), hi30: Math.max(...w30), lo90: Math.min(...w90), hi90: Math.max(...w90), hiAll: Math.max(...c), swing: mean(ret.map(Math.abs)), vol: sd(ret),
+      rsi: rs[n - 1] ?? 50, bbU: s20 + 2 * sd20, bbL: s20 - 2 * sd20, bbW: s20 ? 4 * sd20 / s20 : 0, dd90: dd, streak, t30, t90, trend,
+      pos30: Math.max(...w30) > Math.min(...w30) ? (last - Math.min(...w30)) / (Math.max(...w30) - Math.min(...w30)) : .5 };
+  }
+  // gold's premium: Tehran's gram against ounce × free dollar; in toman per gram, in dollars per ounce, and as the dollar gold is priced at
+  function join(H) {
+    const by = L => Object.fromEntries(L.map(r => [r.d, r.c])), D = by(H.d), O = by(H.o);
+    return H.g.filter(r => D[r.d] && O[r.d]).map(r => { const fair = O[r.d] * D[r.d] / OZ * .75; return { d: r.d, j: r.j, c: r.c / fair - 1, g: r.c, usd: D[r.d], oz: O[r.d], fair }; });
+  }
+  function bubble(H, L) {
+    const J = join(H); if (J.length < 30) return null;
+    const lastJ = J[J.length - 1], gp = L && L.gp || lastJ.g, usd = L && L.usd || lastJ.usd, oz = L && L.ounce || lastJ.oz;
+    const fair = oz * usd / OZ * .75, prem = gp / fair - 1, pr = J.map(x => x.c), a90 = mean(pr.slice(-90)), s90 = sd(pr.slice(-90)), a365 = mean(pr.slice(-365));
+    const lo = Math.min(...pr.slice(-365)), hi = Math.max(...pr.slice(-365)), rank = pr.slice(-365).filter(x => x < prem).length / Math.min(365, pr.length);
+    return { J, gp, usd, oz, fair, prem, gapT: gp - fair, impOz: gp / .75 * OZ / usd, impUsd: gp / (oz * .75 / OZ), a90, s90, a365, lo, hi, rank, z: s90 ? (prem - a90) / s90 : 0 };
+  }
+  // what moved gold over a stretch: the dollar, the world ounce, or the premium (log shares that add up)
+  function split(B, from) {
+    const J = B.J, a = J.find(x => x.d >= from), b = J[J.length - 1]; if (!a || a === b) return null;
+    return { g: Math.exp(Math.log(b.g / a.g)) - 1, d: Math.log(b.usd / a.usd), o: Math.log(b.oz / a.oz), p: Math.log((1 + b.c) / (1 + a.c)) };
+  }
+  const TR = { up: "صعودی", down: "نزولی", flat: "بی‌جهت" };
+  const LEVEL = z => z > 1.5 ? "خیلی بالاتر از معمول" : z > .5 ? "بالاتر از معمول" : z < -1.5 ? "خیلی پایین‌تر از معمول" : z < -.5 ? "پایین‌تر از معمول" : "نزدیک معمول";
+
+  // ---------- the reading: one card per subject, each line with its tone ----------
+  function verdict(B) {
+    if (!B) return null;
+    const cheap = B.z < -.5, dear = B.z > .5;
+    return { tone: cheap ? "up" : dear ? "down" : "flat",
+      title: cheap ? "طلا در ایران الان ارزان‌تر از معمول است" : dear ? "طلا در ایران الان گران‌تر از معمول است" : "طلا در ایران الان به قیمت معمول خودش است",
+      sub: `حباب ${sgn(B.prem)} (میانگین سه ماه ${sgn(B.a90)}) · ${B.gapT >= 0 ? "هر گرم " + tm(B.gapT) + " تومان بالای" : "هر گرم " + tm(-B.gapT) + " تومان زیر"} ارزش جهانی` };
+  }
+  function reading(G, D, Oz, B, H) {
+    const sec = [];
+    const asset = (S, name, unit) => {
+      if (!S) return null; const L = [];
+      L.push({ t: S.trend === "up" ? "up" : S.trend === "down" ? "down" : "flat", h: `<b>روند میان‌مدت ${TR[S.trend]}.</b> قیمت ${S.last >= S.s50 ? "بالای" : "زیر"} میانگین ۵۰ روزه (${unit(S.s50)}) و میانگین ۲۰ روزه ${S.s20 >= S.s50 ? "بالای" : "زیر"} آن؛ میانگین ۵۰ روزه در ۱۰ روز ${pct(S.slope50, 2)} ${S.slope50 > 0 ? "بالا رفته" : "پایین آمده"}.` });
+      if (S.t90) L.push({ t: S.t90.m30 > 0 ? "up" : "down", h: `<b>خط روند ۹۰ روزه:</b> ماهانه ${pct(S.t90.m30)} (قدرت روند ${fa(Math.max(0, S.t90.r2) * 100)}٪). قیمت ${Math.abs(S.t90.z) < .5 ? "روی خط" : S.t90.z > 0 ? fa(S.t90.z, 1) + " انحراف معیار بالای خط" : fa(-S.t90.z, 1) + " انحراف معیار زیر خط"} است${S.t90.z > 1.5 ? "؛ کشیده شده و جای اصلاح دارد" : S.t90.z < -1.5 ? "؛ زیادی افت کرده و جای برگشت دارد" : ""}.` });
+      L.push({ t: "flat", h: `<b>تغییرها:</b> روز ${pct(S.d1, 2)} · هفته ${pct(S.d7)} · ماه ${pct(S.d30)} · سه ماه ${pct(S.d90)}${S.d365 != null ? " · سال " + pct(S.d365) : ""}.` });
+      L.push({ t: S.pos30 > .8 ? "down" : S.pos30 < .2 ? "up" : "flat", h: `<b>حمایت و مقاومت ۳۰ روزه:</b> کف ${unit(S.lo30)} و سقف ${unit(S.hi30)}؛ قیمت در ${fa(S.pos30 * 100)}٪ این دامنه است.${S.last >= S.hi90 ? " <b>سقف تازه‌ی ۹۰ روزه.</b>" : S.last <= S.lo90 ? " <b>کف تازه‌ی ۹۰ روزه.</b>" : ""}` });
+      L.push({ t: S.rsi >= 70 ? "down" : S.rsi <= 30 ? "up" : "flat", h: `<b>RSI ${fa(S.rsi)}:</b> ${S.rsi >= 70 ? "اشباع خرید؛ معمولاً بعدش مکث یا اصلاح می‌آید." : S.rsi <= 30 ? "اشباع فروش؛ معمولاً بعدش برگشت کوچکی می‌آید." : S.rsi >= 55 ? "قدرت با خریدارهاست." : S.rsi <= 45 ? "قدرت با فروشنده‌هاست." : "متعادل."}${S.streak ? ` ${fa(Math.abs(S.streak))} روز پشت سر هم ${S.streak > 0 ? "بالا" : "پایین"}.` : ""}` });
+      L.push({ t: "flat", h: `<b>نوسان:</b> معمول روزانه ${fa(S.swing * 100, 1)}٪؛ پهنای باند بولینگر ${fa(S.bbW * 100, 1)}٪${S.bbW < .03 ? " (فشرده؛ معمولاً قبل از یک حرکت بزرگ)" : ""}. بیشترین افت از سقف در سه ماه: ${pct(S.dd90)}.` });
+      return { name, L };
+    };
+    const g = asset(G, "طلای ۱۸ عیار", v => tm(v) + " تومان"), d = asset(D, "دلار آزاد", v => tm(v) + " تومان"), o = asset(Oz, "انس جهانی", v => fa(v) + " دلار");
+    if (B) {
+      const L = [], s = split(B, H.g[Math.max(0, H.g.length - 31)].d);
+      L.push({ t: B.z < -.5 ? "up" : B.z > .5 ? "down" : "flat", h: `<b>به ریال:</b> ارزش جهانی هر گرم ۱۸ عیار (انس ${fa(B.oz)} دلار × دلار ${tm(B.usd)} تومان) ${tm(B.fair)} تومان است و بازار تهران ${tm(B.gp)} تومان؛ یعنی هر گرم <b>${tm(Math.abs(B.gapT))} تومان ${B.gapT >= 0 ? "گران‌تر" : "ارزان‌تر"}</b> (${sgn(B.prem)}).` });
+      L.push({ t: "flat", h: `<b>به انس:</b> قیمت طلای تهران با دلار آزاد یعنی انس <b>${fa(B.impOz)} دلار</b>، در حالی که انس جهانی ${fa(B.oz)} دلار است (${B.impOz >= B.oz ? "+" : "−"}${fa(Math.abs(B.impOz - B.oz))} دلار). به زبان دیگر، طلا در تهران با دلار ${tm(B.impUsd)} تومانی قیمت خورده، نه ${tm(B.usd)}.` });
+      L.push({ t: B.z < -.5 ? "up" : B.z > .5 ? "down" : "flat", h: `<b>نسبت به معمول:</b> میانگین حباب سه ماه ${sgn(B.a90)} و یک سال ${sgn(B.a365)}؛ دامنه‌ی یک سال از ${sgn(B.lo)} تا ${sgn(B.hi)}. حباب امروز ${LEVEL(B.z)} است (${fa(B.rank * 100)}٪ روزهای سال پایین‌تر بوده).` });
+      if (s) { const lead = [["دلار", s.d], ["انس جهانی", s.o], ["حباب", s.p]].sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]))[0];
+        L.push({ t: "flat", h: `<b>چه چیزی طلا را در ۳۰ روز تکان داد:</b> طلا ${pct(s.g)} = دلار ${pct(Math.exp(s.d) - 1)} + انس ${pct(Math.exp(s.o) - 1)} + حباب ${pct(Math.exp(s.p) - 1)}. بیشترین سهم با <b>${lead[0]}</b>.` }); }
+      sec.unshift({ name: "حباب طلا", L });
+    }
+    return sec.concat([g, d, o].filter(Boolean));
+  }
+  // events worth a flash: new highs and lows, a cross of the 50-day average, RSI extremes, an unusual premium
+  function events(G, D, B) {
+    const E = [];
+    const one = (S, n) => { if (!S) return;
+      if (S.last >= S.hi90) E.push({ t: "up", h: `${n}: سقف تازه‌ی ۹۰ روزه` }); else if (S.last <= S.lo90) E.push({ t: "down", h: `${n}: کف تازه‌ی ۹۰ روزه` });
+      if (S.rsi >= 70) E.push({ t: "down", h: `${n}: اشباع خرید (RSI ${fa(S.rsi)})` }); else if (S.rsi <= 30) E.push({ t: "up", h: `${n}: اشباع فروش (RSI ${fa(S.rsi)})` });
+      if (S.d1 != null && Math.abs(S.d1) > 2 * S.swing && S.swing) E.push({ t: S.d1 > 0 ? "up" : "down", h: `${n}: حرکت بزرگ امروز ${pct(S.d1)}` }); };
+    one(G, "طلا"); one(D, "دلار");
+    if (B && Math.abs(B.z) > 1) E.push({ t: B.z < 0 ? "up" : "down", h: B.z < 0 ? "حباب طلا خیلی پایین: طلا در ایران ارزان است" : "حباب طلا خیلی بالا: طلا در ایران گران است" });
+    return E;
+  }
+
+  // ---------- charts ----------
+  const REG = {}; let seq = 0;
+  const W = 360, Hh = 210, PL = 4, PR = 52, PT = 10, PB = 22;
+  function frame(n, lo, hi, h = Hh) { const x = i => PL + (W - PL - PR) * (n > 1 ? i / (n - 1) : 0), y = v => PT + (h - PT - PB) * (1 - (v - lo) / (hi - lo || 1)); return { x, y }; }
+  const path = (a, x, y) => { let s = "", on = false; a.forEach((v, i) => { if (v == null) { on = false; return; } s += (on ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1); on = true; }); return s; };
+  // tools: Set of ma20, ma50, bb, reg, sr
+  function chart(rows, all, o) {
+    const n = rows.length; if (n < 5) return '<div class="me-empty">تاریخچه‌ای نیامد.</div>';
+    const off = all.length - n, ac = all.map(r => r.c), m20 = sma(ac, 20).slice(off), m50 = sma(ac, 50).slice(off), r = rsiS(ac).slice(off);
+    const sd20 = ac.map((_, i) => i < 19 ? null : sd(ac.slice(i - 19, i + 1))).slice(off), bbU = m20.map((m, i) => m == null ? null : m + 2 * sd20[i]), bbL = m20.map((m, i) => m == null ? null : m - 2 * sd20[i]);
+    const c = rows.map(x => x.c), T = o.tools, tr = T.has("reg") ? trendOf(c) : null;
+    const tU = tr ? c.map((_, i) => tr.at(i) * Math.exp(2 * tr.s)) : [], tL = tr ? c.map((_, i) => tr.at(i) * Math.exp(-2 * tr.s)) : [], tM = tr ? c.map((_, i) => tr.at(i)) : [];
+    const vals = c.concat(T.has("ma20") ? m20 : [], T.has("ma50") ? m50 : [], T.has("bb") ? bbU.concat(bbL) : [], tr ? tU.concat(tL) : []).filter(v => v != null);
+    let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .06 || hi * .01; lo -= pad; hi += pad;
+    const { x, y } = frame(n, lo, hi), id = "me" + (++seq), fmt = o.unit === "usd" ? (v => fa(v)) : tm;
+    const sMax = Math.max(...c), sMin = Math.min(...c), last = c[n - 1], up = last >= c[0];
+    REG[id] = { rows, c, m20, m50, r, bbU, bbL, x, y, n, fmt, unit: o.unit };
+    let g = "";
+    for (let k = 0; k < 4; k++) { const v = lo + (hi - lo) * (k + .5) / 4; g += `<line class="me-gl" x1="${PL}" x2="${W - PR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="me-t" x="${W - PR + 4}" y="${(y(v) + 3).toFixed(1)}">${fmt(v)}</text>`; }
+    if (T.has("bb")) { const up2 = path(bbU, x, y), lo2 = bbL.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean).reverse().map(p => "L" + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(""); if (up2) g += `<path class="me-bb" d="${up2}${lo2}Z"/>`; }
+    if (tr) g += `<path class="me-reg" d="${path(tU, x, y)}"/><path class="me-reg" d="${path(tL, x, y)}"/><path class="me-regm" d="${path(tM, x, y)}"/>`;
+    if (T.has("sr")) g += `<line class="me-res" x1="${PL}" x2="${W - PR}" y1="${y(sMax).toFixed(1)}" y2="${y(sMax).toFixed(1)}"/><text class="me-tr" x="${PL + 2}" y="${(y(sMax) - 4).toFixed(1)}">مقاومت ${fmt(sMax)}</text>`
+      + `<line class="me-sup" x1="${PL}" x2="${W - PR}" y1="${y(sMin).toFixed(1)}" y2="${y(sMin).toFixed(1)}"/><text class="me-ts" x="${PL + 2}" y="${(y(sMin) + 12).toFixed(1)}">حمایت ${fmt(sMin)}</text>`;
+    if (T.has("ma50")) g += `<path class="me-m50" d="${path(m50, x, y)}"/>`;
+    if (T.has("ma20")) g += `<path class="me-m20" d="${path(m20, x, y)}"/>`;
+    const area = `M${x(0).toFixed(1)} ${y(lo).toFixed(1)}` + c.map((v, i) => "L" + x(i).toFixed(1) + " " + y(v).toFixed(1)).join("") + `L${x(n - 1).toFixed(1)} ${y(lo).toFixed(1)}Z`;
+    g += `<path class="me-area" d="${area}"/><path class="me-l${o.anim ? " me-draw" : ""}" pathLength="1" d="${path(c, x, y)}"/>`;
+    g += `<line class="me-base" x1="${PL}" x2="${W - PR}" y1="${Hh - PB}" y2="${Hh - PB}"/>`;
+    [0, Math.round((n - 1) / 3), Math.round(2 * (n - 1) / 3), n - 1].forEach((i, k) => { g += `<text class="me-t" x="${x(i).toFixed(1)}" y="${Hh - 6}" text-anchor="${k === 0 ? "start" : k === 3 ? "end" : "middle"}">${toFa(rows[i].j.slice(5))}</text>`; });
+    g += `<g class="me-now"><circle class="me-ring" cx="${x(n - 1).toFixed(1)}" cy="${y(last).toFixed(1)}" r="4"/><circle class="me-dot" cx="${x(n - 1).toFixed(1)}" cy="${y(last).toFixed(1)}" r="4"/></g>`
+      + `<g class="me-tag"><rect x="${W - PR + 1}" y="${(y(last) - 9).toFixed(1)}" width="${PR - 1}" height="18" rx="5"/><text x="${W - PR + 4}" y="${(y(last) + 4).toFixed(1)}">${fmt(last)}</text></g>`
+      + `<line class="me-cur" x1="0" x2="0" y1="${PT}" y2="${Hh - PB}" visibility="hidden"/><circle class="me-cd" r="4" cx="0" cy="0" visibility="hidden"/>`;
+    // RSI below, its own scale
+    const RH = 70, ry = v => 6 + (RH - 12) * (1 - v / 100);
+    let rs = `<rect class="me-rz" x="${PL}" y="${ry(70).toFixed(1)}" width="${W - PL - PR}" height="${(ry(30) - ry(70)).toFixed(1)}"/><line class="me-rl" x1="${PL}" x2="${W - PR}" y1="${ry(70)}" y2="${ry(70)}"/><line class="me-rl" x1="${PL}" x2="${W - PR}" y1="${ry(30)}" y2="${ry(30)}"/>`
+      + `<text class="me-t" x="${W - PR + 4}" y="${ry(70) + 3}">۷۰</text><text class="me-t" x="${W - PR + 4}" y="${ry(30) + 3}">۳۰</text><path class="me-rsi" d="${path(r, x, ry)}"/><line class="me-cur" x1="0" x2="0" y1="4" y2="${RH - 4}" visibility="hidden"/>`;
+    const tools = [["ma20", "میانگین ۲۰"], ["ma50", "میانگین ۵۰"], ["bb", "باند بولینگر"], ["reg", "کانال روند"], ["sr", "حمایت و مقاومت"]];
+    return `<figure class="me-fig me-${o.kind}" data-me="${id}" data-kind="${o.kind}"><figcaption><b>${esc(o.title)}</b><span class="me-chg ${up ? "up" : "dn"}">${pct(last / c[0] - 1)} در این بازه</span></figcaption>`
+      + `<div class="me-tools" role="group" aria-label="ابزارهای نمودار">${tools.map(([k, t]) => `<button type="button" class="me-tool me-k-${k}${T.has(k) ? " on" : ""}" data-me-tool="${k}" aria-pressed="${T.has(k)}"><i></i>${t}</button>`).join("")}</div>`
+      + `<p class="me-read" aria-live="polite">انگشت را روی نمودار بکش.</p>`
+      + `<svg class="me-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(o.title)}">${g}</svg>`
+      + `<div class="me-rsiw"><span class="me-rsit">RSI ۱۴ <b>${fa(r[n - 1] ?? 50)}</b></span><svg class="me-svg me-rsis" viewBox="0 0 ${W} ${RH}" aria-hidden="true">${rs}</svg></div></figure>`;
+  }
+  function bubbleChart(B, n, anim) {
+    const J = B.J.slice(-n); if (J.length < 5) return "";
+    const p = J.map(x => x.c), a = B.a90, vals = p.concat([0, a]); let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .1 || .01; lo -= pad; hi += pad;
+    const { x, y } = frame(J.length, lo, hi), id = "me" + (++seq);
+    REG[id] = { rows: J, c: p, x, y, n: J.length, fmt: v => sgn(v), unit: "pct", bub: true };
+    let g = ""; for (let k = 0; k < 4; k++) { const v = lo + (hi - lo) * (k + .5) / 4; g += `<line class="me-gl" x1="${PL}" x2="${W - PR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="me-t" x="${W - PR + 4}" y="${(y(v) + 3).toFixed(1)}">${sgn(v, 0)}</text>`; }
+    const z = y(0).toFixed(1), area = `M${x(0).toFixed(1)} ${z}` + p.map((v, i) => "L" + x(i).toFixed(1) + " " + y(v).toFixed(1)).join("") + `L${x(J.length - 1).toFixed(1)} ${z}Z`;
+    g += `<clipPath id="${id}a"><rect x="0" y="0" width="${W}" height="${z}"/></clipPath><clipPath id="${id}b"><rect x="0" y="${z}" width="${W}" height="${Hh}"/></clipPath>`
+      + `<path class="me-bpos" clip-path="url(#${id}a)" d="${area}"/><path class="me-bneg" clip-path="url(#${id}b)" d="${area}"/>`
+      + `<line class="me-zero" x1="${PL}" x2="${W - PR}" y1="${z}" y2="${z}"/><line class="me-avg" x1="${PL}" x2="${W - PR}" y1="${y(a).toFixed(1)}" y2="${y(a).toFixed(1)}"/><text class="me-tr" x="${PL + 2}" y="${(y(a) - 4).toFixed(1)}">میانگین سه ماه ${sgn(a)}</text>`
+      + `<path class="me-l me-lb${anim ? " me-draw" : ""}" pathLength="1" d="${path(p, x, y)}"/><line class="me-base" x1="${PL}" x2="${W - PR}" y1="${Hh - PB}" y2="${Hh - PB}"/>`;
+    [0, Math.round((J.length - 1) / 2), J.length - 1].forEach((i, k) => { g += `<text class="me-t" x="${x(i).toFixed(1)}" y="${Hh - 6}" text-anchor="${k === 0 ? "start" : k === 2 ? "end" : "middle"}">${toFa(J[i].j.slice(5))}</text>`; });
+    g += `<g class="me-now"><circle class="me-ring" cx="${x(J.length - 1).toFixed(1)}" cy="${y(p[p.length - 1]).toFixed(1)}" r="4"/><circle class="me-dot" cx="${x(J.length - 1).toFixed(1)}" cy="${y(p[p.length - 1]).toFixed(1)}" r="4"/></g><line class="me-cur" x1="0" x2="0" y1="${PT}" y2="${Hh - PB}" visibility="hidden"/><circle class="me-cd" r="4" cx="0" cy="0" visibility="hidden"/>`;
+    return `<figure class="me-fig me-bub" data-me="${id}"><figcaption><b>حباب طلا (٪ نسبت به ارزش انس × دلار آزاد)</b><span class="me-chg ${B.prem <= B.a90 ? "up" : "dn"}">امروز ${sgn(B.prem)}</span></figcaption>`
+      + `<p class="me-read" aria-live="polite">بالای صفر: گران‌تر از ارزش جهانی · زیر صفر: ارزان‌تر</p><svg class="me-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="حباب طلا">${g}</svg></figure>`;
+  }
+  // the finger readout on every chart inside root
+  function bind(root) {
+    root.querySelectorAll(".me-fig").forEach(f => {
+      if (f.__meb) return; f.__meb = 1; const R = REG[f.dataset.me]; if (!R) return;
+      const svgs = f.querySelectorAll(".me-svg"), read = f.querySelector(".me-read");
+      const go = e => { const b = svgs[0].getBoundingClientRect(), fx = (e.clientX - b.left) / b.width * W, i = Math.max(0, Math.min(R.n - 1, Math.round((fx - PL) / (W - PL - PR) * (R.n - 1)))), X = R.x(i);
+        f.querySelectorAll(".me-cur").forEach(l => { l.setAttribute("x1", X); l.setAttribute("x2", X); l.setAttribute("visibility", "visible"); });
+        const cd = f.querySelector(".me-cd"); if (cd) { cd.setAttribute("cx", X); cd.setAttribute("cy", R.y(R.c[i])); cd.setAttribute("visibility", "visible"); }
+        const r = R.rows[i], prev = i ? R.c[i - 1] : null;
+        read.innerHTML = `<b>${toFa(r.j)}</b> · ${R.bub ? "حباب " + sgn(R.c[i]) + " · طلا " + tm(r.g) + " · ارزش جهانی " + tm(r.fair) + " تومان" : R.fmt(R.c[i]) + (R.unit === "usd" ? " دلار" : " تومان") + (prev ? ` <span class="${R.c[i] >= prev ? "up" : "dn"}">${pct(R.c[i] / prev - 1, 2)}</span>` : "") + (R.m20[i] ? ` · م۲۰ ${R.fmt(R.m20[i])}` : "") + (R.m50[i] ? ` · م۵۰ ${R.fmt(R.m50[i])}` : "") + (R.r[i] != null ? ` · RSI ${fa(R.r[i])}` : "")}`; };
+      svgs.forEach(s => { s.addEventListener("pointermove", go); s.addEventListener("pointerdown", go); });
+    });
+  }
+  // a live number that changed: it rolls in and its card glows green or red for a moment
+  function flash(el, dir) {
+    if (!el || !el.animate || (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    const col = dir > 0 ? "rgba(15,122,82,.28)" : "rgba(163,57,43,.26)", ease = "cubic-bezier(0.23, 1, 0.32, 1)";
+    el.animate([{ boxShadow: `0 0 0 3px ${col}, 0 0 28px ${col}` }, { boxShadow: "0 0 0 0 transparent, 0 0 0 transparent" }], { duration: 1400, easing: ease });
+    const b = el.querySelector("b"); if (b) b.animate([{ transform: `translateY(${dir > 0 ? 40 : -40}%)`, opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 420, easing: ease });
+  }
+  // ---------- the whole page: verdict, events, live tiles, range, four charts, the reading ----------
+  // st: { range: 30|90|180|365, tools: { gold: Set, usd: Set, oz: Set }, anim: bool }
+  function page(H, L, st) {
+    if (!H || !H.g || H.g.length < 20) return '<div class="me-page"><div class="me-load" role="status"><i></i><i></i><i></i><span>در حال آوردن تاریخچه‌ی قیمت…</span></div></div>';
+    const G = stats(H.g), D = stats(H.d), O = stats(H.o), B = bubble(H, L), V = verdict(B), E = events(G, D, B), n = st.range;
+    const gp = L && L.gp || G.last, usd = L && L.usd || D && D.last, oz = L && L.ounce || O && O.last;
+    const tile = (k, name, v, unit, sub, cls) => `<div class="me-tile${cls ? " " + cls : ""}" data-me-live="${k}"><small>${name}</small><b>${v}</b><span>${unit}</span><em>${sub}</em></div>`;
+    const R = reading(G, D, O, B, H);
+    return '<div class="me-page">'
+      + (V ? `<section class="me-hero me-tone-${V.tone}"><span class="me-hk">جمع‌بندی امروز</span><h2>${V.title}</h2><p>${V.sub}</p>`
+        + (E.length ? `<div class="me-ev">${E.map((e, i) => `<span class="me-e me-e-${e.t}" style="--i:${i}">${e.h}</span>`).join("")}</div>` : "") + "</section>" : "")
+      + '<div class="me-now">'
+      + tile("gp", "طلای ۱۸ عیار · هر گرم", tm(gp), "تومان", `روز ${pct(G.d1, 2)} · ماه ${pct(G.d30)}`, "")
+      + (usd ? tile("usd", "دلار آزاد تهران", tm(usd), "تومان", D ? `روز ${pct(D.d1, 2)} · ماه ${pct(D.d30)}` : "", "") : "")
+      + (oz ? tile("oz", "انس جهانی طلا", fa(oz), "دلار", O ? `روز ${pct(O.d1, 2)} · ماه ${pct(O.d30)}` : "", "") : "")
+      + (B ? tile("prem", "حباب طلا", sgn(B.prem), B.gapT >= 0 ? "گران‌تر از جهانی" : "ارزان‌تر از جهانی", `هر گرم ${tm(Math.abs(B.gapT))} تومان · انس تهران ${fa(B.impOz)} دلار`, B.z < -.5 ? "is-up" : B.z > .5 ? "is-dn" : "") : "")
+      + "</div>"
+      + `<div class="me-range" role="group" aria-label="بازه‌ی نمودارها">${[[30, "۱ ماه"], [90, "۳ ماه"], [180, "۶ ماه"], [365, "۱ سال"]].map(([v, t]) => `<button type="button" data-me-range="${v}" class="${n === v ? "on" : ""}" aria-pressed="${n === v}">${t}</button>`).join("")}</div>`
+      + '<div class="me-charts">'
+      + chart(H.g.slice(-n), H.g, { tools: st.tools.gold, kind: "gold", title: "طلای ۱۸ عیار · تومان هر گرم", unit: "rial", anim: st.anim })
+      + (H.d.length > 20 ? chart(H.d.slice(-n), H.d, { tools: st.tools.usd, kind: "usd", title: "دلار آزاد · تومان", unit: "rial", anim: st.anim }) : "")
+      + (B ? bubbleChart(B, n, st.anim) : "")
+      + (H.o.length > 20 ? chart(H.o.slice(-n), H.o, { tools: st.tools.oz, kind: "oz", title: "انس جهانی طلا · دلار", unit: "usd", anim: st.anim }) : "")
+      + "</div>"
+      + `<div class="me-reading">${R.map(s => `<section class="me-rc"><h3>${s.name}</h3><ul>${s.L.map(l => `<li class="me-li me-li-${l.t}">${l.h}</li>`).join("")}</ul></section>`).join("")}</div>`
+      + '<p class="me-note">این تحلیل از روی قیمت‌های گذشته (tgju و تابلوی اتحادیه) حساب شده و پیش‌بینی قطعی نیست؛ برای تصمیم، کنار تجربه‌ی بازار خودتان ببینید. حباب با فرض ۰٫۷۵ عیار و ۳۱٫۱ گرم در هر انس حساب شده.</p>'
+      + "</div>";
+  }
+  const TOOLS0 = () => ({ gold: new Set(["ma20", "ma50", "bb", "sr"]), usd: new Set(["ma20", "ma50", "reg"]), oz: new Set(["ma50", "reg"]) });
+  // the live values a page shows, to compare with the next refresh
+  function liveOf(H, L) { const B = H && bubble(H, L); return { gp: L && L.gp || 0, usd: L && L.usd || 0, oz: L && L.ounce || 0, prem: B ? B.prem : 0 }; }
+  // after a refresh: flash each tile whose number moved
+  function flashAll(root, before, after) { if (!before) return; ["gp", "usd", "oz", "prem"].forEach(k => { const a = before[k], b = after[k]; if (a && b && Math.abs(b - a) > Math.abs(a) * 1e-6) flash(root.querySelector(`[data-me-live="${k}"]`), b > a ? 1 : -1); }); }
+
+  return { page, TOOLS0, liveOf, flashAll, OZ, fa, tm, pct, sgn, toFa, stats, bubble, verdict, reading, events, chart, bubbleChart, bind, flash, TR };
+})();
+
+/* ==== ME:end ==== */
 /* market price: the Tehran gold union board (estjt.ir), copied every few minutes by a GitHub Action into price.json on the
    app repo's price branch; if that is missing or over 40 minutes old, tgju (CORS-open) as before. A suggestion the
    owner confirms, never saved on its own. Cached 5 minutes; any failure (offline, holiday, odd value) just means no suggestion. */
@@ -3617,7 +3980,7 @@ document.addEventListener('click',function(e){
       leadSet(id,'confirmed',{confirmedAt:new Date().toISOString()}).then(function(ok){if(ok){toast('سفارش تایید شد؛ مشتری همین الان می‌بیند.');if(window.__leonSync)window.__leonSync.now()}});break}
     case 'drange':S.drange=+b.dataset.r;render();break;
     case 'dbar':{var rd=$('.dread');if(rd)rd.textContent=b.dataset.t;$$('.dbars .sel').forEach(function(x){x.classList.remove('sel')});b.classList.add('sel');break}
-    case 'mkrange':MK.range=+b.dataset.r;render();break;
+    
     case 'mkrefresh':toast('در حال به‌روزرسانی…');Promise.all([mkLive(true),mkHist(true)]).then(function(){if(S.view==='market')render()});break;
     case 'ffilter':S.ffilter=b.dataset.f;render();break;
     case 'leadseen':leadSet(id,'talking').then(function(ok){if(ok)toast('از فهرست سفارش‌های تازه برداشته شد')});break;
