@@ -222,7 +222,9 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
 @keyframes lgLdVein{0%,40%{stroke-dashoffset:1}70%,88%{stroke-dashoffset:0}100%{stroke-dashoffset:-1}}
 @keyframes lgLdGlow{50%{opacity:.55}}
 @media (prefers-reduced-motion:reduce){.lg-ld-ring{animation:none}.lg-ld-leaf{animation:lgLdGlow 2.4s ease infinite;stroke-dashoffset:0;fill-opacity:1}.lg-ld-vein{animation:none;stroke-dashoffset:0}}
-.lg-morph{position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%,rgba(226,203,148,.55),rgba(201,162,76,.28) 45%,rgba(19,52,35,.22));-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);box-shadow:inset 0 0 0 1px rgba(226,203,148,.6)}
+.lg-old{position:fixed;z-index:15;pointer-events:none;overflow:hidden}
+.lg-ring{position:fixed;z-index:42;pointer-events:none;border-radius:50%;border:1.5px solid rgba(226,203,148,.95);box-shadow:0 0 0 1px rgba(201,162,76,.35),0 0 26px 4px rgba(226,203,148,.45),inset 0 0 22px rgba(226,203,148,.35);box-sizing:border-box}
+.lg-tapglow{position:fixed;z-index:43;pointer-events:none;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(255,243,207,.95),rgba(226,203,148,.5) 35%,transparent 70%)}
 @view-transition{navigation:auto}.top{view-transition-name:lg-bar}::view-transition-group(*){animation-duration:.42s;animation-timing-function:cubic-bezier(0.77,0,0.175,1)}@media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:.01s!important}}
 </style><!--lg-motion-->
 <link rel="manifest" href="manifest.webmanifest?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#06140e"><link rel="icon" href="icon-180.png?v=2"></head><body>
@@ -397,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-10 08:50</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-10 09:21</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2017,6 +2019,7 @@ function setTop(title,sub,backBtn){
 }
 var lastVK='',vinT=0;
 function render(){
+  if(lastVK&&S.view+'|'+(S.param||'')!==lastVK)MORPH.before(main); // freeze the page being left (lib/morph.js)
   var sp=document.getElementById('splash');if(sp)sp.remove();
   var v=S.view,editing=EDITING[v];document.body.dataset.view=v;$('#fab').hidden=true;
   $('#nav').hidden=!!editing;$('#menuBtn').hidden=!!editing||S.noaccess;$('#act').hidden=v!=='inv';document.body.classList.toggle('noact',v!=='inv');if(editing)menu(false);var ml=$('#menuLock');if(ml)ml.hidden=!lockOn();var mp=$('#menuPanel');if(mp)mp.hidden=!panelOK();menuProf();
@@ -2032,7 +2035,7 @@ function render(){
   setTimeout(function(){$$('.meName').forEach(function(x){x.textContent=S.me&&S.me.name||''})},0);
   ({home:vHome,backup:vBackup,users:vUsers,profile:vProfile,invoices:vInvoices,parties:vParties,party:vParty,settlements:vSettlements,pform:vPform,set:vSet,inv:vInv,log:vLog,products:vProducts,product:vProduct,prform:vPrform,orders:vOrders,feed:vFeed,market:vMarket,oform:vOform,report:vReport,eval:vEval,targets:vTargets,tform:vTform,expenses:vExpenses,xform:vXform,admin:vAdmin,aparty:vAParty,vitrin:vVitrin,vform:vVform})[v]();if(v==='prform')prformReady();
   $('#fab').hidden=!!editing||v==='home';
-  var vk=v+'|'+(S.param||'');if(vk!==lastVK){if(lastVK)MORPH.go(main);lastVK=vk;main.classList.remove('vin');void main.offsetWidth;main.classList.add('vin');clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
+  var vk=v+'|'+(S.param||'');if(vk!==lastVK){var mo=lastVK&&MORPH.after(main);lastVK=vk;main.classList.remove('vin');if(!mo){void main.offsetWidth;main.classList.add('vin')}clearTimeout(vinT);vinT=setTimeout(function(){main.classList.remove('vin')},600)}
 }
 /* gram balance valued at today's 18-carat gram price, plus the rial balance; null when no price is set */
 function totalR(b){return null}   // gram balances are never converted to rial at today's price
@@ -2888,32 +2891,60 @@ document.addEventListener('click',function(e){if(S.view!=='market')return;var r=
 // every 2 minutes while the page is open and in front
 setInterval(function(){if(S.view==='market'&&document.visibilityState==='visible')mkLive(true).then(function(){if(S.view==='market'&&!document.querySelector('.me-cur[visibility="visible"]'))render()})},120000);
 /* ==== MORPH:start (copied from leon-gold-site/lib/morph.js) ==== */
-/* The move between pages (owner, 2026-11-10: "as if you never left, only the shapes changed"): the button or card
-   you tapped grows, as a sheet of gold-tinted glass, into the page that opens, then melts away over it. Shared by
-   «حساب من» (Hesab.tsx) and the ledger (copied in by offline/me-ledger.cjs). Between the site's own pages the
-   browser's view transitions do the same (globals.css). Motion: clip-path only, a strong ease-in-out (on-screen
-   morph), 480 ms; under «reduce motion» nothing moves. */
+/* The move between pages, second version (owner, 2026-11-10: "the page opened faster than the transition, and it looked
+   plain"). Now the transition IS the opening: the page you leave is frozen in place the moment you tap, the new page is
+   drawn underneath and shows itself only through a circle that opens from your finger, with a gold vault ring riding
+   its edge; the old page sinks back and dims behind it; then the new page's cards settle in one after another.
+   Shared by «حساب من» (Hesab.tsx) and the ledger (copied in by offline/me-ledger.cjs); the site's own pages do the
+   same with the browser's view transition (layout.tsx, VT_REVEAL).
+   Use: MORPH.before(container) just before the content changes, MORPH.after(container) just after (same tick or the
+   next layout effect). Motion: clip-path circle + transform/opacity, 640 ms strong ease-in-out (an on-screen morph);
+   the cards 420 ms ease-out, 45 ms apart. Under «reduce motion»: a 160 ms cross-fade, nothing moves. */
 var MORPH = (function () {
-  let last = null;
+  let tap = null, shot = null;
+  const EIO = "cubic-bezier(0.77, 0, 0.175, 1)", EO = "cubic-bezier(0.23, 1, 0.32, 1)", D = 640;
+  const reduce = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const track = () => {
     if (typeof document === "undefined" || track.on) return; track.on = 1;
-    document.addEventListener("pointerdown", e => { const el = e.target && e.target.closest && e.target.closest("button, a, [role=tab], .row, .dcard"); if (el) last = { r: el.getBoundingClientRect(), t: Date.now() }; }, { capture: true, passive: true });
+    document.addEventListener("pointerdown", e => { tap = { x: e.clientX, y: e.clientY, t: Date.now() }; }, { capture: true, passive: true });
   };
-  // from the last tap (if it was a moment ago) into the element that now holds the new page
-  const go = to => {
-    const tap = last; last = null;
-    if (!tap || Date.now() - tap.t > 900 || !to || !document.body.animate) return;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const vw = innerWidth, vh = innerHeight, b = to.getBoundingClientRect(), r = tap.r;
-    const t = { top: Math.max(0, b.top), left: Math.max(0, b.left), right: Math.min(vw, b.right), bottom: Math.min(vh, b.bottom) };
-    if (t.bottom - t.top < 40 || t.right - t.left < 40) return;
-    const ins = (x, rad) => `inset(${x.top}px ${vw - x.right}px ${vh - x.bottom}px ${x.left}px round ${rad}px)`;
-    const g = document.createElement("div"); g.className = "lg-morph"; g.setAttribute("aria-hidden", "true"); document.body.appendChild(g);
-    const a = g.animate([{ clipPath: ins(r, 16), opacity: .95 }, { clipPath: ins(t, 26), opacity: .9, offset: .62 }, { clipPath: ins(t, 26), opacity: 0 }], { duration: 480, easing: "cubic-bezier(0.77, 0, 0.175, 1)" });
-    a.onfinish = a.oncancel = () => g.remove();
-    to.animate([{ opacity: .35, transform: "scale(.985)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 140, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "backwards" });
+  const ground = () => { const b = getComputedStyle(document.body).backgroundColor, h = getComputedStyle(document.documentElement).backgroundColor; return b && b !== "rgba(0, 0, 0, 0)" ? b : h && h !== "rgba(0, 0, 0, 0)" ? h : "#07130e"; };
+  // freeze what is on screen now, exactly where it is
+  const before = el => {
+    if (shot) { shot.layer.remove(); shot = null; }
+    if (!el || !document.body.animate || !tap || Date.now() - tap.t > 1200) return;
+    const r = el.getBoundingClientRect(), layer = document.createElement("div"), copy = el.cloneNode(true);
+    const v = { top: Math.max(0, r.top), left: Math.max(0, r.left), right: Math.min(innerWidth, r.right), bottom: Math.min(innerHeight, r.bottom) };
+    Object.assign(layer.style, { top: v.top + "px", left: v.left + "px", width: v.right - v.left + "px", height: Math.max(0, v.bottom - v.top) + "px" });
+    layer.className = "lg-old"; layer.setAttribute("aria-hidden", "true"); layer.inert = true;
+    copy.removeAttribute("id"); copy.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
+    Object.assign(copy.style, { position: "absolute", top: r.top - v.top + "px", left: r.left - v.left + "px", width: r.width + "px", margin: "0", animation: "none" });
+    layer.style.background = ground(); layer.appendChild(copy); document.body.appendChild(layer);
+    shot = { layer, x: tap.x, y: tap.y }; tap = null;
   };
-  return { track, go };
+  // open the new page from the finger, the old one sinking behind it
+  const after = el => {
+    const s = shot; shot = null; if (!s) return false;
+    if (!el || reduce()) { if (el) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease" }); s.layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease" }).onfinish = () => s.layer.remove(); return true; }
+    const vw = innerWidth, vh = innerHeight, R = Math.hypot(Math.max(s.x, vw - s.x), Math.max(s.y, vh - s.y)) + 30;
+    const keep = { position: el.style.position, zIndex: el.style.zIndex, background: el.style.background, minHeight: el.style.minHeight };
+    Object.assign(el.style, { position: keep.position || "relative", zIndex: "16", background: ground(), minHeight: "100vh" });
+    const b = el.getBoundingClientRect(), cx = s.x - b.left, cy = s.y - b.top;
+    const reveal = el.animate([{ clipPath: `circle(0px at ${cx}px ${cy}px)` }, { clipPath: `circle(${R}px at ${cx}px ${cy}px)` }], { duration: D, easing: EIO });
+    s.layer.firstChild.animate([{ transform: "scale(1)", opacity: 1, filter: "brightness(1)" }, { transform: "scale(.93)", opacity: .35, filter: "brightness(.7)" }], { duration: D, easing: EIO, fill: "forwards" });
+    // the ring on the opening's edge, and a soft gold flash where the finger was
+    const ring = document.createElement("div"); ring.className = "lg-ring"; ring.setAttribute("aria-hidden", "true"); document.body.appendChild(ring);
+    ring.animate([{ left: s.x + "px", top: s.y + "px", width: "0px", height: "0px", opacity: 1 }, { left: s.x - R + "px", top: s.y - R + "px", width: 2 * R + "px", height: 2 * R + "px", opacity: .9, offset: .8 }, { left: s.x - R + "px", top: s.y - R + "px", width: 2 * R + "px", height: 2 * R + "px", opacity: 0 }], { duration: D, easing: EIO, fill: "forwards" });
+    const dot = document.createElement("div"); dot.className = "lg-tapglow"; dot.setAttribute("aria-hidden", "true"); dot.style.left = s.x + "px"; dot.style.top = s.y + "px"; document.body.appendChild(dot);
+    dot.animate([{ transform: "translate(-50%,-50%) scale(.2)", opacity: .9 }, { transform: "translate(-50%,-50%) scale(1.6)", opacity: 0 }], { duration: 520, easing: EO, fill: "forwards" });
+    // the new page's cards settle in, one after another
+    const kids = Array.from(el.children).filter(k => k.getBoundingClientRect().top < vh).slice(0, 8);
+    kids.forEach((k, i) => k.animate([{ transform: "translateY(18px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 420, delay: 180 + i * 45, easing: EO, fill: "backwards" }));
+    const done = () => { s.layer.remove(); ring.remove(); dot.remove(); Object.assign(el.style, keep); el.style.clipPath = ""; };
+    reveal.onfinish = done; reveal.oncancel = done;
+    return true;
+  };
+  return { track, before, after, go: el => after(el) };
 })();
 
 MORPH.track();
