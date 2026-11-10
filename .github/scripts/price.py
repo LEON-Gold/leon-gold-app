@@ -30,6 +30,16 @@ for name in ['طلا ۱۸ عیار', 'طلای ۲۴ عیار', 'مظنه تهر�
     if b:
         board.append({'name': name, 'value': num(b.group(2)) if b.group(1) else num(b.group(2)) * 10, 'unit': 'usd' if b.group(1) else 'rial'})
 
+# the free-market dollar in Tehran (tgju, rial), for the ledger's market page (owner, 2026-11-10); best effort: no dollar, no harm
+usd = None
+try:
+    r = urllib.request.Request('https://call1.tgju.org/ajax.json', headers={'User-Agent': 'Mozilla/5.0 (leon-gold price check)'})
+    c = json.loads(urllib.request.urlopen(r, timeout=20).read().decode('utf-8', 'replace'))['current']['price_dollar_rl']
+    if 1e5 < num(c['p']) < 1e8:
+        usd = {'p': num(c['p']), 'h': num(c.get('h', '0')), 'l': num(c.get('l', '0')), 't': str(c.get('t', '')), 'ts': str(c.get('ts', ''))}
+except Exception as e:
+    print('dollar not read:', e)
+
 out = {
     'source': 'estjt',
     'gp': gp,
@@ -38,6 +48,7 @@ out = {
     'time': up.group(2).translate(FA)[:5] if up else '',
     'fetched': datetime.now(timezone.utc).isoformat(timespec='seconds'),
     'board': board,
+    'usd': usd,
 }
 json.dump(out, open('price.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print(out)
