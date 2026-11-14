@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 09:10</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 09:33</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2020,9 +2020,12 @@ function leadAlert(){var seen={},key='lg-leads-seen';try{seen=JSON.parse(localSt
    it waits here until it is tied to a party (a new one, or one already in the ledger) or turned down
    (leon-gold-server/portal.mjs /api/portal/signup*). The password never reaches the ledger. ---------- */
 function suSeen(){try{return JSON.parse(localStorage.getItem('lg-su-ok')||'{}')}catch(e){return {}}}
-function pendingSignups(){var ok=suSeen();return (S.signups||[]).filter(function(x){return x.status==='pending'||(x.status==='auto'&&!ok[x.id])}).sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1})}
+function pendingSignups(){var ok=suSeen();return (S.signups||[]).filter(function(x){return x.status==='pending'||(x.status==='auto'&&!x.seen&&!ok[x.id])}).sort(function(a,b){return (b.ts||'')<(a.ts||'')?-1:1})}
 function suMatch(x){var m=fanum(x.mobile||'').replace(/\D/g,'');if(!m)return null;for(var i=0;i<S.parties.length;i++)if(fanum(S.parties[i].phone||'').replace(/\D/g,'').slice(-10)===m.slice(-10))return S.parties[i];return null}
+var SU_MOVED={};
 function signupAlert(){var seen={},key='lg-su-seen';try{seen=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+  // a «دیدم» pressed before it was shared (only in this device's storage) is written onto the sign-up once, for every device
+  var ok0=suSeen();if(S.db)(S.signups||[]).forEach(function(x){if(x.status==='auto'&&!x.seen&&ok0[x.id]&&!SU_MOVED[x.id]){SU_MOVED[x.id]=1;var d=Object.assign({},x);delete d.id;d.seen=new Date().toISOString();S.db.collection('signups').doc(x.id).set(d).catch(function(){})}});
   var L=pendingSignups(),fresh=L.filter(function(x){return !seen[x.id]});
   if(fresh.length){toast(fresh.length===1?'ثبت‌نام تازه در «حساب من»: '+(fresh[0].fullName||''):fmt(fresh.length)+' ثبت‌نام تازه در «حساب من»');fresh.forEach(function(x){seen[x.id]=1});try{localStorage.setItem(key,JSON.stringify(seen))}catch(e){}}
   feedBadge();var it=$('#nav [data-tab=parties]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
@@ -4231,7 +4234,10 @@ document.addEventListener('click',function(e){
     case 'neworder':S.oItems=null;go('oform',b.dataset.pid?{partyId:b.dataset.pid}:null);break;
     case 'newself':S.oItems=null;go('oform',{self:true});break;
     case 'leadorder':{var ld=leadById(id);if(ld){var vx=leadVit(ld);S.oItems=[{desc:ld.what||'',qty:1,weight:vx&&vx.weight?String(vx.weight):'',carat:vx&&vx.carat?String(Math.round(labOf(vx.carat))):'',note:'',supId:vx&&vx.supId&&partyById(vx.supId)?vx.supId:''}];go('oform',{partyId:ld.partyId||'',lead:ld.id,note:ld.note||''})}break}
-    case 'suok':{var ok=suSeen();ok[id]=1;try{localStorage.setItem('lg-su-ok',JSON.stringify(ok))}catch(e){}render();signupAlert();break}
+    // «دیدم» is kept on the sign-up itself, so every device of the ledger stops showing it (owner, 2026-11-14); the server only notifies on a new one
+    case 'suok':{var ok=suSeen();ok[id]=1;try{localStorage.setItem('lg-su-ok',JSON.stringify(ok))}catch(e){}
+      var sx=null;(S.signups||[]).forEach(function(x){if(x.id===id)sx=x});if(sx&&S.db){var sd=Object.assign({},sx);delete sd.id;sd.seen=new Date().toISOString();S.db.collection('signups').doc(id).set(sd).catch(function(e){toast(dberr(e))})}
+      render();signupAlert();break}
     case 'bizedit':bizDialog();break;
     case 'vtagedit':vtagDialog();break;
     case 'vcatedit':vcatDialog();break;
