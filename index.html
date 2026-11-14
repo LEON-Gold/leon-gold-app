@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 01:35</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 09:10</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1741,9 +1741,15 @@ function prodLabel(p){return (p.code?toFa(fanum(p.code))+' ':'')+p.name}
 function prodUnitW(p){var s=S.stock&&S.stock[p.id];return s&&s.q>0&&s.g>0.0005?Math.round(s.g/s.q*1000)/1000:(p.unitW||0)}
 // an invoice row from a product: its label, weight for the count, purity and wage; the owner corrects it if needed
 function prodFill(tr,p){var q=num($('.q',tr).value)||1,set=function(c,v){var e=$(c,tr);if(e)e.value=v};
-  set('td:nth-child(2) input',prodLabel(p));set('.q',plain(q));var uw=prodUnitW(p);set('.w',uw?plain(Math.round(uw*q*1000)/1000,3):'');
+  set('td:nth-child(2) input',prodLabel(p));set('.q',plain(q));var uw=prodUnitW(p);set('.w',uw?plain(Math.round(uw*q*1000)/1000,3):'');if(uw)tr.dataset.uw=uw;else delete tr.dataset.uw;
   var pl=Math.round(labOf(p.carat||(S.kind==='whole'?750:18))),kc=karatOf(p.carat||18);set('.c',S.kind==='whole'?(pl!==750?plain(pl):''):(kc!==18?plain(kc):''));
-  set('.aj',p.ajrat?plain(p.ajrat,2):'');fire($('.w',tr),'input');S.dirty=true}
+  set('.aj',p.ajrat?plain(p.ajrat,2):'');AUTO_W=true;try{fire($('.w',tr),'input')}finally{AUTO_W=false}S.dirty=true}
+/* a product's row: changing its count changes its weight (one piece × count) until the owner types a weight by hand (owner, 2026-11-14) */
+var AUTO_W=false;
+document.addEventListener('input',function(e){var x=e.target,tr=x&&x.closest&&x.closest('#rt tbody tr,#wt tbody tr');if(!tr||!tr.dataset.uw)return;
+  if(x.classList.contains('w')){if(!AUTO_W)delete tr.dataset.uw;return}
+  if(!x.classList.contains('q'))return;var q=num(x.value),w=$('.w',tr);if(!w||!(q>0))return;
+  AUTO_W=true;try{w.value=plain(Math.round(+tr.dataset.uw*q*1000)/1000,3);fire(w,'sync');fire(w,'input')}finally{AUTO_W=false}},true);
 /* pick a product for an invoice row: every product with its photo, what is in stock first */
 function prodPick(i){computeStock();
   var all=S.products.slice().sort(function(a,b){var x=(S.stock[a.id]||{q:0}).q>0,y=(S.stock[b.id]||{q:0}).q>0;return (y-x)||(a.name||'').localeCompare(b.name||'','fa')}),only=false;
@@ -1751,9 +1757,9 @@ function prodPick(i){computeStock();
   m.innerHTML='<div class="box" role="dialog" aria-modal="true" aria-label="انتخاب کالا"><div class="ppk-h"><b>انتخاب از کالاها و موجودی</b><button class="btn sm" data-n type="button">بستن</button></div>'
    +'<input class="srch" type="search" placeholder="جست‌وجوی نام یا کد" aria-label="جست‌وجوی کالا"><div class="chips"><button class="chip" type="button" data-f="all" aria-pressed="true">همه‌ی کالاها</button><button class="chip" type="button" data-f="in" aria-pressed="false">فقط موجود</button></div><div class="list ppk-l"></div></div>';
   document.body.appendChild(m);var L=$('.ppk-l',m),q=$('input',m);
-  var draw=function(){var t=fanum(q.value).toLowerCase();L.innerHTML=all.filter(function(p){var st=S.stock[p.id]||{q:0,g:0};return (!only||st.q>0)&&(!t||fanum(prodLabel(p)).toLowerCase().indexOf(t)>=0)}).map(function(p){var st=S.stock[p.id]||{q:0,g:0},uw=prodUnitW(p);
+  var draw=function(){var t=fanum(q.value).toLowerCase();L.innerHTML=all.filter(function(p){var st=S.stock[p.id]||{q:0,g:0};return (!only||st.q>0)&&(!t||fanum(prodLabel(p)).toLowerCase().indexOf(t)>=0)}).map(function(p){var st=S.stock[p.id]||{q:0,g:0};
     return '<button class="row" type="button" data-p="'+esc(p.id)+'"><span class="t">'+(p.photo?'<img class="thumb" src="'+esc(photoURL(p.photo))+'" alt="" loading="lazy">':'<i class="thumb ppk-no" aria-hidden="true"></i>')+esc(p.name)+(p.code?'<span class="badge">'+esc(toFa(fanum(p.code)))+'</span>':'')+(st.q>0?'':'<span class="badge lo">ناموجود</span>')+'</span>'
-     +'<span class="s">'+esc([uw?'هر عدد '+fmt(uw,3)+' گرم':'',p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+qtyHTML(st)+'</span></button>'}).join('')||'<div class="empty">کالایی پیدا نشد.</div>'};
+     +'<span class="s">'+esc([p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+qtyHTML(st)+'</span></button>'}).join('')||'<div class="empty">کالایی پیدا نشد.</div>'};
   draw();q.addEventListener('input',draw);
   m.addEventListener('click',function(e){var c=e.target.closest('[data-f]');if(c){only=c.dataset.f==='in';$$('[data-f]',m).forEach(function(b){b.setAttribute('aria-pressed',String(b===c))});draw();return}
     var b=e.target.closest('[data-p]');if(b){var p=prodById(b.dataset.p),tr=rows()[i];m.remove();if(p&&tr){prodFill(tr,p);var y=window.scrollY;renderForm();updateTotals();window.scrollTo(0,y);toast('«'+p.name+'» اضافه شد؛ وزن و اجرت را بررسی کن')}return}
@@ -3909,8 +3915,8 @@ function applyAi(r){
   if(r.notes){var nt=$('.notes .free input',s);if(nt&&!nt.value)setv(nt,r.notes)}
   S.dirty=true;
   return (items.length?fmt(items.length)+' ردیف اضافه شد. ':'ردیفی پیدا نشد. ')+(r.goldPrice>0?'':'قیمت طلا گفته نشده بود. ')+notes.join(' ')+' قبل از ذخیره، اعداد را با فاکتور مقایسه کن.'}
-async function saveInvoice(){
-  if(S.saving)return;
+async function saveInvoice(o){
+  o=o||{};if(S.saving)return;
   if(S.editId&&S.unlock!==S.editId){toast('این فاکتور قفل است و قابل ویرایش نیست');return}
   if(!S.partyId){toast('اول طرف‌حساب را انتخاب کن');var ps=$('#partySel');if(ps)ps.focus();return}
   if(S.kind==='whole'&&num($('#w_hv').value)>0&&!partyById($('#w_hvp').value)){toast('حساب حواله را انتخاب کن (حواله از حساب چه کسی)');return}
@@ -3927,8 +3933,10 @@ async function saveInvoice(){
     if(await put('invoices',id,d)){
       // a purchase on a received doc sets the product's purchase wage, which later sales measure their margin against
       if(k==='whole'&&d.doc==='rc')for(var it of d.items){var pp=!it.ret&&it.pid&&it.ajrat>0?prodById(it.pid):null;if(pp&&pp.buyAjrat!==it.ajrat){var pd=Object.assign({},pp);delete pd.id;pd.buyAjrat=it.ajrat;if(await put('products',pp.id,pd))pp.buyAjrat=it.ajrat}}
-      S.editId=id;S.editTs=d.ts;S.dirty=false;toast(made.length?'فاکتور ذخیره شد و '+fmt(made.length)+' کالای جدید به لیست کالاها اضافه شد'+(k==='whole'&&d.doc==='rc'?'':'؛ موجودی‌اش منفی است تا منبعش را ثبت کنی'):'فاکتور ذخیره شد');S.invoices=S.invoices.filter(function(x){return x.id!==id}).concat([Object.assign({id:id},d)]);S.unlock='';
-      if(S.fromOrder){var oo=null;S.orders.forEach(function(x){if(x.id===S.fromOrder)oo=x});if(oo){var od=Object.assign({},oo);delete od.id;od.status='done';od.invId=id;put('orders',oo.id,od)}S.fromOrder=''}lockSheets(true);vInv();window.scrollTo(0,0)}
+      S.editId=id;S.editTs=d.ts;S.dirty=false;toast(made.length?'فاکتور ذخیره شد و '+fmt(made.length)+' کالای جدید به لیست کالاها اضافه شد'+(k==='whole'&&d.doc==='rc'?'':'؛ موجودی‌اش منفی است تا منبعش را ثبت کنی'):'فاکتور ذخیره شد');S.invoices=S.invoices.filter(function(x){return x.id!==id}).concat([Object.assign({id:id},d)]);S.unlock=o.keep?id:'';S.invSig=invSig();
+      if(S.fromOrder){var oo=null;S.orders.forEach(function(x){if(x.id===S.fromOrder)oo=x});if(oo){var od=Object.assign({},oo);delete od.id;od.status='done';od.invId=id;put('orders',oo.id,od)}S.fromOrder=''}
+      /* a section's «ذخیره» on an opened invoice (owner, 2026-11-14): written to the ledger at once, so the party's balance moves; it stays open for the next section */
+      if(o.keep){compute();invSums()}else{lockSheets(true);vInv();window.scrollTo(0,0)}}
   }finally{S.saving=false}
 }
 
@@ -4055,6 +4063,8 @@ function invSum(s){var t=s.dataset.t||'';
   return L.slice(0,3).join(' · ')}
 function invSums(){var nav=$('.invmenu');if(!nav)return;S.invDone=S.invDone||{};
   $$('.invrow',nav).forEach(function(b){var s=$('#form .fsheet[data-t="'+b.dataset.t+'"]');if(!s)return;var t=invSum(s);b.querySelector('small').textContent=t||'خالی';b.classList.toggle('done',!!S.invDone[b.dataset.t])})}
+/* the sheet as it was opened or last saved; a section's «ذخیره» writes an opened invoice only when this changed */
+function invSig(){return $$('input,select,textarea',sheet(S.kind)).map(function(e){return e.value}).join('\u0001')+'|'+$('#taxPct').value}
 function invOpen(i){var secs=$$('#form .fsheet'),sc=$('#form .fscrim');secs.forEach(function(s,j){s.hidden=j!==i});if(sc)sc.hidden=i<0;
   document.documentElement.classList.toggle('fs-on',i>=0);INV_OPEN=i>=0&&secs[i]?secs[i].dataset.t:null;
   if(i>=0&&secs[i]){secs[i].scrollTop=0;var x=$('.fsx',secs[i]);if(x)x.focus({preventScroll:true})}}
@@ -4068,7 +4078,7 @@ function invMenu(app){var secs=[].slice.call(app.children).filter(function(x){re
     var b=document.createElement('button');b.type='button';b.className='invrow';b.dataset.t=t;b.setAttribute('role','listitem');
     b.innerHTML='<span class="ir-n">'+fmt(i+1)+'</span><span class="ir-t"><b>'+esc(t)+'</b><small></small></span><i class="ir-ok" aria-hidden="true"></i>';nav.appendChild(b);
     s.addEventListener('click',function(e){if(e.target.closest('.fsx')){invOpen(-1);var r=$('.invrow[data-t="'+t+'"]');if(r)r.focus();return}
-      if(e.target.closest('.fsave')){S.invDone=S.invDone||{};S.invDone[t]=1;invOpen(-1);invSums();$$('.invrow',nav).forEach(function(r){r.classList.remove('next')});
+      if(e.target.closest('.fsave')){S.invDone=S.invDone||{};S.invDone[t]=1;invOpen(-1);invSums();if(S.editId&&S.unlock===S.editId&&S.invSig!==invSig())saveInvoice({keep:1});$$('.invrow',nav).forEach(function(r){r.classList.remove('next')});
         var nx=nav.children[i+1];if(nx){nx.classList.add('next');nx.focus()}}})});
   var sc=document.createElement('div');sc.className='fscrim';sc.hidden=true;sc.addEventListener('click',function(){invOpen(-1)});
   app.insertBefore(nav,app.firstChild);app.appendChild(sc);
@@ -4101,7 +4111,7 @@ function openNewInvoice(k,pid){
 function openInvoice(id){
   var inv=null;S.invoices.forEach(function(i){if(i.id===id)inv=i});if(!inv)return;
   S.editId=id;S.editTs=inv.ts;S.partyId=inv.partyId;S.dirty=false;S.unlock='';shown[inv.kind]=2;S.invDone={};INV_OPEN=null;
-  resetSheet(inv.kind,true);loadInvoice(inv);go('inv',null);S.dirty=false;
+  resetSheet(inv.kind,true);loadInvoice(inv);go('inv',null);S.dirty=false;S.invSig=invSig();
 }
 function val(id){var e=$('#'+id);return e?e.value.trim():''}
 async function saveParty(id){
@@ -4333,15 +4343,19 @@ function showSheets(pages){$$('#retail,#whole',ex).forEach(function(s){s.hidden=
 function fit(){var s=$('#pages>.sheet')||sheet(S.kind),w=s.offsetWidth||794,
     /* document.documentElement.clientWidth is the layout viewport: unlike window.innerWidth it does not
        change while the user pinch-zooms the preview on iOS Safari, so a pinch no longer re-triggers this fit */
-    k=Math.min(document.documentElement.clientWidth,900)/w;ex.style.setProperty('--k',k.toFixed(4));
+    cw=document.documentElement.clientWidth,pg=$('#pages>.sheet'),bar=$('#pvbar.on'),foot=$('#pvfoot.on'),
+    /* a page is 210mm (794px) high; on a wide, short screen (a laptop) the height decides, so one whole page shows at once */
+    hh=document.documentElement.clientHeight-(bar?bar.offsetHeight:0)-(foot?foot.offsetHeight:0)-32,
+    k=Math.min(cw,900)/w;if(pg&&hh>200)k=Math.min(k,hh/Math.max(pg.offsetHeight,794));ex.style.setProperty('--k',k.toFixed(4));
+  $$('#pages>.sheet',ex).forEach(function(x){x.style.marginRight=pg?Math.max(0,(cw-w*k)/2)+'px':''});
   // preview shrinks the sheet with a transform; pull the space below up by its real height (it can be taller than A4)
   $$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});
   if(ex.classList.contains('pvon'))$$('.sheet',ex).forEach(function(x){if(!x.hidden&&x.offsetHeight&&!(x.parentNode.id==='pages'&&x.parentNode.hidden))x.style.marginBottom=(-x.offsetHeight*(1-k)+(x.parentNode.id==='pages'?14:0))+'px'})}
 function setMsg(t){$('#pvmsg').textContent=t||''}
 function openPv(){showSheets(true);ex.classList.add('pvon');buildPages();fit();document.body.classList.add('pvmode');
   $('#pvbar').classList.add('on');$('#pvfoot').classList.add('on');setMsg('');window.scrollTo(0,0);
-  ex.style.paddingTop=($('#pvbar').offsetHeight+10)+'px';ex.style.paddingBottom=($('#pvfoot').offsetHeight+16)+'px';ex.scrollTop=0}
-function closePv(){$$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});showSheets(false);ex.style.paddingTop='';ex.style.paddingBottom='';ex.classList.remove('pvon');document.body.classList.remove('pvmode');$('#pvbar').classList.remove('on');$('#pvfoot').classList.remove('on')}
+  ex.style.paddingTop=($('#pvbar').offsetHeight+10)+'px';ex.style.paddingBottom=($('#pvfoot').offsetHeight+16)+'px';fit();ex.scrollTop=0}
+function closePv(){$$('.sheet',ex).forEach(function(x){x.style.marginBottom='';x.style.marginRight=''});showSheets(false);ex.style.paddingTop='';ex.style.paddingBottom='';ex.classList.remove('pvon');document.body.classList.remove('pvmode');$('#pvbar').classList.remove('on');$('#pvfoot').classList.remove('on')}
 $('#pvBtn').addEventListener('click',function(){fire($('#taxPct'),'input');openPv()});
 $('#pvClose').addEventListener('click',closePv);$('#pvBack').addEventListener('click',closePv);
 window.addEventListener('resize',function(){if(ex.classList.contains('pvon'))fit()});
