@@ -1,8 +1,8 @@
 :HL["/leon-gold-app/site/_next/static/chunks/44howblmo04ye.css","style"]
 :HL["/leon-gold-app/site/_next/static/chunks/14k1fntk8idzb.css","style"]
 :HL["/leon-gold-app/site/_next/static/chunks/2nxe7pe8cw3up.css","style"]
-:HL["/leon-gold-app/site/_next/static/chunks/01z34f0n8zf8w.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/2grbs-kdtnz8x.css","style"]
 :HL["/leon-gold-app/site/leaf.webp","image"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"hesab","h":64,"c":"$Q2"}]]
-0:{"b":"U1C-W6tkkuroGgmDeA_3w","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
+0:{"b":"kVPzu3m-lLUfODOJ7L9oA","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
