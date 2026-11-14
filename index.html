@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 23:37</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 00:46</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1941,10 +1941,12 @@ async function initDb(){
 /* ---------- orders from «حساب من»: a customer ordered a showcase piece (leon-gold-server portal.mjs files it in crm_leads).
    A message when one arrives (once per order on this device), a count on «سفارشات» in the menu, and the list on the home page
    and the orders page until it is turned into an order or marked seen (it stays in the CRM panel either way). */
-function newLeads(){return (S.leads||[]).filter(function(l){return ['new','waiting','expired','confirmed'].indexOf(l.status)>=0&&l.source==='حساب من'}).sort(function(a,b){return a.ts<b.ts?1:-1})}
+/* (owner, 2026-11-14) the site's own order form files its requests here too, with source «سایت» (no account behind them) */
+function leadFrom(l){return l.source==='سایت'?'سایت':'«حساب من»'}
+function newLeads(){return (S.leads||[]).filter(function(l){return ['new','waiting','expired','confirmed'].indexOf(l.status)>=0&&(l.source==='حساب من'||l.source==='سایت')}).sort(function(a,b){return a.ts<b.ts?1:-1})}
 function leadAlert(){var seen={},key='lg-leads-seen';try{seen=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
   var L=newLeads(),fresh=L.filter(function(l){return !seen[l.id]});
-  if(fresh.length){toast(fresh.length===1?'سفارش تازه از «حساب من»: '+(fresh[0].name||'')+' · '+toFa(fresh[0].what||''):fmt(fresh.length)+' سفارش تازه از «حساب من»');
+  if(fresh.length){toast(fresh.length===1?'سفارش تازه از '+leadFrom(fresh[0])+': '+(fresh[0].name||'')+' · '+toFa(fresh[0].what||''):fmt(fresh.length)+' سفارش تازه');
     fresh.forEach(function(l){seen[l.id]=1});try{localStorage.setItem(key,JSON.stringify(seen))}catch(e){}}
   feedBadge();var it=$('#nav [data-tab=orders]');if(it){var b=$('.nb',it);if(L.length){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(L.length)}else if(b)b.remove()}}
 /* ---------- «ثبت نام» from «حساب من» (owner, 2026-11-09): someone asks for an account with their own username and password;
@@ -1994,8 +1996,8 @@ setInterval(function(){var any=false;$$('.lcd').forEach(function(e){var t=Math.m
   // while an order waits, the ledger looks for its fate often (the buyer's page asks every few seconds)
   if(any&&window.__leonSync&&Date.now()-(window.__lgLeadSync||0)>5000){window.__lgLeadSync=Date.now();window.__leonSync.now()}},1000);
 function leadsHTML(){var L=newLeads();if(!L.length)return '';
-  return '<section class="sec leads"><h2>سفارش تازه از «حساب من» <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(l){var w=leadLeft(l)>0;
-    return '<div class="row lead'+(w?' lwaiting':'')+'"><span class="t">'+esc(l.name||'—')+leadTag(l)+'</span><span class="s">'+esc(toFa(l.what||''))+(l.note?' · '+esc(toFa(l.note)):'')
+  return '<section class="sec leads"><h2>سفارش تازه <span class="badge lo">'+fmt(L.length)+'</span></h2><div class="list">'+L.map(function(l){var w=leadLeft(l)>0;
+    return '<div class="row lead'+(w?' lwaiting':'')+'"><span class="t">'+esc(l.name||'—')+leadTag(l)+(l.source==='سایت'?' <span class="badge">از سایت</span>':'')+'</span><span class="s">'+esc(toFa(l.what||''))+(l.note?' · '+esc(toFa(l.note)):'')
      +(l.price&&l.price.total?'<br>قیمتی که دید: <b>'+fmt(Math.round(l.price.total/10))+' تومان</b>'+(l.price.changed?' <span class="badge lo">با نرخ تازه به‌روز شد</span>':''):'')+'</span><span class="v"><span class="d">'+esc(jdate(l.ts))+' · '+esc(jtime(l.ts))+'</span></span>'
      +'<span class="btns">'+(w?'<button class="btn sm pri" data-act="leadok" data-id="'+esc(l.id)+'" type="button">تایید سفارش</button>':'')+'<button class="btn sm'+(w?'':' pri')+'" data-act="leadorder" data-id="'+esc(l.id)+'" type="button">ثبت سفارش</button><button class="btn sm" data-act="leadseen" data-id="'+esc(l.id)+'" type="button">دیدم</button>'+(l.phone?'<a class="btn sm" href="tel:'+esc(fanum(l.phone))+'">تماس</a>':'')+'</span></div>'}).join('')+'</div></section>'}
 /* ---------- «اعلان‌های حساب من» (owner, 2026-11-10): everything that came from «حساب من», newest first, kept for good:
@@ -2008,8 +2010,8 @@ function feedItems(){var L=[];
     s:[x.bizName||(x.kind==='supplier'?'همکار / تأمین‌کننده':'مشتری'),x.group==='colleague'?'همکار':'',toFa(x.mobile||''),x.username?'نام کاربری: '+x.username:'',x.refName?'با دعوت: '+x.refName:''].filter(Boolean).join(' · '),
     b:x.status==='pending'?'<span class="badge lo">منتظر تایید</span>':x.status==='rejected'?'<span class="badge">رد شد</span>':'',
     go:x.partyId&&partyById(x.partyId)?{act:'party',id:x.partyId,l:'طرف‌حساب'}:null})});
-  (S.leads||[]).filter(function(l){return l.source==='حساب من'}).forEach(function(l){var st=l.orderId?'<span class="badge g">به سفارش تبدیل شد</span>':l.status==='waiting'&&leadLeft(l)>0?leadTag(l):l.status==='confirmed'?'<span class="badge g">تایید شد</span>':l.status==='waiting'||l.status==='expired'?'<span class="badge">وقت تایید گذشت</span>':l.status==='talking'?'<span class="badge">دیده شد</span>':'<span class="badge lo">تازه</span>';
-    L.push({k:'order',id:l.id,ts:l.ts||'',t:'سفارش تازه از '+(l.name||'—'),s:toFa(l.what||'')+(l.note?' · '+toFa(l.note):'')+(l.price&&l.price.total?' · قیمتی که دید: '+fmt(Math.round(l.price.total/10))+' تومان':''),b:st,
+  (S.leads||[]).filter(function(l){return l.source==='حساب من'||l.source==='سایت'}).forEach(function(l){var st=l.orderId?'<span class="badge g">به سفارش تبدیل شد</span>':l.status==='waiting'&&leadLeft(l)>0?leadTag(l):l.status==='confirmed'?'<span class="badge g">تایید شد</span>':l.status==='waiting'||l.status==='expired'?'<span class="badge">وقت تایید گذشت</span>':l.status==='talking'?'<span class="badge">دیده شد</span>':'<span class="badge lo">تازه</span>';
+    L.push({k:'order',id:l.id,ts:l.ts||'',t:'سفارش تازه از '+(l.name||'—')+(l.source==='سایت'?' (سایت)':''),s:(l.source==='سایت'&&l.phone?toFa(l.phone)+' · ':'')+toFa(l.what||'')+(l.note?' · '+toFa(l.note):'')+(l.price&&l.price.total?' · قیمتی که دید: '+fmt(Math.round(l.price.total/10))+' تومان':''),b:st,
       go:{act:'tab',t:'orders',l:'سفارشات'}})});
   (S.vitrin||[]).filter(function(v){return v.portal&&v.pendingAt}).forEach(function(v){var p=partyById(v.supId);
     L.push({k:'up',id:v.id,ts:v.pendingAt,t:(p?p.name:v.supName||'تأمین‌کننده')+(v.removed?' خواست «'+(v.name||'')+'» از ویترین برداشته شود':' کار «'+(v.name||'')+'» را برای ویترین فرستاد'),
