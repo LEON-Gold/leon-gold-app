@@ -32,13 +32,13 @@
 :root[data-theme="dark"] .sec h2{color:var(--gold-lt);text-shadow:0 0 16px rgba(226,203,148,.16)}
 :root[data-theme="dark"] .row,:root[data-theme="dark"] .vcard,:root[data-theme="dark"] .item{background:linear-gradient(180deg,#0f261a,#0b1b14)!important;border-color:rgba(226,203,148,.22)!important}
 :root[data-theme="dark"] .row .t,:root[data-theme="dark"] .vcard b{color:var(--ink)}
-:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{color:var(--ink);background-color:#07140e!important;border-color:rgba(226,203,148,.3)!important}
-:root[data-theme="dark"] input:focus,:root[data-theme="dark"] select:focus,:root[data-theme="dark"] textarea:focus{border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(226,203,148,.2)}
-:root[data-theme="dark"] ::placeholder{color:rgba(228,206,155,.55)}
+:root[data-theme="dark"] input:where(:not(.sheet *)),:root[data-theme="dark"] select:where(:not(.sheet *)),:root[data-theme="dark"] textarea:where(:not(.sheet *)){color:var(--ink);background-color:#07140e!important;border-color:rgba(226,203,148,.3)!important}
+:root[data-theme="dark"] input:focus:where(:not(.sheet *)),:root[data-theme="dark"] select:focus:where(:not(.sheet *)),:root[data-theme="dark"] textarea:focus:where(:not(.sheet *)){border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(226,203,148,.2)}
+:root[data-theme="dark"] :where(:not(.sheet *))::placeholder{color:rgba(228,206,155,.55)}
 :root[data-theme="dark"] ::selection{background:#e2cb94;color:#0c1d15}
-:root[data-theme="dark"] .bad,:root[data-theme="dark"] .dr,:root[data-theme="dark"] .bal.dr{color:#ff9f8c}
-:root[data-theme="dark"] .bal.cr{color:#afc0b5}
-:root[data-theme="dark"] .empty{background:rgba(226,203,148,.04);color:var(--muted);border-color:rgba(226,203,148,.3)}
+:root[data-theme="dark"] .bad:where(:not(.sheet *)),:root[data-theme="dark"] .dr:where(:not(.sheet *)),:root[data-theme="dark"] .bal.dr:where(:not(.sheet *)){color:#ff9f8c}
+:root[data-theme="dark"] .bal.cr:where(:not(.sheet *)){color:#afc0b5}
+:root[data-theme="dark"] .empty:where(:not(.sheet *)){background:rgba(226,203,148,.04);color:var(--muted);border-color:rgba(226,203,148,.3)}
 :root[data-theme="dark"] .modal .box{background:linear-gradient(180deg,#0e2418,#091711);border-color:rgba(226,203,148,.4);color:var(--ink)}
 :root[data-theme="dark"] .note,:root[data-theme="dark"] .s{color:var(--muted)}
 .themeb{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;border:1px solid rgba(226,203,148,.45);background:rgba(7,19,14,.35);color:var(--gold-lt)}
@@ -106,7 +106,7 @@
 @media (min-width:900px){.dash{grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}.dkpis{grid-column:span 8}.dtgt{grid-column:span 4}.dsales{grid-column:span 8}.dside{grid-column:span 4}.dlist{grid-column:span 4}.dbal{grid-column:span 6}.dash>.dlist:last-child{grid-column:span 6}.dbars{height:230px}.dhead h1{font-size:30px}}
 @media (min-width:1100px){body[data-view=home] #main{grid-template-columns:minmax(0,1fr)}
   /* the menu: a floating glass panel in groups */
-  html body .nav{top:14px;bottom:14px;right:14px;height:auto;width:calc(var(--side) - 28px);border-radius:24px;overflow:hidden;border:1px solid rgba(226,203,148,.28);box-shadow:0 30px 60px -30px rgba(0,0,0,.65)}}
+  html body .nav{top:14px;bottom:14px;right:14px;height:auto;width:calc(var(--side) - 28px);border-radius:24px;overflow:hidden auto;overscroll-behavior:auto;border:1px solid rgba(226,203,148,.28);box-shadow:0 30px 60px -30px rgba(0,0,0,.65)}}
 .nav .ng{margin:14px 14px 4px;font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(226,203,148,.62)}
 /* the glow behind the cards */
 body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(38vmax 38vmax at 92% 6%,rgba(201,162,75,.22),transparent 62%),radial-gradient(34vmax 34vmax at 6% 96%,rgba(30,94,78,.22),transparent 62%)}
@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 21:53</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 22:55</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1253,6 +1253,43 @@ div.row{cursor:default}div.row:active{transform:none;background:var(--card)}
   .btn:active:not([disabled]),.chip:active,.row:active,.nav button.it:active,.nav .pf:active{transform:none}}
 
 .sheet[hidden]{display:none!important}
+/* ---------- the A4 invoice never follows the theme (owner, 2026-11-13): the same colours in light, dark and the phone's own
+   mode, on screen, in the preview, in «#view» and in the PNG/PDF. Pinned to the sheet's look before dark mode and the
+   new palettes (10cd0ff, 2026-11-09); every theme rule that reaches into the sheet is undone below. ---------- */
+#export .sheet,:root[data-theme] #export .sheet{color-scheme:light;--green:#0a3023;--green-2:#0f4030;--green-d:#04170f;
+  --gold:#c59a50;--gold-d:#9c7433;--gold-lt:#e8cf8e;--gold-ink:#8a6420;--paper:#f5f0e3;--ink:#12241b;--line:#d9c9a0;
+  --muted:#6a7468;--cell:#faf6ea;--bar-fg:#f3ead0;--bar-dim:#9fb3a5;--dk-text:initial;
+  --card:#fff;--card-i:#fefcf7;--card-2:#f6efe3;--green-t:var(--green);
+  --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23c59a50'%3E%3Cpath d='M2 39V12Q2 2 12 2H39' stroke-width='1.3'/%3E%3Cpath d='M7 39V15Q7 7 15 7H39' stroke-width='.5'/%3E%3Cpath d='M12 12q5-1 8 3-4 1-8-3zM12 12q-1 5 3 8 1-4-3-8z' fill='%23c59a50' stroke='none'/%3E%3Ccircle cx='24' cy='2' r='1.3' fill='%23c59a50' stroke='none'/%3E%3Ccircle cx='2' cy='24' r='1.3' fill='%23c59a50' stroke='none'/%3E%3C/svg%3E")}
+/* the palette commits (7da9611, c115556) re-coloured these sheet rules; the sheet keeps its own colours */
+#export .sheet .cs b{color:#d9b565}
+#export .sheet .cs small{color:#d9b565}
+#export .sheet .qr{background:#fff}
+#export .sheet .brand h1{color:#a67b30}
+#export .sheet .plaque{color:#e0b862}
+#export .sheet input:focus{background:rgba(197,154,80,.2)}
+#export .sheet .cust input{color:#fff6dd;border-bottom-color:rgba(232,207,142,.45)}
+#export .sheet .cust input:focus{background:rgba(232,207,142,.18)}
+#export .sheet th:not(:first-child){border-inline-start:1px solid rgba(197,154,80,.5)}
+#export .sheet td.calc{background:rgba(197,154,80,.09)}
+#export .sheet tfoot td{background:rgba(197,154,80,.28)}
+#export .sheet .card{background:rgba(255,253,246,.7)}
+#export .sheet .gcard{color:#f6e9c4;box-shadow:inset 0 0 0 3px var(--green),inset 0 0 0 4px rgba(197,154,80,.55)}
+#export .sheet .gcard h2{color:#e0b862}
+#export .sheet .gcard .out{color:#fff6dd}
+#export .sheet .gcard .out.dr{color:#ffb4a6}
+#export .sheet .empty{border-color:rgba(197,154,80,.45)}
+#export .sheet .gcard .out.cr{color:#a8e6bd}
+#export .sheet .gcard .out.z{color:#e0b862}
+#export .sheet .gcard label.big{border-top:1px solid rgba(197,154,80,.6);color:#e0b862}
+#export .sheet .gcard label.big .out{color:#e0b862}
+#export .sheet .gcard input{color:#fff6dd;border-bottom-color:rgba(232,207,142,.5)}
+#export .sheet .notes{background:rgba(255,253,246,.7)}
+#export .sheet .notes p.decl{background:rgba(197,154,80,.1)}
+#export .sheet .sign .box small{color:#5a6458}
+#export .sheet .foot span{color:#e0b862}
+/* while the PNG/PDF is drawn the field underlines disappear (.export.exporting .sheet input above); the pinned rules must not bring them back */
+#export.exporting .sheet input,#export.exporting .sheet .cust input,#export.exporting .sheet .gcard input{border-bottom-color:transparent}
 </style>
 
 <header class="top"><div class="in"><button class="menub" id="menuBtn" type="button" aria-label="منو" aria-controls="nav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button class="back" id="topBack" type="button" hidden>بازگشت</button><i class="lg" aria-hidden="true"></i><b id="topTitle">دفتر لئون گلد</b><button class="themeb" id="themeBtn" type="button" aria-label="حالت تاریک"></button><button class="lockb" id="lockBtn" type="button" hidden>قفل</button><span class="dot off" id="dot" role="img" aria-label="وضعیت ذخیره‌سازی"></span></div></header>
