@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-10 14:05</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 21:53</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2451,7 +2451,7 @@ async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
     desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),to:to,ts:old&&old.ts||new Date().toISOString()};
   if(sup==='__own')d.own=true;else{d.supId=sup;d.supName=(partyById(sup)||{}).name||''}
   // a piece a supplier sent from «حساب من»: its wage and origin stay; saving it here is the owner's review (pending ends)
-  if(old){if(old.supAjrat!=null)d.supAjrat=old.supAjrat;if(old.portal)d.portal=true;if(old.removed&&!d.show)d.removed=true}
+  if(old){if(old.supAjrat!=null)d.supAjrat=old.supAjrat;if(old.portal){d.portal=true;if(old.pendingAt)d.pendingAt=old.pendingAt}if(old.removed&&!d.show)d.removed=true}
   if(prices.length)d.prices=prices;d.site=site;d.tags=$$('.vtg:checked').map(function(c){return c.value});if(site){d.siteAjrat=num(val('vt_saj'));d.siteProfit=val('vt_spr').trim()===''?null:num(val('vt_spr'))}
   var nid=id||'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» '+(to.length?fmt(to.length)+' نفر':'همه')+' دیده می‌شود.':'.'));back()}}
@@ -2571,7 +2571,7 @@ function gateCheck(){var g=$('#gate'),cu=curUser();$('#lockBtn').hidden=!lockOn(
   if(g)return;
   g=document.createElement('div');g.id='gate';g.className='gate';
   var me=S.me;
-  g.innerHTML='<form class="card" id="gateForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
+  g.innerHTML='<form class="card" id="gateForm" autocomplete="off"><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY</div>'
     +'<div class="rule">دفتر حساب طلا و جواهر</div>'
     +'<input id="gateUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="30">'
     +'<input id="gatePin" class="uname pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="40" autocapitalize="off" placeholder="رمز" aria-label="رمز ورود">'
@@ -2691,7 +2691,7 @@ function entryGate(){
   var sp=document.getElementById('splash');if(sp)sp.remove(); // render() normally clears it, and render() has not run yet
   var g=document.createElement('div');g.id='entry';g.className='gate';
   var i=window.__leonSync.info(),needUrl=!i.url;
-  g.innerHTML='<form class="card" id="entryForm" autocomplete="off" novalidate><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY · SINCE 1988</div>'
+  g.innerHTML='<form class="card" id="entryForm" autocomplete="off" novalidate><i class="lg" aria-hidden="true"></i><div class="wm">LEON GOLD</div><div class="tag">FINE JEWELRY</div>'
     +'<div class="rule">ورود به دفتر</div>'
     +(needUrl?'<input id="enUrl" class="uname" type="url" dir="ltr" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="آدرس سرور" aria-label="آدرس سرور" value="'+esc(i.url)+'">':'')
     +'<input id="enUser" class="uname" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="نام کاربری" aria-label="نام کاربری" maxlength="40">'
