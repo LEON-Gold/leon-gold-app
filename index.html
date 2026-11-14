@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 22:55</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-13 23:12</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1932,6 +1932,7 @@ async function initDb(){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
   db.collection('signups').onSnapshot(function(snap){S.signups=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});signupAlert();schedule()},function(){});
+  db.collection('vip_ready').onSnapshot(function(snap){S.vipReady=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});feedBadge();schedule()},function(){});
   db.collection('crm_leads').onSnapshot(function(snap){S.leads=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});leadAlert();schedule()},function(){});
   render();
 }
@@ -2014,6 +2015,9 @@ function feedItems(){var L=[];
       s:[v.cat,v.weight?fmt(v.weight,3)+' گرم':'',v.supAjrat!=null?'اجرت تأمین‌کننده '+fmt(v.supAjrat,2)+'٪':''].filter(Boolean).join(' · '),b:v.pending?'<span class="badge lo">منتظر بررسی تو</span>':'<span class="badge g">بررسی شد</span>',go:{act:'editvit',id:v.id,l:'بررسی در ویترین'}})});
   (FEED_RC||[]).forEach(function(r){L.push({k:'rc',id:r.id,ts:typeof r.ts==='number'?new Date(r.ts).toISOString():String(r.ts||''),t:'رسید کارت‌به‌کارت از '+(r.partyName||'—'),s:(r.amount!=null?fmt(r.amount)+' ریال':'مبلغ ننوشته')+(r.date?' · واریز '+toFa(r.date):''),
     b:r.status==='done'?'<span class="badge g">انجام شد</span>':'<span class="badge lo">در انتظار ثبت</span>',go:{act:'rcopen',id:r.id,l:'دیدن رسید'}})});
+  /* a party that finished all three steps toward VIP in «حساب من» (server: vip_ready); making it VIP stays the owner's own mark */
+  (S.vipReady||[]).forEach(function(x){var p=partyById(x.partyId);L.push({k:'vip',id:x.id,ts:x.ts||'',t:(p?p.name:x.name||'—')+' هر سه شرط VIP را کامل کرد',
+    s:'تسویه‌ی ۴ بار · ۴۰۰ گرم خرید · ۳ دعوت با خرید',b:p&&p.vip?'<span class="badge g">VIP شد</span>':'<span class="badge lo">منتظر تصمیم تو</span>',go:p?{act:'party',id:p.id,l:'طرف‌حساب'}:null})});
   return L.sort(function(a,b){return a.ts<b.ts?1:a.ts>b.ts?-1:0})}
 function feedNew(){var r=feedRead();return feedItems().filter(function(x){return x.ts>r}).length}
 function feedBadge(){var it=$('#nav [data-tab=feed]');if(!it)return;var n=feedNew(),b=$('.nb',it);if(n){if(!b){b=document.createElement('em');b.className='nb';it.appendChild(b)}b.textContent=fmt(n)}else if(b)b.remove()}
@@ -2021,7 +2025,7 @@ function vFeed(){var f=S.ffilter||'all',read=S.feedSince!=null?S.feedSince:(S.fe
   setTop('اعلان‌های حساب من','',false);
   var all=feedItems(),L=all.filter(function(x){return f==='all'||x.k===f}),day='';
   var n=function(k){return all.filter(function(x){return k==='all'||x.k===k}).length};
-  main.innerHTML='<div class="chips" role="group" aria-label="نوع اعلان">'+[['all','همه'],['su','ثبت‌نام'],['order','سفارش'],['up','محصول'],['rc','رسید']].map(function(c){return '<button class="chip'+(f===c[0]?' on':'')+'" data-act="ffilter" data-f="'+c[0]+'" type="button">'+c[1]+' ('+fmt(n(c[0]))+')</button>'}).join('')+'</div>'
+  main.innerHTML='<div class="chips" role="group" aria-label="نوع اعلان">'+[['all','همه'],['su','ثبت‌نام'],['order','سفارش'],['up','محصول'],['rc','رسید'],['vip','VIP']].map(function(c){return '<button class="chip'+(f===c[0]?' on':'')+'" data-act="ffilter" data-f="'+c[0]+'" type="button">'+c[1]+' ('+fmt(n(c[0]))+')</button>'}).join('')+'</div>'
    +(L.length?'<div class="list feed">'+L.map(function(x){var d=x.ts?jdate(x.ts):'',h=d!==day?(day=d,'<h3 class="fday">'+esc(d||'بی‌تاریخ')+'</h3>'):'',nw=x.ts>read;
       return h+'<div class="row lead'+(nw?' fnew':'')+'"><span class="t"><span class="badge fk fk-'+x.k+'">'+FEED_K[x.k]+'</span>'+esc(x.t)+(nw?'<span class="badge lo">تازه</span>':'')+'</span><span class="s">'+esc(x.s||' ')+(x.b?'<br>'+x.b:'')+'</span>'
         +'<span class="v"><span class="d">'+esc(x.ts?jtime(x.ts):'')+'</span></span>'+(x.go?'<span class="btns"><button class="btn sm" data-act="'+x.go.act+'"'+(x.go.id?' data-id="'+esc(x.go.id)+'"':'')+(x.go.t?' data-t="'+x.go.t+'"':'')+' type="button">'+x.go.l+'</button></span>':'')+'</div>'}).join('')+'</div>'
