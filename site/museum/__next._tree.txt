@@ -1,6 +1,6 @@
-:HL["/leon-gold-app/site/_next/static/chunks/0dldyc817o815.css","style"]
+:HL["/leon-gold-app/site/_next/static/chunks/1_jb41ag633ku.css","style"]
 :HL["/leon-gold-app/site/_next/static/chunks/1em96uhzhobsy.css","style"]
 :HL["/leon-gold-app/site/leaf.webp","image"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"museum","h":64,"c":"$Q2"}]]
-0:{"b":"PFip4aZPmBmbuFsPfN0MH","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
+0:{"b":"Sx_U3mCZwipzJ2aFeuTUE","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
