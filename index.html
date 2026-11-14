@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 00:46</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 01:35</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -676,6 +676,67 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .sheet{width:210mm;min-height:297mm;margin:0 auto;background:var(--paper);color:var(--ink);position:relative;overflow:hidden;
   box-shadow:0 2px 24px rgba(0,0,0,.18);font-size:11px;line-height:1.5;display:flex;flex-direction:column;padding:0 11mm 0;gap:4px}
 .sheet[hidden]{display:none}
+
+/* the invoice in sections (owner, 2026-11-14): a list, each section coming up from the bottom as a sheet */
+.invmenu{display:grid;gap:8px}
+.invrow{display:grid;grid-template-columns:32px minmax(0,1fr) 24px;align-items:center;gap:10px;min-height:62px;padding:10px 14px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);text-align:start;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.invrow:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.invrow .ir-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);font-weight:700;font-size:13px;color:var(--gold-d)}
+.invrow b{display:block;font-size:15.5px;font-weight:700}
+.invrow small{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invrow .ir-ok{position:relative;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line)}
+.invrow.done .ir-ok{background:var(--green);border-color:var(--green)}
+.invrow.done .ir-ok::after{content:"";position:absolute;left:6.5px;top:3px;width:5px;height:10px;border:solid var(--gold-lt);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.invrow.done .ir-n{background:rgba(201,162,76,.14)}
+.invrow.next{box-shadow:inset 0 0 0 2px var(--gold)}
+.sec.fsheet{position:fixed;left:0;right:0;bottom:0;z-index:70;margin:0;max-height:min(86dvh,780px);overflow-y:auto;overscroll-behavior:contain;border-radius:22px 22px 0 0;padding:18px 16px 0;box-shadow:0 -24px 60px -24px rgba(0,0,0,.6);animation:fsUp .28s cubic-bezier(.22,1,.36,1)}
+.sec.fsheet[hidden]{display:none}
+.sec.fsheet>h2{padding-inline-end:48px}
+.fsx{position:absolute;top:12px;left:12px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);font:400 24px/1 inherit;cursor:pointer}
+.fsbar{position:sticky;bottom:0;margin:14px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:inherit;border-top:1px solid var(--line)}
+.fsbar .btn{width:100%;min-height:50px}
+.fscrim{position:fixed;inset:0;z-index:69;background:rgba(4,14,10,.55);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.fscrim[hidden]{display:none}
+html.fs-on,html.fs-on body{overflow:hidden}
+@media (min-width:760px){.sec.fsheet{left:50%;right:auto;width:min(680px,94vw);translate:-50% 0;bottom:16px;border-radius:22px}}
+@keyframes fsUp{from{transform:translateY(40px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sec.fsheet{animation:none}}
+/* A5 portrait (owner, 2026-11-14): the pages made from the sheet for the preview and the export */
+.sheet.a5{width:148mm;min-height:210mm;padding:0 7mm;font-size:10px}
+#pages[hidden]{display:none}
+.sheet.a5 .pgno{margin:0;text-align:center;font-size:9px;color:var(--muted)}
+/* everything a little tighter on A5, so a usual invoice stays on one page; the look is the same */
+.sheet.a5 .cn{width:8mm;height:8mm}
+.sheet.a5 .hd{min-height:0;padding-top:5mm;gap:4px}
+.sheet.a5 .brand .lion{width:9mm;height:16mm}
+.sheet.a5 .brand h1{font-size:21px}
+.sheet.a5 .brand .fa{font-size:12.5px;line-height:1.35}
+.sheet.a5 .brand .tag{font-size:6.2px;letter-spacing:.16em}
+.sheet.a5 .orn{width:40mm;margin-top:1.2mm}
+.sheet.a5 .contact{font-size:9.5px;gap:1px;padding-top:2mm;margin-right:5mm}
+.sheet.a5 .contact svg.ic{width:11px;height:11px}
+.sheet.a5 .mid{margin-top:0;gap:6px}
+.sheet.a5:not(.p1) .mid{margin-top:9mm}
+.sheet.a5 .meta{font-size:9.6px;gap:1px}
+.sheet.a5 .meta span{min-width:48px}
+.sheet.a5 .plaque b{font-size:16px;line-height:1.3}
+.sheet.a5 .plaque small{font-size:8px;margin-top:-2px}
+.sheet.a5 .cust{padding:4px 9px;gap:2px 10px;font-size:9.6px}
+.sheet.a5 th{font-size:8.4px;padding:3px 2px}
+.sheet.a5 td{height:17px;font-size:9.2px}
+.sheet.a5 td input{padding:1px 2px}
+.sheet.a5 .lower{gap:6px}
+.sheet.a5 .card,.sheet.a5 .gcard{padding:4px 8px 5px;font-size:9.2px}
+.sheet.a5 .card label{grid-template-columns:1fr 24mm;padding:.5px 0}
+.sheet.a5 .gcard label{grid-template-columns:minmax(0,1fr) auto;padding:.5px 0}
+.sheet.a5 .gcard .out{white-space:nowrap}
+.sheet.a5 .card h2,.sheet.a5 .gcard h2{font-size:11px;margin-bottom:1px}
+.sheet.a5 .notes{font-size:7.8px;line-height:1.5;padding:3px 9px 4px}
+.sheet.a5 .sign{gap:6px}
+.sheet.a5 .sign div.box{height:13mm;padding:3px 8px;font-size:9px}
+.sheet.a5 .sign .dm{width:7mm;height:7mm}
+.sheet.a5 .foot{margin:2px -7mm 0;padding:2.6mm 7mm}
+.sheet.a5 .foot span{font-size:7.5px;padding:1px 9px}
 .sheet::before{content:"";position:absolute;top:3.5mm;right:3.5mm;bottom:3.5mm;left:3.5mm;border:1px solid var(--gold);pointer-events:none;z-index:3;border-radius:1mm}
 .sheet>*{position:relative;z-index:1}
 .gc{position:absolute!important;left:0;top:0;width:92mm;height:92mm;z-index:0!important}
@@ -1297,8 +1358,8 @@ div.row{cursor:default}div.row:active{transform:none;background:var(--card)}
 <div class="tool" hidden><input id="taxPct" value="۰" aria-label="درصد مالیات"><button id="clearBtn" type="button"></button></div>
 <main id="main"></main><button class="fab" id="fab" data-act="fab" type="button" aria-label="سند جدید" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="scrim" id="scrim"></div><nav class="nav" id="nav" aria-label="منو"><div class="mh"><i aria-hidden="true"></i><b>دفتر لئون گلد</b><button class="x" id="menuX" type="button" aria-label="بستن منو">×</button></div><div class="in"><button class="pf" id="menuProf" data-tab="profile" type="button" hidden></button><p class="ng">حساب و فروش</p><button class="it" data-tab="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button><button class="it" data-tab="invoices" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>فاکتورها</span></button><button class="it" data-tab="parties" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M18 14.5c1.8.8 3 2.7 3 5"/></svg><span>طرف‌حساب‌ها</span></button><button class="it" data-tab="settlements" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg><span>تسویه</span></button><button class="it" data-tab="expenses" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg><span>هزینه‌های مغازه</span></button><p class="ng">کالا و سفارش</p><button class="it" data-tab="products" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>کالاها و موجودی</span></button><button class="it" data-tab="vitrin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l2-4h14l2 4M3 8h18v12H3zM3 8l3 4 3-4 3 4 3-4 3 4 3-4"/></svg><span>ویترین</span></button><button class="it" data-tab="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M8.5 12l2 2 4-4"/></svg><span>سفارشات</span></button><button class="it" data-tab="feed" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span>اعلان‌های حساب من</span></button><p class="ng">تحلیل</p><button class="it" data-tab="report" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-7"/></svg><span>گزارش فروش</span></button><button class="it" data-tab="market" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 5-7 4 4"/><path d="M3 21h18"/></svg><span>تحلیل بازار</span></button><button class="it" data-tab="eval" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg><span>ارزیابی</span></button><button class="it" data-tab="targets" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>تارگت من</span></button><div class="grp">ابزارها</div><p class="ng">مدیریت</p><button class="it" data-tab="admin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg><span>پنل مدیریت</span></button><button class="it" data-act="social" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg><span>اینستاگرام</span></button><button class="it" data-tab="log" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>سوابق تغییرات</span></button><button class="it" data-tab="backup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg><span>پشتیبان و خروجی‌ها</span></button><button class="it" data-tab="users" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg><span>ورود و کاربران</span></button><button class="it" data-act="menulock" type="button" id="menuLock" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>قفل دفتر</span></button></div></nav>
-<div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش A4</button></div></div></div>
-<div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A4)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
+<div class="act" id="act" hidden><div class="in"><div class="tot" id="tot"></div><div class="acts"><button class="btn pri" id="saveInv" type="button">ذخیره فاکتور</button><button class="btn ghost" id="pvBtn" type="button">نمایش فاکتور</button></div></div></div>
+<div class="pvbar" id="pvbar"><b>پیش‌نمایش فاکتور (A5)</b><button class="btn sm ghost" id="pvClose" type="button">بستن</button></div>
 <div class="pvfoot" id="pvfoot"><p class="msg" id="pvmsg" role="status"></p><button class="btn pri" id="pvPdf" type="button">ذخیره PDF</button><button class="btn pri" id="pvSave" type="button" hidden>ذخیره تصویر</button><button class="btn ghost" id="pvBack" type="button">بازگشت</button></div>
 <div class="export" id="export" aria-hidden="true"><section class="sheet" id="retail" aria-label="فاکتور خرده‌فروشی">
   <i class="cn tr"></i>
@@ -3966,10 +4027,10 @@ function renderForm(){
   var n=Math.min(Math.max(shown[kind],filled),total);shown[kind]=n;
   var box=document.createElement('section');box.className='sec';var hh=document.createElement('h2');hh.textContent='اقلام فاکتور';box.appendChild(hh);
   for(var i=0;i<n;i++)box.appendChild(itemCard(i));
-  if(S.products.length){var pk=document.createElement('button');pk.type='button';pk.className='btn pri';pk.textContent='+ افزودن از کالاها (با عکس)';pk.addEventListener('click',function(){var R=rows(),k=-1;for(var j=0;j<R.length;j++){if(!$('td:nth-child(2) input',R[j]).value&&!$('.w',R[j]).value){k=j;break}}if(k<0){toast('همه‌ی ردیف‌های این صفحه پر است');return}shown[kind]=Math.max(shown[kind],k+1);prodPick(k)});box.appendChild(pk)}
+  if(S.products.length){var pk=document.createElement('button');pk.type='button';pk.className='btn pri';pk.textContent='+ افزودن از کالاها (با عکس)';pk.addEventListener('click',function(){var R=rows(),k=-1;for(var j=0;j<R.length;j++){if(!$('td:nth-child(2) input',R[j]).value&&!$('.w',R[j]).value){k=j;break}}if(k<0){var ab=$('[data-add='+kind+']',sheet(kind));if(!ab||R.length>=60){toast('همه‌ی ردیف‌ها پر است');return}ab.click();k=R.length}shown[kind]=Math.max(shown[kind],k+1);prodPick(k)});box.appendChild(pk)}
   var add=document.createElement('button');add.type='button';add.className='btn';add.textContent='+ افزودن کالا';
-  if(n>=total){add.disabled=true;add.textContent='حداکثر '+fmt(total)+' ردیف در یک صفحه A4'}
-  add.addEventListener('click',function(){shown[kind]=Math.min(total,n+1);var y=window.scrollY;renderForm();window.scrollTo(0,y);var it=$$('.item');if(it.length)it[it.length-1].scrollIntoView({block:'center'})});
+  if(n>=60){add.disabled=true;add.textContent='حداکثر '+fmt(60)+' ردیف'}
+  add.addEventListener('click',function(){if(n>=rows().length){var ab=$('[data-add='+kind+']',sheet(kind));if(ab)ab.click()}shown[kind]=Math.min(rows().length,n+1);var y=window.scrollY;renderForm();window.scrollTo(0,y);var it=$$('.item');if(it.length)it[it.length-1].scrollIntoView({block:'center'})});
   box.appendChild(add);app.appendChild(box);
   if(kind==='whole'){app.appendChild(goldSec());app.appendChild(tradeSec())}
   var P=function(k){return function(){return $$(N('.rp'))[k]}};
@@ -3979,7 +4040,41 @@ function renderForm(){
   app.appendChild(fsec('مشخصات '+(kind==='retail'?'خریدار':'مشتری'),kind==='retail'?[mk('خریدار',N('.cust label:nth-child(1) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(2) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(3) input'),{w2:1})]:
     [mk('حساب (نام مشتری)',N('.cust label:nth-child(1) input'),{w2:1}),mk('فروشگاه',N('.cust label:nth-child(2) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(3) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(4) input'),{w2:1})]));
   app.appendChild(fsec('توضیحات',[mk('توضیحات (اختیاری)',notes,{w2:1})]));
+  invMenu(app);
 }
+/* ---------- the invoice in sections (owner, 2026-11-14: «منو داشته باشه… هر بخش رو انتخاب می کنم بالا میاد… ذخیره رو میزنم
+   بعد میرم بخش بعدی»): the form is a list of its sections, each with a short line of what is in it; a tap brings that
+   section up as a sheet from the bottom, «ذخیره» closes it, ticks it and points at the next. The fields are the same. ---------- */
+var INV_OPEN=null;
+function invSum(s){var t=s.dataset.t||'';
+  if(/اقلام/.test(t)){var n=rows().filter(function(tr){return $$('input',tr).some(function(x){return x.value&&!x.classList.contains('c')})}).length;return n?fmt(n)+' ردیف':'هنوز کالایی ننوشته‌ای'}
+  if(/تسویه/.test(t)){var b=$(S.kind==='retail'?'#s_bal':'#x_bal'),bt=b?[].map.call(b.childNodes,function(n){return n.textContent.trim()}).filter(Boolean).join(' '):'';return bt?'مانده: '+bt:''}
+  var L=[];$$('.f',s).forEach(function(f){var sp=f.querySelector('span'),i=f.querySelector('input,select');if(!i||!sp)return;var v=i.tagName==='SELECT'?(i.selectedOptions[0]||{}).text:String(i.value||'').trim();
+    if(v&&v!=='—')L.push(sp.textContent.replace(/\s*\(.*?\)\s*/g,' ').trim()+': '+toFa(/^[\d.,]+$/.test(v)&&v.length>4?plain(num(v)):v))});
+  var seg=s.querySelector('.seg [aria-pressed=true]');if(seg)L.unshift(seg.textContent);
+  return L.slice(0,3).join(' · ')}
+function invSums(){var nav=$('.invmenu');if(!nav)return;S.invDone=S.invDone||{};
+  $$('.invrow',nav).forEach(function(b){var s=$('#form .fsheet[data-t="'+b.dataset.t+'"]');if(!s)return;var t=invSum(s);b.querySelector('small').textContent=t||'خالی';b.classList.toggle('done',!!S.invDone[b.dataset.t])})}
+function invOpen(i){var secs=$$('#form .fsheet'),sc=$('#form .fscrim');secs.forEach(function(s,j){s.hidden=j!==i});if(sc)sc.hidden=i<0;
+  document.documentElement.classList.toggle('fs-on',i>=0);INV_OPEN=i>=0&&secs[i]?secs[i].dataset.t:null;
+  if(i>=0&&secs[i]){secs[i].scrollTop=0;var x=$('.fsx',secs[i]);if(x)x.focus({preventScroll:true})}}
+function invMenu(app){var secs=[].slice.call(app.children).filter(function(x){return x.classList&&x.classList.contains('sec')});if(!secs.length)return;
+  var nav=document.createElement('div');nav.className='invmenu';nav.setAttribute('role','list');nav.setAttribute('aria-label','بخش‌های فاکتور');
+  secs.forEach(function(s,i){var h=s.querySelector('h2'),t=h?h.textContent.trim():'بخش '+(i+1);s.dataset.t=t;
+    if(s.classList.contains('fold')){s.classList.add('open');var fs=s.querySelector('.fsum');if(fs)fs.hidden=true}
+    s.classList.add('fsheet');s.hidden=true;s.setAttribute('role','dialog');s.setAttribute('aria-modal','true');s.setAttribute('aria-label',t);
+    var x=document.createElement('button');x.type='button';x.className='fsx';x.setAttribute('aria-label','بستن');x.textContent='×';s.insertBefore(x,s.firstChild);
+    var bar=document.createElement('div');bar.className='fsbar';bar.innerHTML='<button type="button" class="btn pri fsave">ذخیره</button>';s.appendChild(bar);
+    var b=document.createElement('button');b.type='button';b.className='invrow';b.dataset.t=t;b.setAttribute('role','listitem');
+    b.innerHTML='<span class="ir-n">'+fmt(i+1)+'</span><span class="ir-t"><b>'+esc(t)+'</b><small></small></span><i class="ir-ok" aria-hidden="true"></i>';nav.appendChild(b);
+    s.addEventListener('click',function(e){if(e.target.closest('.fsx')){invOpen(-1);var r=$('.invrow[data-t="'+t+'"]');if(r)r.focus();return}
+      if(e.target.closest('.fsave')){S.invDone=S.invDone||{};S.invDone[t]=1;invOpen(-1);invSums();$$('.invrow',nav).forEach(function(r){r.classList.remove('next')});
+        var nx=nav.children[i+1];if(nx){nx.classList.add('next');nx.focus()}}})});
+  var sc=document.createElement('div');sc.className='fscrim';sc.hidden=true;sc.addEventListener('click',function(){invOpen(-1)});
+  app.insertBefore(nav,app.firstChild);app.appendChild(sc);
+  nav.addEventListener('click',function(e){var b=e.target.closest('.invrow');if(!b)return;var k=secs.findIndex(function(s){return s.dataset.t===b.dataset.t});if(k>=0)invOpen(k)});
+  invSums();var again=INV_OPEN?secs.findIndex(function(s){return s.dataset.t===INV_OPEN}):-1;invOpen(again)}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&INV_OPEN&&S.view==='inv'){invOpen(-1)}});
 function padAct(){var a=$('#act'),p=$('#actpad');if(a&&p)p.style.height=(a.hidden?0:a.offsetHeight+16)+'px'}
 window.addEventListener('resize',padAct);
 function copyOut(id,to){var s=$(id);if(!s)return;to.className=s.className.replace(/\bout\b/,'').trim();to.innerHTML=s.innerHTML}
@@ -3988,6 +4083,7 @@ function updateTotals(){
   var defs=S.kind==='retail'?[['مبلغ نهایی','#s_final'],['مانده حساب','#s_bal']]:[['جمع این سند (گرم)','#x_final'],['مانده نهایی (گرم)','#x_bal']];
   t.innerHTML='';defs.forEach(function(d){var r=document.createElement('div'),l=document.createElement('span');l.textContent=d[0];var b=document.createElement('b');copyOut(d[1],b);r.appendChild(l);r.appendChild(b);t.appendChild(r)});
   requestAnimationFrame(padAct);
+  invSums();
   $$('#form [data-mirror]').forEach(function(inp){if(document.activeElement!==inp){var s=$('#'+inp.dataset.mirror);if(s)inp.value=s.value}});
   var txc=$('#txcalc');if(txc){var on=$('#tx_t').value||num($('#tx_ci').value)||num($('#tx_co').value);txc.hidden=!on;txc.textContent='محاسبه برای کنترل: '+$('#tx_calc').textContent}
   $$('em[data-grow]').forEach(function(e){var tr=gxRows()[+e.dataset.grow],c=tr&&$('.g7',tr);e.textContent=c&&c.textContent?c.textContent+' گرم ۷۵۰':''});
@@ -3999,12 +4095,12 @@ document.addEventListener('change',function(e){if(S.view==='inv'&&e.target.close
 
 /* ---------- actions ---------- */
 function openNewInvoice(k,pid){
-  S.editId='';S.editTs='';S.dirty=false;S.unlock='';S.fromOrder='';S.partyId=pid||'';shown[k]=2;
+  S.editId='';S.editTs='';S.dirty=false;S.unlock='';S.fromOrder='';S.partyId=pid||'';shown[k]=2;S.invDone={};INV_OPEN=null;
   $('#saveInv').hidden=false;var run=function(){resetSheet(k);if(pid){var p=partyById(pid);if(p)applyParty(p)}go('inv',null);S.dirty=false};run();
 }
 function openInvoice(id){
   var inv=null;S.invoices.forEach(function(i){if(i.id===id)inv=i});if(!inv)return;
-  S.editId=id;S.editTs=inv.ts;S.partyId=inv.partyId;S.dirty=false;S.unlock='';shown[inv.kind]=2;
+  S.editId=id;S.editTs=inv.ts;S.partyId=inv.partyId;S.dirty=false;S.unlock='';shown[inv.kind]=2;S.invDone={};INV_OPEN=null;
   resetSheet(inv.kind,true);loadInvoice(inv);go('inv',null);S.dirty=false;
 }
 function val(id){var e=$('#'+id);return e?e.value.trim():''}
@@ -4194,27 +4290,67 @@ $$('#nav button[data-tab]').forEach(function(b){b.addEventListener('click',funct
 $('#saveInv').addEventListener('click',saveInvoice);
 
 /* ---------- preview + image (A4 sheet) ---------- */
-function fit(){var s=sheet(S.kind),w=s.offsetWidth||794,
+/* ---------- A5 pages (owner, 2026-11-14): the invoice prints on A5 portrait. Rows nobody filled are left out, and so is a
+   product table with nothing in it; when the rows do not fit one page they go on to the next. Each page is a whole sheet
+   (frame, title, foot, «صفحه‌ی ۱ از ۲»): the first carries the header and the buyer, the last the totals, notes and
+   signatures. The pages are copies of the sheet, made fresh for the preview and the export; the sheet stays the data. ---------- */
+var PAGE_PX=0;function pageH(){if(!PAGE_PX){var d=document.createElement('div');d.style.cssText='position:absolute;visibility:hidden;height:210mm';document.body.appendChild(d);PAGE_PX=d.offsetHeight;d.remove()}return PAGE_PX}
+function pgFilled(tr){return [].some.call(tr.querySelectorAll('input'),function(x){return x.value&&String(x.value).trim()&&!x.classList.contains('c')})}
+function pgRowOn(t,tr){if(t.id==='wg'){var w=tr.querySelector('.gw');return !!(w&&num(w.value))}return pgFilled(tr)}
+function pgCopy(src){var c=src.cloneNode(true),a=src.querySelectorAll('input,select,textarea'),b=c.querySelectorAll('input,select,textarea');
+  for(var i=0;i<a.length;i++)if(b[i])b[i].value=a[i].value;
+  c.hidden=false;c.removeAttribute('aria-label');c.classList.add('a5');return c}
+function pgMake(src,p){var c=pgCopy(src),one=function(sel){return c.querySelector(':scope>'+sel)},drop=function(e){if(e)e.remove()};
+  var main=c.querySelector('#rt,#wt'),mbox=main?main.closest('.tbox'):null,F=[];
+  if(main){[].slice.call(main.tBodies[0].rows).forEach(function(tr){if(pgFilled(tr))F.push(tr);else tr.remove()});
+    F.forEach(function(tr,i){if(i<p.from||i>=p.to)tr.remove()});
+    if(!F.length||p.to<=p.from)drop(mbox);else if(p.to<F.length&&main.tFoot)main.tFoot.remove()}
+  [].slice.call(c.querySelectorAll('#wg,#wtr')).forEach(function(t){[].slice.call(t.tBodies[0].rows).forEach(function(tr){if(!pgRowOn(t,tr))tr.remove()});
+    if(!t.tBodies[0].rows.length||!p.last)drop(t.closest('.tbox'))});
+  if(p.first)c.classList.add('p1');else{drop(one('.hd'));drop(one('.cust'))}
+  // the details card: a line with nothing written in it is left out (late penalty, discounts… when unused)
+  [].slice.call(c.querySelectorAll('.card label')).forEach(function(l){var ins=[].slice.call(l.querySelectorAll('input')),sel=[].slice.call(l.querySelectorAll('select'));
+    if(ins.length?ins.every(function(x){return !String(x.value||'').trim()}):sel.length&&sel.every(function(x){return !x.value}))l.remove()});
+  if(!p.last){drop(one('.lower'));drop(one('.notes'));drop(one('.sign'))}
+  if(p.of>1){var n=document.createElement('p');n.className='pgno';n.textContent='صفحه‌ی '+fmt(p.no)+' از '+fmt(p.of)+(p.last?'':' · ادامه در صفحه‌ی بعد');c.insertBefore(n,one('.foot'))}
+  return c}
+function buildPages(){var src=sheet(S.kind),box=$('#pages');if(!box){box=document.createElement('div');box.id='pages';ex.appendChild(box)}box.innerHTML='';
+  var PH=pageH(),main=src.querySelector('#rt,#wt'),N=main?[].filter.call(main.tBodies[0].rows,pgFilled).length:0;
+  var fits=function(q){var c=pgMake(src,q);box.appendChild(c);var ok=c.offsetHeight<=PH+1;c.remove();return ok};
+  var plan=[];
+  if(!N||fits({first:true,last:true,from:0,to:N,no:1,of:1}))plan=[{first:true,last:true,from:0,to:N}];
+  else{var from=0;
+    while(plan.length<30){var first=!plan.length,best=null;
+      for(var to=N;to>from&&!best;to--){
+        if(to===N&&fits({first:first,last:true,from:from,to:to,no:1,of:2}))best={first:first,last:true,from:from,to:to};
+        else if(fits({first:first,last:false,from:from,to:to,no:1,of:2}))best={first:first,last:false,from:from,to:to}}
+      if(!best)best=from<N?{first:first,last:false,from:from,to:from+1}:{first:first,last:true,from:N,to:N};
+      plan.push(best);from=best.to;if(best.last)break;if(from>=N){plan.push({first:false,last:true,from:N,to:N});break}}}
+  plan.forEach(function(q,i){var c=pgMake(src,{first:q.first,last:q.last,from:q.from,to:q.to,no:i+1,of:plan.length});c.id='pg'+(i+1);box.appendChild(c)});
+  return [].slice.call(box.children)}
+window.__leonPages={make:function(q){return pgMake(sheet(S.kind),q)},build:function(){return buildPages()},h:function(){return pageH()}}; // for the tests
+function showSheets(pages){$$('#retail,#whole',ex).forEach(function(s){s.hidden=pages?true:s.id!==S.kind});var b=$('#pages');if(b)b.hidden=!pages;if(!pages&&b)b.innerHTML=''}
+function fit(){var s=$('#pages>.sheet')||sheet(S.kind),w=s.offsetWidth||794,
     /* document.documentElement.clientWidth is the layout viewport: unlike window.innerWidth it does not
        change while the user pinch-zooms the preview on iOS Safari, so a pinch no longer re-triggers this fit */
     k=Math.min(document.documentElement.clientWidth,900)/w;ex.style.setProperty('--k',k.toFixed(4));
   // preview shrinks the sheet with a transform; pull the space below up by its real height (it can be taller than A4)
-  $$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});if(ex.classList.contains('pvon')&&s.offsetHeight)s.style.marginBottom=(-s.offsetHeight*(1-k))+'px'}
+  $$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});
+  if(ex.classList.contains('pvon'))$$('.sheet',ex).forEach(function(x){if(!x.hidden&&x.offsetHeight&&!(x.parentNode.id==='pages'&&x.parentNode.hidden))x.style.marginBottom=(-x.offsetHeight*(1-k)+(x.parentNode.id==='pages'?14:0))+'px'})}
 function setMsg(t){$('#pvmsg').textContent=t||''}
-function openPv(){$$('.sheet',ex).forEach(function(s){s.hidden=s.id!==S.kind});ex.classList.add('pvon');fit();document.body.classList.add('pvmode');
+function openPv(){showSheets(true);ex.classList.add('pvon');buildPages();fit();document.body.classList.add('pvmode');
   $('#pvbar').classList.add('on');$('#pvfoot').classList.add('on');setMsg('');window.scrollTo(0,0);
   ex.style.paddingTop=($('#pvbar').offsetHeight+10)+'px';ex.style.paddingBottom=($('#pvfoot').offsetHeight+16)+'px';ex.scrollTop=0}
-function closePv(){$$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});ex.style.paddingTop='';ex.style.paddingBottom='';ex.classList.remove('pvon');document.body.classList.remove('pvmode');$('#pvbar').classList.remove('on');$('#pvfoot').classList.remove('on')}
+function closePv(){$$('.sheet',ex).forEach(function(x){x.style.marginBottom=''});showSheets(false);ex.style.paddingTop='';ex.style.paddingBottom='';ex.classList.remove('pvon');document.body.classList.remove('pvmode');$('#pvbar').classList.remove('on');$('#pvfoot').classList.remove('on')}
 $('#pvBtn').addEventListener('click',function(){fire($('#taxPct'),'input');openPv()});
 $('#pvClose').addEventListener('click',closePv);$('#pvBack').addEventListener('click',closePv);
 window.addEventListener('resize',function(){if(ex.classList.contains('pvon'))fit()});
 var saving=false;
 /* high-resolution render of the sheet: as sharp as the device's canvas limit allows (about 16 million pixels) */
-async function sheetCanvas(){
+async function sheetCanvas(el){
   await loadLib('html2canvas','lib/html2canvas.min.js',function(){return window.html2canvas});
   if(document.fonts&&document.fonts.ready)await document.fonts.ready;
-  ex.classList.remove('pvon');ex.classList.add('exporting');fit();
-  try{var el=sheet(S.kind),w=el.offsetWidth,h=el.offsetHeight,sc=Math.max(2,Math.min(4,Math.sqrt(16e6/(w*h))));
+  try{var w=el.offsetWidth,h=el.offsetHeight,sc=Math.max(2,Math.min(4,Math.sqrt(16e6/(w*h))));
     /* Safari draws an SVG with no width/height attributes as an empty image, so give every SVG its real content size */
     var svgSz=[].map.call(el.querySelectorAll('svg'),function(s){var cs=getComputedStyle(s),r=s.getBoundingClientRect(),px=function(k){return parseFloat(cs[k])||0};
       return [Math.max(1,r.width-px('paddingLeft')-px('paddingRight')-px('borderLeftWidth')-px('borderRightWidth')),Math.max(1,r.height-px('paddingTop')-px('paddingBottom')-px('borderTopWidth')-px('borderBottomWidth'))]});
@@ -4224,20 +4360,24 @@ async function sheetCanvas(){
         if(pre){var im=doc.createElement('img');im.src=pre;if(s.getAttribute('class'))im.className=s.getAttribute('class');if(s.getAttribute('style'))im.setAttribute('style',s.getAttribute('style'));im.style.boxSizing='content-box';im.style.width=z[0]+'px';im.style.height=z[1]+'px';im.style.display=getComputedStyle(s).display==='inline'?'inline-block':getComputedStyle(s).display;s.parentNode.replaceChild(im,s);return}
         s.setAttribute('xmlns','http://www.w3.org/2000/svg');s.setAttribute('width',z[0].toFixed(2));s.setAttribute('height',z[1].toFixed(2))});
       [].slice.call(doc.querySelectorAll('.cust label span,.meta span,.gcard label span,.card label span,.card h2,.notes h2,.free h2')).forEach(function(n){n.textContent=n.textContent.replace(/\s*:\s*$/,'')})}})}
-  finally{ex.classList.remove('exporting');ex.classList.add('pvon');fit()}}
+  finally{}}
+// every A5 page, drawn one by one (the preview's pages, made again from the sheet as it is now)
+async function pageCanvases(){var pv=ex.classList.contains('pvon');ex.classList.remove('pvon');ex.classList.add('exporting');showSheets(true);
+  try{var L=buildPages(),out=[];fit();for(var i=0;i<L.length;i++)out.push(await sheetCanvas(L[i]));return out}
+  finally{ex.classList.remove('exporting');if(pv){ex.classList.add('pvon');buildPages()}else showSheets(false);fit()}}
 /* the green corner and the QR as ready-made pictures: Safari leaves inline SVGs blank when html2canvas draws them */
 function invFileName(ext){var no=($('.meta div:nth-child(2) input',sheet(S.kind)).value||'').replace(/[^0-9۰-۹]/g,'');return 'leon-gold-'+(S.kind==='retail'?'retail':'wholesale')+'-invoice'+(no?'-'+no:'')+'.'+ext}
 function exportErr(err){var c=err&&err.code;setMsg(c==='declined'?'ذخیره لغو شد.':(c==='nolib'||c==='blob'||c==='nodl'||c==='unavailable'||c==='not_granted')?'ذخیره مستقیم در این نمایش ممکن نیست. از همین صفحه اسکرین‌شات بگیرید.':'ذخیره انجام نشد. از همین صفحه اسکرین‌شات بگیرید.')}
 function exportBtn(id,label,fn){$(id).addEventListener('click',async function(){if(saving)return;saving=true;var btns=[$('#pvSave'),$('#pvPdf')];btns.forEach(function(b){b.disabled=true});setMsg(label);
   try{var dl=null;try{dl=await window.claude.use('downloads')}catch(e){}if(!dl)throw {code:'nodl'};await fn(dl)}catch(err){exportErr(err)}finally{saving=false;btns.forEach(function(b){b.disabled=false})}})}
-exportBtn('#pvSave','در حال ساخت تصویر با کیفیت بالا…',async function(dl){var canvas=await sheetCanvas();
+exportBtn('#pvSave','در حال ساخت تصویر با کیفیت بالا…',async function(dl){var L=await pageCanvases(),canvas=L[0];
+  if(L.length>1){canvas=document.createElement('canvas');canvas.width=L[0].width;canvas.height=L.reduce(function(a,c){return a+c.height},0);var g=canvas.getContext('2d'),y=0;L.forEach(function(c){g.drawImage(c,0,y);y+=c.height})}
   var blob=await new Promise(function(res){canvas.toBlob(res,'image/png')});if(!blob)throw {code:'blob'};
   await dl.save({filename:invFileName('png'),data:blob});setMsg('تصویر با کیفیت بالا آماده است ('+fmt(canvas.width)+'×'+fmt(canvas.height)+').')});
 exportBtn('#pvPdf','در حال ساخت PDF…',async function(dl){
   var J=await loadLib('jspdf','lib/jspdf.umd.min.js',function(){return window.jspdf&&window.jspdf.jsPDF});
-  var canvas=await sheetCanvas(),wmm=210,hmm=Math.max(297,canvas.height*210/canvas.width);
-  var doc=new J({orientation:'portrait',unit:'mm',format:[wmm,hmm],compress:true});
-  doc.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,wmm,canvas.height*210/canvas.width,undefined,'FAST');
+  var L=await pageCanvases(),doc=new J({orientation:'portrait',unit:'mm',format:'a5',compress:true});
+  L.forEach(function(c,i){if(i)doc.addPage('a5','portrait');doc.addImage(c.toDataURL('image/jpeg',0.95),'JPEG',0,0,148,Math.min(210,c.height*148/c.width),undefined,'FAST')});
   await dl.save({filename:invFileName('pdf'),data:doc.output('blob')});setMsg('فایل PDF آماده است.')});
 
 /* ---------- «#view»: one invoice on this sheet, for «حساب من» (leon-gold-site components/hesab/Invoice.tsx) ----------
