@@ -2,6 +2,9 @@
 .movebar p{margin:0;flex:1 1 220px}.movebar b{display:block;color:#e9cf8a;font-size:14px}
 .movebtns{display:flex;gap:8px}.movebar .btn{white-space:nowrap;text-decoration:none;border:1px solid #c9a24c;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}.movebar .btn.pri{background:linear-gradient(180deg,#f0d999,#c9a24c);color:#0b2a1e}.movebar .btn:not(.pri){background:rgba(255,255,255,.06)!important;color:#efe7d2!important;-webkit-text-fill-color:#efe7d2!important;text-shadow:none!important}
 .visw{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:66px;margin-top:10px}.visw span{display:grid;justify-items:center;gap:2px}.visw i{display:block;width:100%;max-width:22px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#e2cb94,#b08d57)}.visw small{font-size:10px;color:var(--muted)}
+.fxr{display:grid;grid-template-columns:1.3fr 1fr 1.2fr auto;gap:6px;align-items:center;margin:0 0 8px}.fxr select,.fxr input{min-width:0}
+.fxk{margin-top:-4px}.fxh{margin-top:12px;border-top:1px dashed var(--line,#d9c79f);padding-top:8px}.fxh h3{font-size:14px;margin:0 0 6px}.fxhr{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;font-size:13px;padding:3px 0}
+.sheet .fxp{margin-top:3mm}.sheet .fxp table td,.sheet .fxp table th{text-align:center;padding:1.2mm 1.5mm}
 </style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
    lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
 @media (min-width:1100px){
@@ -403,7 +406,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 10:39</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:28</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1422,6 +1425,7 @@ div.row{cursor:default}div.row:active{transform:none;background:var(--card)}
       <label class="big"><span>مانده حساب :</span><b class="out" id="s_bal">۰</b></label>
     </div>
   </div>
+  <div class="fxp tbox" hidden></div>
   <div class="notes">
     <div class="free"><h2>توضیحات :</h2><input></div>
     <ol><li>اصالت و عیار کالا تضمین می‌شود؛ گواهی ضمانت همراه کالا تحویل می‌گردد.</li><li>اشتباه از طرفین قابل برگشت است.</li></ol>
@@ -1509,6 +1513,7 @@ div.row{cursor:default}div.row:active{transform:none;background:var(--card)}
       <label class="big lrr"><span>مانده نهایی (ریال) :</span><b class="out" id="x_rbal">۰</b></label>
     </div>
   </div>
+  <div class="fxp tbox" hidden></div>
   <div class="notes">
     <div class="free"><h2>توضیحات :</h2><input></div>
     <ol>
@@ -1715,6 +1720,75 @@ var main=$('#main');
 /* ---------- ledger ---------- */
 function unitOf(inv){return inv.kind==='whole'?'g':'r'}
 function invLabel(i){return i.kind==='whole'?(i.doc==='rc'?'سند دریافتی عمده':'فاکتور عمده'):'فاکتور خرده'}
+/* ---------- currencies and coins (owner, 2026-11-15) ----------
+   A party's balance per currency and coin, beside grams and rials: settlements in that unit, and «ارز و سکه» lines on an
+   invoice (received from / paid to the party). Same sign as everything else: «پرداخت به او» (out) adds to what he owes,
+   «دریافت از او» (in) takes off. Leon's own holdings («کالاها»): an opening count + every receipt − every payment.
+   Prices: the union board's coins and the dollar from price.json, euro and lira from tgju; in rials. */
+var FX=[{k:'usd',n:'دلار',w:'دلار',d:2},{k:'eur',n:'یورو',w:'یورو',d:2},{k:'try',n:'لیر',w:'لیر',d:2},
+  {k:'cn',n:'سکه طرح جدید',w:'عدد',d:0,b:'سکه طرح جدید'},{k:'co',n:'سکه طرح قدیم',w:'عدد',d:0,b:'سکه طرح قدیم'},{k:'ch',n:'نیم سکه',w:'عدد',d:0,b:'نیم سکه'},
+  {k:'cq',n:'ربع سکه',w:'عدد',d:0,b:'ربع سکه'},{k:'cg',n:'سکه گرمی',w:'عدد',d:0,b:'سکه گرمی'}];
+function fxOf(u){for(var i=0;i<FX.length;i++)if(FX[i].k===u)return FX[i];return null}
+function isFx(u){return !!fxOf(u)}
+function fxTxt(v,u){var f=fxOf(u);return fmt(Math.abs(v),f.d)+' '+(f.w==='عدد'?f.n:f.w)}
+function fxEps(u){var f=fxOf(u);return f&&f.d?0.005:0.5}
+var FXP={},FXP_AT=0,FXP_ING=null;
+function fxLoad(){if(FXP_ING)return FXP_ING;if(Date.now()-FXP_AT<300000)return Promise.resolve(FXP);
+  var m=Math.floor(Date.now()/60000),feed=mkGet('https://raw.githubusercontent.com/LEON-Gold/leon-gold-app/price/price.json?t='+m).catch(function(){return mkGet('https://cdn.jsdelivr.net/gh/LEON-Gold/leon-gold-app@price/price.json?t='+m)}).catch(function(){return null});
+  var tg=function(id){return mkGet('https://api.tgju.org/v1/market/indicator/today-table-data/'+id+'?length=1&start=0').then(function(x){var r=x&&x.data&&x.data[0];return r?mkN(r[0]):0}).catch(function(){return 0})};
+  FXP_ING=Promise.all([feed,tg('price_eur'),tg('price_try')]).then(function(a){var j=a[0];
+    if(j){(j.board||[]).forEach(function(b){FX.forEach(function(f){if(f.b&&f.b===b.name&&b.unit==='rial'&&+b.value)FXP[f.k]=+b.value})});if(j.usd&&+j.usd.p)FXP.usd=+j.usd.p}
+    if(a[1])FXP.eur=a[1];if(a[2])FXP['try']=a[2];FXP_AT=Date.now();return FXP}).finally(function(){FXP_ING=null});return FXP_ING}
+// a view that shows prices asks once, and draws again when they come
+function fxWant(){if(Date.now()-FXP_AT>=300000&&!FXP_ING){var v=S.view;fxLoad().then(function(){if(S.view===v&&!EDITING[v])render()})}}
+// Leon's own holdings of each unit, and its moves (newest first)
+function fxStock(){var o={},mv=[],op=fxOpen();FX.forEach(function(f){o[f.k]=+op[f.k]||0});
+  S.settlements.forEach(function(s){if(!isFx(s.unit))return;var n=(s.dir==='in'?1:-1)*(+s.amount||0);o[s.unit]+=n;mv.push({ts:s.ts,u:s.unit,n:n,label:(s.dir==='in'?'دریافت از ':'پرداخت به ')+(s.partyName||'—')+' · سند تسویه',act:'set',id:s.id})});
+  S.invoices.forEach(function(i){(i.fx||[]).forEach(function(f){if(!isFx(f.u))return;var n=(f.dir==='in'?1:-1)*(+f.n||0);o[f.u]+=n;mv.push({ts:i.ts,u:f.u,n:n,label:(f.dir==='in'?'دریافت از ':'پرداخت به ')+(i.partyName||'—')+' · '+invLabel(i)+' '+(i.no||''),act:'inv',id:i.id})})});
+  mv.sort(function(a,b){return a.ts<b.ts?1:-1});return {have:o,mv:mv}}
+function fxOpen(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='fxopen')return S.settings[i].v||{};return {}}
+
+/* the invoice's «ارز و سکه» section: rows of unit, count and direction, kept in S.fx while the invoice is open */
+S.fx=[];
+function fxRowsHTML(){return S.fx.map(function(r,i){return '<div class="fxr" data-i="'+i+'"><select class="fxu" aria-label="ارز یا سکه">'+FX.map(function(f){return '<option value="'+f.k+'"'+(f.k===r.u?' selected':'')+'>'+esc(f.n)+'</option>'}).join('')+'</select>'
+  +'<input class="fxn num" inputmode="decimal" placeholder="تعداد / مقدار" aria-label="تعداد یا مقدار" value="'+(r.n?plain(r.n,fxOf(r.u).d):'')+'">'
+  +'<select class="fxd" aria-label="جهت"><option value="in"'+(r.dir!=='out'?' selected':'')+'>دریافت از او</option><option value="out"'+(r.dir==='out'?' selected':'')+'>پرداخت به او</option></select>'
+  +'<button class="btn sm dng fxx" type="button" aria-label="حذف این ردیف">×</button></div>'}).join('')}
+function fxSec(){var s=document.createElement('section');s.className='sec';
+  s.innerHTML='<h2>ارز و سکه</h2><p class="note">دلار، یورو، لیر یا سکه‌ای که در همین فاکتور از او گرفتی یا به او دادی؛ به حساب ارزی او و موجودی ارز و سکه‌ی تو می‌رود.</p><div class="fxrows">'+fxRowsHTML()+'</div><div class="btns"><button class="btn sm fxadd" type="button">+ ارز یا سکه</button></div>';
+  var box=$('.fxrows',s),redraw=function(){box.innerHTML=fxRowsHTML()};
+  s.addEventListener('click',function(e){if(e.target.closest('.fxadd')){S.fx.push({u:'usd',n:0,dir:'in'});S.dirty=true;redraw();return}
+    var x=e.target.closest('.fxx');if(x){S.fx.splice(+x.closest('.fxr').dataset.i,1);S.dirty=true;redraw()}});
+  s.addEventListener('input',function(e){var r=e.target.closest('.fxr');if(!r)return;var o=S.fx[+r.dataset.i];o.u=$('.fxu',r).value;o.n=num($('.fxn',r).value);o.dir=$('.fxd',r).value;S.dirty=true});
+  s.addEventListener('change',function(e){var r=e.target.closest('.fxr');if(!r)return;var o=S.fx[+r.dataset.i];o.u=$('.fxu',r).value;o.dir=$('.fxd',r).value;S.dirty=true});
+  return s}
+function fxClean(){return S.fx.filter(function(r){return isFx(r.u)&&r.n>0}).map(function(r){var f=fxOf(r.u);return {u:r.u,n:f.d?Math.round(r.n*100)/100:Math.round(r.n),dir:r.dir==='out'?'out':'in'}})}
+
+/* the party's page: its currency and coin balances, under grams and rials */
+function fxBalHTML(b){var L=FX.filter(function(f){return Math.abs(b[f.k]||0)>=fxEps(f.k)});if(!L.length)return '';
+  return '<div class="kpis fxk">'+L.map(function(f){return '<div class="kpi"><small>مانده '+esc(f.n)+'</small><b>'+balHTML(b[f.k],f.k)+'</b></div>'}).join('')+'</div>'}
+/* the home «مانده‌ها»: what parties owe Leon and Leon owes them in each currency and coin */
+function fxHomeHTML(){var t={};FX.forEach(function(f){t[f.k]={p:0,n:0}});S.parties.forEach(function(p){var b=S.bal[p.id];if(!b)return;FX.forEach(function(f){var v=b[f.k]||0;if(v>0)t[f.k].p+=v;else t[f.k].n-=v})});
+  var L=FX.filter(function(f){return t[f.k].p>=fxEps(f.k)||t[f.k].n>=fxEps(f.k)});if(!L.length)return '';
+  return '<div class="fxh"><h3>ارز و سکه</h3>'+L.map(function(f){return '<div class="fxhr"><span>'+esc(f.n)+'</span><span>طلب: <b>'+fmt(t[f.k].p,f.d)+'</b></span><span>بدهی من: <b>'+fmt(t[f.k].n,f.d)+'</b></span></div>'}).join('')+'</div>'}
+/* «کالاها»: Leon's holdings of each currency and coin, their value today, and the latest moves; the opening counts are typed once */
+function fxStockHTML(){fxWant();var st=fxStock(),tot=0;
+  var rows=FX.map(function(f){var h=st.have[f.k],p=FXP[f.k]||0,val=h*p;if(p)tot+=val;
+    return '<div class="row"><span class="t">'+esc(f.n)+'</span><span class="s">'+(p?'قیمت امروز '+fmt(Math.round(p))+' ریال':'قیمت در حال آمدن')+'</span><span class="v"><span class="qty">'+fmt(h,f.d)+' '+(f.w==='عدد'?'عدد':f.w)+'</span>'+(p&&h?'<span class="d">'+fmt(Math.round(val))+' ریال</span>':'')+'</span></div>'}).join('');
+  return '<section class="sec" id="fxsec"><h2>ارز و سکه</h2><p class="note">موجودی تو: موجودی اول + هر دریافت − هر پرداخت (از فاکتورها و سندهای تسویه). ارزش به قیمت امروز اتحادیه.</p>'
+   +'<div class="list">'+rows+'</div>'+(tot?'<p class="note"><b>ارزش کل: '+fmt(Math.round(tot))+' ریال</b></p>':'')
+   +'<details><summary>موجودی اول ارز و سکه</summary><div class="grid">'+FX.map(function(f){return fld(f.n,'fxo_'+f.k,fxOpen()[f.k]?plain(fxOpen()[f.k],f.d):'',{num:1})}).join('')+'</div><div class="btns"><button class="btn sm pri" data-act="fxopen" type="button">ذخیره‌ی موجودی اول</button></div></details>'
+   +'<details><summary>آخرین دریافت و پرداخت‌ها ('+fmt(st.mv.length)+')</summary><div class="list">'+(st.mv.slice(0,40).map(function(m){return '<button class="row" data-act="'+m.act+'" data-id="'+esc(m.id)+'" type="button"><span class="t">'+esc(fxOf(m.u).n)+'</span><span class="s">'+esc(m.label)+' · '+esc(jdate(m.ts))+'</span><span class="v"><span class="qty">'+(m.n>0?'+':'−')+fmt(Math.abs(m.n),fxOf(m.u).d)+'</span></span></button>'}).join('')||'<div class="empty">هنوز دریافت یا پرداختی نیست.</div>')+'</div></details></section>'}
+async function fxSaveOpen(){var v={};FX.forEach(function(f){var x=num(val('fxo_'+f.k));if(x)v[f.k]=f.d?Math.round(x*100)/100:Math.round(x)});if(await put('settings','fxopen',{v:v}))toast('موجودی اول ارز و سکه ذخیره شد')}
+/* «گزارش»: the holdings and the parties' currency balances, valued at today's prices */
+function fxReportHTML(){fxWant();var st=fxStock(),own=0,recv=0,pay=0;
+  S.parties.forEach(function(p){var b=S.bal[p.id];if(!b)return;FX.forEach(function(f){var v=b[f.k]||0,pr=FXP[f.k]||0;if(v>0)recv+=v*pr;else pay-=v*pr})});
+  var lines=FX.filter(function(f){return Math.abs(st.have[f.k])>=fxEps(f.k)}).map(function(f){var pr=FXP[f.k]||0;own+=st.have[f.k]*pr;return esc(f.n)+': '+fmt(st.have[f.k],f.d)+(pr?' ≈ '+fmt(Math.round(st.have[f.k]*pr))+' ریال':'')});
+  if(!lines.length&&!recv&&!pay)return '';
+  return '<section class="sec"><h2>ارز و سکه</h2>'+(lines.length?'<p>'+lines.join('<br>')+'</p>':'')
+   +'<div class="kpis flat"><div class="kpi"><small>ارزش موجودی ارز و سکه</small><b>'+fmt(Math.round(own))+'</b><span class="sub">ریال</span></div><div class="kpi"><small>طلب ارزی از طرف‌حساب‌ها</small><b>'+fmt(Math.round(recv))+'</b><span class="sub">ریال، به قیمت امروز</span></div><div class="kpi"><small>بدهی ارزی من</small><b>'+fmt(Math.round(pay))+'</b><span class="sub">ریال، به قیمت امروز</span></div></div>'
+   +(Object.keys(FXP).length?'':'<p class="note">قیمت‌ها در حال آمدن است.</p>')+'</section>'}
+
 function compute(){
   var bal={},ent={};
   S.parties.forEach(function(p){bal[p.id]={g:p.openG||0,r:p.openR||0};ent[p.id]=[];
@@ -1722,12 +1796,14 @@ function compute(){
     if(p.openR)ent[p.id].push({ts:p.ts||'',kind:'open',label:'مانده اول دوره (ریال)',u:'r',d:p.openR})});
   S.invoices.forEach(function(i){if(!bal[i.partyId])return;var u=unitOf(i),d=(u==='g'?i.deltaG:i.deltaR)||0;
     bal[i.partyId][u]+=d;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,label:invLabel(i)+' '+(i.no||''),u:u,d:d,gross:typeof i.amount==='number'&&isFinite(i.amount)?i.amount:null});
+    (i.fx||[]).forEach(function(f){if(!isFx(f.u))return;var d=(f.dir==='in'?-1:1)*(+f.n||0);bal[i.partyId][f.u]=(bal[i.partyId][f.u]||0)+d;
+      ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,fx:1,label:(f.dir==='in'?'دریافت ':'پرداخت ')+fxOf(f.u).n+' · '+invLabel(i)+' '+(i.no||''),u:f.u,d:d})});
     if(u==='g'&&i.deltaR){bal[i.partyId].r+=i.deltaR;ent[i.partyId].push({ts:i.ts,kind:'inv',id:i.id,tr:1,label:(i.trade&&i.trade.type==='buy'?'خرید طلا':i.trade&&i.trade.type==='sell'?'فروش طلا':'نقدی')+(i.trade&&(i.trade.cin||i.trade.cout)&&i.trade.type?' و نقدی':'')+' · '+invLabel(i)+' '+(i.no||'')+(i.trade&&i.trade.note?' · '+i.trade.note:''),u:'r',d:i.deltaR})}});
   S.invoices.forEach(function(i){var h=i.hav;if(!h||!h.w||!bal[h.partyId])return;var d=(h.dir==='in'?1:-1)*h.w;
     bal[h.partyId].g+=d;ent[h.partyId].push({ts:i.ts,kind:'inv',id:i.id,hv:1,label:'حواله '+(h.dir==='in'?'به حساب لئون از ':'از حساب لئون به ')+(i.partyName||'')+' · '+invLabel(i)+' '+(i.no||''),u:'g',d:d})});
   S.settlements.forEach(function(s){if(!bal[s.partyId])return;var d=(s.dir==='in'?-1:1)*(s.amount||0);
-    bal[s.partyId][s.unit]+=d;ent[s.partyId].push({ts:s.ts,kind:'set',id:s.id,label:(s.dir==='in'?'دریافت از او':'پرداخت به او')+(s.note?' · '+s.note:''),u:s.unit,d:d})});
-  Object.keys(ent).forEach(function(k){var run={g:0,r:0};ent[k].sort(function(a,b){return a.ts<b.ts?-1:a.ts>b.ts?1:0});ent[k].forEach(function(e){run[e.u]+=e.d;e.run=run[e.u]})});
+    bal[s.partyId][s.unit]=(bal[s.partyId][s.unit]||0)+d;ent[s.partyId].push({ts:s.ts,kind:'set',id:s.id,label:(s.dir==='in'?'دریافت از او':'پرداخت به او')+(s.note?' · '+s.note:''),u:s.unit,d:d})});
+  Object.keys(ent).forEach(function(k){var run={g:0,r:0};ent[k].sort(function(a,b){return a.ts<b.ts?-1:a.ts>b.ts?1:0});ent[k].forEach(function(e){run[e.u]=(run[e.u]||0)+e.d;e.run=run[e.u]})});
   S.bal=bal;S.ent=ent;computeStock();
 }
 /* ---------- catalog + stock ---------- */
@@ -1989,8 +2065,8 @@ async function saveProduct(id){
 function csvStock(){var rows=[['کد','نام','دسته','عیار','اجرت ٪','موجودی (عدد)','موجودی (گرم)','حداقل','وضعیت']];
   S.products.slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}).forEach(function(p){var s=S.stock[p.id]||{q:0,g:0};rows.push([fanum(p.code),p.name,p.cat||'',p.carat?Math.round(labOf(p.carat)):'',p.ajrat||'',s.q,+s.g.toFixed(3),p.minQ||'',isLow(p)?'کم‌موجودی':''])});
   saveFile('leon-gold-stock-'+day()+'.csv',csv(rows),'text/csv')}
-function balHTML(v,u){var z=u==='g'?Math.abs(v)<0.0005:Math.abs(v)<0.5,c=z?'z':(v>0?'dr':'cr'),w=z?'تسویه':(v>0?'بدهکار':'بستانکار');
-  var t=z?(u==='g'?'۰ گرم':'۰ ریال'):(u==='g'?fmt(Math.abs(v),3)+' گرم':fmt(Math.abs(v),0)+' ریال');
+function balHTML(v,u){var X=isFx(u),z=X?Math.abs(v)<fxEps(u):u==='g'?Math.abs(v)<0.0005:Math.abs(v)<0.5,c=z?'z':(v>0?'dr':'cr'),w=z?'تسویه':(v>0?'بدهکار':'بستانکار');
+  var t=X?fxTxt(z?0:v,u):z?(u==='g'?'۰ گرم':'۰ ریال'):(u==='g'?fmt(Math.abs(v),3)+' گرم':fmt(Math.abs(v),0)+' ریال');
   return '<span class="bal '+c+'"><span class="n">'+t+'</span><em>'+w+'</em></span>'}
 function partyById(id){for(var i=0;i<S.parties.length;i++)if(S.parties[i].id===id)return S.parties[i];return null}
 function nextNo(){var m=0;S.invoices.forEach(function(i){var n=num(i.no);if(n>m)m=n});return m+1}
@@ -2930,18 +3006,18 @@ function choose(title,opts){var m=document.createElement('div');m.className='mod
   m.innerHTML='<div class="box" role="dialog" aria-modal="true"><p>'+esc(title)+'</p><div class="btns">'+opts.map(function(o,i){return '<button class="btn pri" data-c="'+i+'" type="button">'+esc(o[0])+'</button>'}).join('')+'<button class="btn" data-n type="button">انصراف</button></div></div>';
   document.body.appendChild(m);m.addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(b){m.remove();opts[+b.dataset.c][1]()}else if(e.target.closest('[data-n]')||e.target===m)m.remove()})}
 function entSplit(e){var g=e.gross!=null?e.gross:e.d,pay=g-e.d;return {g:g,pay:pay,dr:Math.max(g,0)+Math.max(-pay,0),cr:Math.max(-g,0)+Math.max(pay,0)}}
-function balWord(v,u){var z=u==='g'?Math.abs(v)<0.0005:Math.abs(v)<0.5;return z?'تسویه':v>0?'بدهکار':'بستانکار'}
-function rnd(v,u){return u==='g'?+v.toFixed(3):Math.round(v)}
+function balWord(v,u){var z=isFx(u)?Math.abs(v)<fxEps(u):u==='g'?Math.abs(v)<0.0005:Math.abs(v)<0.5;return z?'تسویه':v>0?'بدهکار':'بستانکار'}
+function rnd(v,u){return u==='g'?+v.toFixed(3):isFx(u)&&fxOf(u).d?+v.toFixed(2):Math.round(v)}
 var UNIT={g:{t:'حساب گرمی (گرم طلای ۷۵۰)',w:'گرم',d:3},r:{t:'حساب ریالی (ریال)',w:'ریال',d:0}};
 function itemText(it,kind){if(it.gx)return gxText(it.gx);return [toFa(it.desc||'—'),it.qty?fmt(it.qty)+' عدد':'',fmt(it.weight||0,3)+' گرم','عیار '+(kind==='retail'?fmt(it.carat||18,2):fmt(Math.round(labOf(it.carat)))),it.ajrat?'اجرت '+fmt(it.ajrat,2)+'٪':'',kind==='retail'&&it.profit?'سود '+fmt(it.profit,2)+'٪':'',
   kind==='retail'&&it.amount?fmt(it.amount)+' ریال':'',kind==='whole'&&it.totalG?'جمع '+fmt(it.totalG,3)+' گرم':''].filter(Boolean).join(' · ')}
 function stmtRows(p){var inv={},st={},sec={g:[],r:[]};S.invoices.forEach(function(i){inv[i.id]=i});S.settlements.forEach(function(s){st[s.id]=s});
   (S.ent[p.id]||[]).forEach(function(e){var i=e.kind==='inv'?inv[e.id]:null,s=e.kind==='set'?st[e.id]:null;
-    var sp=entSplit(e);sec[e.u].push({date:(i&&i.date)||(s&&s.date)||jdate(e.ts),label:e.label+(Math.abs(sp.pay)>=(e.u==='g'?0.0005:0.5)?' (با '+(sp.pay>0?'دریافت':'پرداخت')+' '+fmt(Math.abs(sp.pay),e.u==='g'?3:0)+' '+(e.u==='g'?'گرم':'ریال')+' در همین فاکتور)':''),dr:sp.dr,cr:sp.cr,run:e.run,items:i&&!e.tr?(i.items||[]).concat((i.gold||[]).map(function(g){return {gx:g}})):[],kind:i?i.kind:''})});
+    if(!sec[e.u])return;var sp=entSplit(e);sec[e.u].push({date:(i&&i.date)||(s&&s.date)||jdate(e.ts),label:e.label+(Math.abs(sp.pay)>=(e.u==='g'?0.0005:0.5)?' (با '+(sp.pay>0?'دریافت':'پرداخت')+' '+fmt(Math.abs(sp.pay),e.u==='g'?3:0)+' '+(e.u==='g'?'گرم':'ریال')+' در همین فاکتور)':''),dr:sp.dr,cr:sp.cr,run:e.run,items:i&&!e.tr?(i.items||[]).concat((i.gold||[]).map(function(g){return {gx:g}})):[],kind:i?i.kind:''})});
   return sec}
 function summary(p){var o={},b=S.bal[p.id]||{g:0,r:0},n=0,last='';
   ['g','r'].forEach(function(u){o[u]={open:(u==='g'?p.openG:p.openR)||0,invDr:0,invCr:0,setIn:0,setOut:0,bal:b[u]}});
-  (S.ent[p.id]||[]).forEach(function(e){var x=o[e.u];if(e.kind==='inv'){var sp=entSplit(e);x.invDr+=sp.dr;x.invCr+=sp.cr}else if(e.kind==='set'){if(e.d<0)x.setIn-=e.d;else x.setOut+=e.d}if(e.kind!=='open'&&e.ts>last)last=e.ts});
+  (S.ent[p.id]||[]).forEach(function(e){var x=o[e.u];if(!x)return;if(e.kind==='inv'){var sp=entSplit(e);x.invDr+=sp.dr;x.invCr+=sp.cr}else if(e.kind==='set'){if(e.d<0)x.setIn-=e.d;else x.setOut+=e.d}if(e.kind!=='open'&&e.ts>last)last=e.ts});
   S.invoices.forEach(function(i){if(i.partyId===p.id)n++});return {u:o,count:n,last:last?jdate(last):'—'}}
 function infoRows(p){return [['طرف‌حساب',p.name||''],['فروشگاه',p.shop||''],['تلفن',p.phone||''],['تاریخ گزارش',jdate(Date.now())]]}
 var SUMROWS=[['open','مانده اول دوره'],['invDr','جمع فاکتورهای بدهکار'],['invCr','جمع فاکتورهای بستانکار'],['setIn','دریافت از او (تسویه)'],['setOut','پرداخت به او (تسویه)']];
@@ -3842,7 +3918,7 @@ function vSet(){
   var po=[['','— انتخاب —']].concat(S.parties.map(function(p){return [p.id,p.name]}));
   main.innerHTML='<section class="sec"><h2>مشخصات سند</h2><div class="grid">'+sel('طرف‌حساب','sf_party',po,pid,{w2:1})
    +sel('نوع سند','sf_dir',[['in','دریافت از او (من گرفتم)'],['out','پرداخت به او (من دادم)']],ex.dir||'in',{w2:1})
-   +sel('واحد','sf_unit',[['g','گرم طلا'],['r','ریال']],ex.unit||'g')+fld('مقدار','sf_amt',ex.amount?plain(ex.amount,ex.unit==='g'?3:0):'',{num:1})
+   +sel('واحد','sf_unit',[['g','گرم طلا'],['r','ریال']].concat(FX.map(function(f){return [f.k,f.n+(f.w==='عدد'?' (عدد)':'')]})),ex.unit||'g')+fld('مقدار','sf_amt',ex.amount?plain(ex.amount,ex.unit==='g'?3:isFx(ex.unit)?fxOf(ex.unit).d:0):'',{num:1})
    +fld('تاریخ','sf_date',ex.date||jdate(Date.now()),{num:1,w2:1})+fld('توضیحات','sf_note',ex.note,{w2:1})+'</div>'
    +'<p class="note">«دریافت از او» از بدهی او کم می‌کند. «پرداخت به او» از بدهی من به او کم می‌کند.</p></section>'
    +'<div class="btns"><button class="btn pri" data-act="saveset" data-id="'+esc(ex.id||'')+'">ذخیره</button>'+(isNew?'':'<button class="btn dng" data-act="delset" data-id="'+esc(ex.id)+'">حذف</button>')+'<button class="btn" data-act="back">انصراف</button></div>';
@@ -3863,7 +3939,7 @@ function setKind(k){S.kind=k;$$('.sheet',ex).forEach(function(s){s.hidden=s.id!=
 function hvOpts(){var sel=$('#w_hvp'),v=sel.value;sel.innerHTML='<option value="">—</option>'+S.parties.filter(function(p){return p.id!==S.partyId}).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('');sel.value=v}
 function lockSheets(on){$$('.sheet',ex).forEach(function(s){$$('input',s).forEach(function(e){e.readOnly=on});$$('select,button',s).forEach(function(e){e.disabled=on})})}
 function resetSheet(k,keepPrice){
-  lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;$('#w_hv').value='';$('#w_hv_t').selectedIndex=0;hvOpts();$('#w_hvp').value='';['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
+  S.fx=[];lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;$('#w_hv').value='';$('#w_hv_t').selectedIndex=0;hvOpts();$('#w_hvp').value='';['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
   $$('.gx,.tx',sheet(k)).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});shownG=1;$$('#wt tbody tr').forEach(function(tr){delete tr.dataset.ret});
   $('#taxPct').value='۰';var now=Date.now();$$('.dt',sheet(k)).forEach(function(e){e.value=jdate(now)});
   if(k==='retail'){var t=$('.meta div:nth-child(3) input',sheet(k));if(t)t.value=jtime(now)}
@@ -3890,6 +3966,7 @@ async function autoProducts(s,inbound){var made=[],next=nextCode();
     S.products=S.products.concat([Object.assign({id:pid},pd)]);di.value=toFa(code)+' '+d;fire(di,'input');made.push(pd)}
   return made}
 function loadInvoice(inv){
+  S.fx=(inv.fx||[]).filter(function(f){return isFx(f.u)}).map(function(f){return {u:f.u,n:+f.n||0,dir:f.dir==='out'?'out':'in'}});
   setKind(inv.kind);var s=sheet(inv.kind),cur=$$('#rt tbody tr,#wt tbody tr',s).length;
   for(var i=cur;i<(inv.rows||cur);i++)$('.addrow',s).click();
   var f=fields(inv.kind);(inv.vals||[]).forEach(function(v,i){if(f[i])f[i].value=v});$('#w_rprev').value=inv.rprev?inv.rprev[0]:'';$('#w_rprev_t').value=inv.rprev?inv.rprev[1]:'dr';hvOpts();$('#w_hv').value=inv.hav?plain(inv.hav.w,3):'';$('#w_hv_t').value=inv.hav&&inv.hav.dir==='in'?'in':'out';$('#w_hvp').value=inv.hav?inv.hav.partyId:'';['#r_discg','#w_discg','#w_discr'].forEach(function(q,i){$(q).value=inv.disc2&&inv.disc2[i]||''});
@@ -3972,7 +4049,7 @@ async function saveInvoice(o){
     var d={kind:k,doc:k==='whole'?$('#w_doc').value:'',no:$('.meta div:nth-child(2) input',s).value,date:$('.meta div:nth-child(1) input',s).value,
       partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,disc2:[$('#r_discg').value,$('#w_discg').value,$('#w_discr').value],rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
       ts:S.editTs||new Date().toISOString(),upd:new Date().toISOString()};
-    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
+    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);d.fx=fxClean();if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
     if(k==='whole'){var w=window.LGW||{eff:0,delta:0};d.unit='g';d.amount=w.eff;d.deltaG=w.delta}else{var r=window.LGR||{eff:0,delta:0};d.unit='r';d.amount=r.eff;d.deltaR=r.delta}
     var id=S.editId||newId('invoices');
     if(S.editId){var prev=null;S.invoices.forEach(function(x){if(x.id===id)prev=x});if(prev){var snap=Object.assign({},prev);delete snap.id;logAct('edit','invoices',id,snap)}}
@@ -4092,6 +4169,7 @@ function renderForm(){
   if(kind==='retail')app.appendChild(fsec('تسویه و مانده',[mk('تخفیف (ریال)','#r_disc',{num:1,w2:1}),mk('تخفیف (گرم، به قیمت همین فاکتور)','#r_discg',{num:1,w2:1}),mk('مانده قبلی (ریال)','#r_prev',{num:1,w2:1,sel:'#r_prev_t'}),mkSelect('وضعیت تحویل کالا','#r_deliv',{w2:1}),
     mk('نقدی',P(0),{num:1,w2:1,sel:'#r_p1_t'}),mk('کارت / حواله',P(1),{num:1,w2:1,sel:'#r_p2_t'}),mk('چک',P(2),{num:1,w2:1,sel:'#r_p3_t'}),mk('طلای مشتری (تهاتر)',P(3),{num:1,w2:1,sel:'#r_p4_t'})]));
   else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('حواله (گرم)','#w_hv',{num:1,w2:1,sel:'#w_hv_t'}),mkSelect('حساب حواله (نزد چه کسی)','#w_hvp',{w2:1}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1}),mk('تخفیف (گرم)','#w_discg',{num:1,w2:1}),mk('تخفیف (ریال)','#w_discr',{num:1,w2:1})]));
+  app.appendChild(fxSec());
   app.appendChild(fsec('مشخصات '+(kind==='retail'?'خریدار':'مشتری'),kind==='retail'?[mk('خریدار',N('.cust label:nth-child(1) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(2) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(3) input'),{w2:1})]:
     [mk('حساب (نام مشتری)',N('.cust label:nth-child(1) input'),{w2:1}),mk('فروشگاه',N('.cust label:nth-child(2) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(3) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(4) input'),{w2:1})]));
   app.appendChild(fsec('توضیحات',[mk('توضیحات (اختیاری)',notes,{w2:1})]));
@@ -4111,7 +4189,7 @@ function invSum(s){var t=s.dataset.t||'';
 function invSums(){var nav=$('.invmenu');if(!nav)return;S.invDone=S.invDone||{};
   $$('.invrow',nav).forEach(function(b){var s=$('#form .fsheet[data-t="'+b.dataset.t+'"]');if(!s)return;var t=invSum(s);b.querySelector('small').textContent=t||'خالی';b.classList.toggle('done',!!S.invDone[b.dataset.t])})}
 /* the sheet as it was opened or last saved; a section's «ذخیره» writes an opened invoice only when this changed */
-function invSig(){return $$('input,select,textarea',sheet(S.kind)).map(function(e){return e.value}).join('\u0001')+'|'+$('#taxPct').value}
+function invSig(){return $$('input,select,textarea',sheet(S.kind)).map(function(e){return e.value}).join('\u0001')+'|'+$('#taxPct').value+'|'+JSON.stringify(fxClean())}
 function invOpen(i){var secs=$$('#form .fsheet'),sc=$('#form .fscrim');secs.forEach(function(s,j){s.hidden=j!==i});if(sc)sc.hidden=i<0;
   document.documentElement.classList.toggle('fs-on',i>=0);INV_OPEN=i>=0&&secs[i]?secs[i].dataset.t:null;
   if(i>=0&&secs[i]){secs[i].scrollTop=0;var x=$('.fsx',secs[i]);if(x)x.focus({preventScroll:true})}}
@@ -4198,7 +4276,7 @@ document.addEventListener('input',function(e){if(e.target&&e.target.id==='pq')pq
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='supq'){SUQ=e.target.value;var L=$('#suparties');if(L)L.innerHTML=supartiesHTML()}});
 function renderInvAfterParty(){if(S.view==='inv'){var ps=$('#partySel');vInv()}}
 async function saveSet(id){
-  var pid=val('sf_party'),amt=num(val('sf_amt'));amt=val('sf_unit')==='g'?Math.round(amt*1000)/1000:Math.round(amt);if(!pid){toast('طرف‌حساب را انتخاب کن');return}if(!(amt>0)){toast('مقدار را بنویس');return}
+  var pid=val('sf_party'),amt=num(val('sf_amt')),U=val('sf_unit');amt=U==='g'?Math.round(amt*1000)/1000:isFx(U)&&fxOf(U).d?Math.round(amt*100)/100:Math.round(amt);if(!pid){toast('طرف‌حساب را انتخاب کن');return}if(!(amt>0)){toast('مقدار را بنویس');return}
   var p=partyById(pid),old=null;S.settlements.forEach(function(s){if(s.id===id)old=s});
   var d={partyId:pid,partyName:p?p.name:'',dir:val('sf_dir'),unit:val('sf_unit'),amount:amt,date:val('sf_date'),note:val('sf_note'),ts:old&&old.ts?old.ts:new Date().toISOString()};
   if(old&&old.kind==='assay')['kind','invId','idx','purity','lab','ang','weight'].forEach(function(k){d[k]=old[k]});
@@ -4241,6 +4319,7 @@ document.addEventListener('click',function(e){
     case 'editparty':go('pform',{id:id});break;
     case 'saveparty':saveParty(id);break;
     case 'saveset':saveSet(id);break;
+    case 'fxopen':fxSaveOpen();break;
     case 'aifill':aiFill();break;
     case 'log':go('log',null);break;
     case 'restore':restoreLog(id);break;
@@ -4386,10 +4465,14 @@ function pgMake(src,p){var c=pgCopy(src),one=function(sel){return c.querySelecto
   // the details card: a line with nothing written in it is left out (late penalty, discounts… when unused)
   [].slice.call(c.querySelectorAll('.card label')).forEach(function(l){var ins=[].slice.call(l.querySelectorAll('input')),sel=[].slice.call(l.querySelectorAll('select'));
     if(ins.length?ins.every(function(x){return !String(x.value||'').trim()}):sel.length&&sel.every(function(x){return !x.value}))l.remove()});
-  if(!p.last){drop(one('.lower'));drop(one('.notes'));drop(one('.sign'))}
+  if(!p.last){drop(one('.lower'));drop(one('.notes'));drop(one('.sign'));drop(one('.fxp'))}
   if(p.of>1){var n=document.createElement('p');n.className='pgno';n.textContent='صفحه‌ی '+fmt(p.no)+' از '+fmt(p.of)+(p.last?'':' · ادامه در صفحه‌ی بعد');c.insertBefore(n,one('.foot'))}
   return c}
-function buildPages(){var src=sheet(S.kind),box=$('#pages');if(!box){box=document.createElement('div');box.id='pages';ex.appendChild(box)}box.innerHTML='';
+/* the printed invoice's «ارز و سکه» (owner, 2026-11-15): the rows of the invoice's currency and coin section */
+function fxPrintSync(){var L=fxClean();$$('.sheet .fxp').forEach(function(b){b.hidden=!L.length;
+  b.innerHTML=L.length?'<table><thead><tr><th>ردیف</th><th>ارز و سکه</th><th>مقدار</th><th>دریافتی / پرداختی</th></tr></thead><tbody>'
+   +L.map(function(r,i){var f=fxOf(r.u);return '<tr><td>'+fmt(i+1)+'</td><td>'+esc(f.n)+'</td><td>'+fmt(r.n,f.d)+' '+(f.w==='عدد'?'عدد':esc(f.w))+'</td><td>'+(r.dir==='out'?'پرداختی به شما':'دریافتی از شما')+'</td></tr>'}).join('')+'</tbody></table>':''})}
+function buildPages(){fxPrintSync();var src=sheet(S.kind),box=$('#pages');if(!box){box=document.createElement('div');box.id='pages';ex.appendChild(box)}box.innerHTML='';
   var PH=pageH(),main=src.querySelector('#rt,#wt'),N=main?[].filter.call(main.tBodies[0].rows,pgFilled).length:0;
   var fits=function(q){var c=pgMake(src,q);box.appendChild(c);var ok=c.offsetHeight<=PH+1;c.remove();return ok};
   var plan=[];
@@ -4478,6 +4561,12 @@ function viewMode(){document.body.classList.add('viewmode');var sp=document.getE
     b.querySelector('button').addEventListener('click',function(){try{sessionStorage.setItem('lg-moved-later','1')}catch(e){}b.remove()});
     document.body.insertBefore(b,document.body.firstChild)};
   if(document.body)go();else addEventListener('DOMContentLoaded',go)})();
+/* currency and coin parts of the views (fx above) */
+(function(){var wrap=function(n,after){var f=window[n];window[n]=function(){f.apply(this,arguments);try{after()}catch(e){}}};
+  var party=vParty;vParty=function(){party();var p=partyById(S.param);if(!p)return;var k=$('#main .kpis');if(k)k.insertAdjacentHTML('afterend',fxBalHTML(S.bal[p.id]||{}))};
+  var home=vHome;vHome=function(){home();var d=$('#main .dbal');if(d)d.insertAdjacentHTML('beforeend',fxHomeHTML())};
+  var prods=vProducts;vProducts=function(){prods();main.insertAdjacentHTML('beforeend',fxStockHTML())};
+  var rep=vReport;vReport=function(){rep();main.insertAdjacentHTML('beforeend',fxReportHTML())}})();
 /* ---------- boot ---------- */
 /* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
    a device that already has a token (the phone/PC already in use) boots straight in, same as before */
