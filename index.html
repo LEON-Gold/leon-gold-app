@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-14 09:51</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 02:35</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1802,9 +1802,18 @@ async function sourceOrphan(i){var o=orphans()[i];if(!o)return;var q=o.q||1,pd={
   if(!(await put('products',pid,pd)))return;S.products=S.products.concat([Object.assign({id:pid},pd)]);computeStock();openSource(pid)}
 function isLow(p){var s=S.stock[p.id];return s&&p.minQ>0&&s.q<=p.minQ}
 function qtyHTML(s){return '<span class="qty">'+fmt(s.q)+' عدد</span><span class="d">'+fmt(s.g,3)+' گرم</span>'}
+/* a piece's supplier and wages (owner, 2026-11-15): when a supplier's received doc («سند دریافتی») brings a piece in, the
+   supplier is kept on it, so whoever puts it in the vitrin knows whose it is; «اجرت دریافتی» = the wage on the supplier's
+   doc (buyAjrat), «اجرت پرداختی» = the owner's own figure, typed on the piece (payAjrat) */
+var SUPM=null,SUPM_OF=null;
+function supOf(p){if(p.supName)return {id:p.supId||'',name:p.supName};
+  if(SUPM_OF!==S.invoices){SUPM={};SUPM_OF=S.invoices;S.invoices.filter(function(i){return i.kind==='whole'&&i.doc==='rc'}).sort(function(a,b){return (a.ts||'')<(b.ts||'')?-1:1})
+    .forEach(function(i){(i.items||[]).forEach(function(it){if(it.pid&&!it.ret)SUPM[it.pid]={id:i.partyId||'',name:i.partyName||(partyById(i.partyId)||{}).name||''}})})}
+  return SUPM[p.id]||null}
+function supBits(p){var sp=supOf(p);return [sp&&sp.name?'تأمین‌کننده: '+sp.name:'',p.buyAjrat!=null?'اجرت دریافتی '+fmt(p.buyAjrat,2)+'٪':'',p.payAjrat!=null?'اجرت پرداختی '+fmt(p.payAjrat,2)+'٪':'']}
 function prodRow(p){var s=S.stock[p.id]||{q:0,g:0};
   return '<button class="row" data-act="prod" data-id="'+esc(p.id)+'"><span class="t">'+(p.photo?'<img class="thumb" src="'+esc(photoURL(p.photo))+'" alt="" loading="lazy">':'')+esc(p.name)+(p.code?'<span class="badge">'+esc(toFa(fanum(p.code)))+'</span>':'')+(isNeg(p)?'<span class="badge lo">منفی</span>':isLow(p)?'<span class="badge lo">کم‌موجودی</span>':'')+'</span>'
-  +'<span class="s">'+esc([p.cat,p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.unitW?'هر عدد '+fmt(p.unitW,3)+' گرم':'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+(s.q>0||s.g>0.0005?qtyHTML(s):isNeg(p)?qtyHTML(s):'<span class="qty">ناموجود</span>')+'</span></button>'}
+  +'<span class="s">'+esc([p.cat,p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.unitW?'هر عدد '+fmt(p.unitW,3)+' گرم':'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].concat(supBits(p)).filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+(s.q>0||s.g>0.0005?qtyHTML(s):isNeg(p)?qtyHTML(s):'<span class="qty">ناموجود</span>')+'</span></button>'}
 /* inventory sort: name, availability (in stock first), ajrat %, stock weight; tapping the active one flips the order */
 var SORTS=[['name','نام'],['stock','موجود بودن'],['aj','درصد اجرت'],['w','وزن']];
 function sortChips(){var s=S.psort||'name';return SORTS.map(function(x){return '<button class="chip" data-act="psort" data-s="'+x[0]+'" aria-pressed="'+(s===x[0])+'">'+x[1]+(s===x[0]&&x[0]!=='name'?(S.pdesc===false?' ↑':' ↓'):'')+'</button>'}).join('')}
@@ -1877,6 +1886,10 @@ function vProduct(){
   main.innerHTML='<div class="kpis flat"><div class="kpi"><small>موجودی (عدد)</small><b>'+fmt(s.q)+'</b>'+(p.minQ?'<span class="sub">حداقل '+fmt(p.minQ)+'</span>':'')+'</div><div class="kpi"><small>موجودی (گرم)</small><b>'+fmt(s.g,3)+'</b>'+((p.carat||p.ajrat)?'<span class="sub">'+[p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')+'</span>':'')+'</div></div>'
   +(p.photo?'<img class="pimg" src="'+esc(photoURL(p.photo))+'" alt="'+esc(p.name)+'">':'')
   +(isLow(p)?'<div class="warn">موجودی این کالا به حداقل رسیده است.</div>':'')
+  +(function(){var sp=supOf(p);return '<section class="sec"><h2>تأمین‌کننده و اجرت</h2><div class="paygrid">'
+    +'<div><small>تأمین‌کننده</small><b>'+esc(sp&&sp.name?sp.name:'ثبت نشده')+'</b></div>'
+    +'<div><small>اجرت دریافتی (از تأمین‌کننده)</small><b>'+(p.buyAjrat!=null?fmt(p.buyAjrat,2)+'٪':'—')+'</b></div>'
+    +'<div><small>اجرت پرداختی</small><b>'+(p.payAjrat!=null?fmt(p.payAjrat,2)+'٪':'خالی؛ در «ویرایش کالا» پرش کن')+'</b></div></div></section>'})()
   +'<div class="btns"><button class="btn" data-act="editprod" data-id="'+esc(p.id)+'" type="button">ویرایش کالا</button></div>'
   +'<section class="sec"><h2>گردش کالا</h2><div class="list">'+(m.length?m.map(function(e){
     return '<button class="row" data-act="inv" data-id="'+esc(e.id)+'"><span class="t">'+esc(e.label)+'</span><span class="s">'+esc(jdate(e.ts))+'</span><span class="v"><span class="qty">'+(e.q>0?'+':'')+fmt(e.q)+' عدد</span><span class="d">'+(e.g>0?'+':'')+fmt(e.g,3)+' گرم</span></span></button>'}).join(''):'<div class="empty">هنوز در فاکتوری استفاده نشده.</div>')
@@ -1939,7 +1952,8 @@ function vPrform(){
   setTop(isNew?'کالای جدید':'ویرایش کالا','',true);S.prPhoto=p.photo||'';
   var n=function(v,d){return v?plain(v,d):''};
   main.innerHTML='<section class="sec"><h2>مشخصات کالا</h2><div class="grid">'+fld('کد کالا','pr_code',p.code,{num:1,ph:'مثلاً ۱۰۲'})+fld('دسته','pr_cat',p.cat,{ph:'النگو، انگشتر، سرویس…'})
-   +fld('نام کالا *','pr_name',p.name,{w2:1})+fld('عیار (عدد آزمایشگاهی، مثلاً ۷۵۰)','pr_carat',n(Math.round(labOf(p.carat)),0),{num:1})+fld('وزن هر عدد (گرم، اختیاری)','pr_unitw',n(p.unitW,3),{num:1})+fld('اجرت فروش (درصد)','pr_aj',n(p.ajrat,2),{num:1,ph:'مثلاً ۱۵'})+fld('اجرت خرید (درصد)','pr_buy',p.buyAjrat!=null?plain(p.buyAjrat,2):'',{num:1,ph:'برای حساب سود'})
+   +fld('نام کالا *','pr_name',p.name,{w2:1})+fld('عیار (عدد آزمایشگاهی، مثلاً ۷۵۰)','pr_carat',n(Math.round(labOf(p.carat)),0),{num:1})+fld('وزن هر عدد (گرم، اختیاری)','pr_unitw',n(p.unitW,3),{num:1})+fld('اجرت فروش (درصد)','pr_aj',n(p.ajrat,2),{num:1,ph:'مثلاً ۱۵'})+fld('اجرت دریافتی از تأمین‌کننده (درصد)','pr_buy',p.buyAjrat!=null?plain(p.buyAjrat,2):'',{num:1,ph:'از سند دریافتی'})+fld('اجرت پرداختی (درصد)','pr_pay',p.payAjrat!=null?plain(p.payAjrat,2):'',{num:1,ph:'خودت پر کن'})
+   +(function(){var sp=p.id?supOf(p):null;return sp&&sp.name?'<p class="note w2">تأمین‌کننده: <b>'+esc(sp.name)+'</b> (از سند دریافتی)</p>':''})()
    +fld('یادداشت','pr_note',p.note,{w2:1})+'</div></section>'
    +'<section class="sec" id="phsec" hidden><h2>عکس کالا</h2><div class="phbox" id="phbox"></div><input type="file" id="pr_photo" accept="image/*" hidden>'
    +'<div class="btns"><button class="btn" data-act="pickphoto" type="button">انتخاب یا گرفتن عکس</button><button class="btn dng" data-act="rmphoto" type="button" hidden>برداشتن عکس</button></div><p class="note" id="phmsg"></p></section>'
@@ -1953,6 +1967,8 @@ async function saveProduct(id){
   var code=fanum(val('pr_code'));if(code&&S.products.some(function(x){return x.id!==id&&fanum(x.code)===code})){toast('این کد برای کالای دیگری ثبت شده');return}
   var old=id?prodById(id):null;
   var d={code:code,name:name,cat:val('pr_cat'),carat:Math.round(labOf(num(val('pr_carat')))),unitW:Math.round(num(val('pr_unitw'))*1000)/1000,ajrat:num(val('pr_aj')),buyAjrat:val('pr_buy')===''?null:num(val('pr_buy')),openQ:num(val('pr_oq')),openG:Math.round(num(val('pr_og'))*1000)/1000,minQ:num(val('pr_min')),note:val('pr_note'),photo:S.prPhoto||'',ts:old&&old.ts?old.ts:new Date().toISOString()};
+  d.payAjrat=val('pr_pay')===''?null:num(val('pr_pay'));
+  if(old){var keep=Object.assign({},old);delete keep.id;d=Object.assign(keep,d)}
   if(await put('products',id||newId('products'),d)){toast('کالا ذخیره شد');back()}
 }
 function csvStock(){var rows=[['کد','نام','دسته','عیار','اجرت ٪','موجودی (عدد)','موجودی (گرم)','حداقل','وضعیت']];
@@ -3842,7 +3858,7 @@ function nextCode(){var next=100;S.products.forEach(function(p){var c=parseInt(f
 async function autoProducts(s,inbound){var made=[],next=nextCode();
   for(var tr of $$('#rt tbody tr,#wt tbody tr',s)){var di=$('td:nth-child(2) input',tr),d=di.value.trim(),w=num($('.w',tr).value);if(!d||!w||prodMatch(d))continue;
     var q=num($('.q',tr).value)||1,code=String(++next),pd={code:code,name:d,cat:'',carat:Math.round(labOf(num($('.c',tr).value))),unitW:Math.round(w/q*1000)/1000,ajrat:num($('.aj',tr).value),openQ:0,openG:0,minQ:0,note:inbound?'ساخته‌شده خودکار از سند دریافتی':'ساخته‌شده خودکار از فاکتور فروش؛ منبع نامشخص',ts:new Date().toISOString()},pid=newId('products');
-    if(inbound&&!tr.dataset.ret)pd.buyAjrat=pd.ajrat;
+    if(inbound&&!tr.dataset.ret){pd.buyAjrat=pd.ajrat;var sp0=partyById(S.partyId);if(sp0){pd.supId=sp0.id;pd.supName=sp0.name||''}}
     if(!(await put('products',pid,pd)))break;
     S.products=S.products.concat([Object.assign({id:pid},pd)]);di.value=toFa(code)+' '+d;fire(di,'input');made.push(pd)}
   return made}
@@ -3935,7 +3951,8 @@ async function saveInvoice(o){
     if(S.editId){var prev=null;S.invoices.forEach(function(x){if(x.id===id)prev=x});if(prev){var snap=Object.assign({},prev);delete snap.id;logAct('edit','invoices',id,snap)}}
     if(await put('invoices',id,d)){
       // a purchase on a received doc sets the product's purchase wage, which later sales measure their margin against
-      if(k==='whole'&&d.doc==='rc')for(var it of d.items){var pp=!it.ret&&it.pid&&it.ajrat>0?prodById(it.pid):null;if(pp&&pp.buyAjrat!==it.ajrat){var pd=Object.assign({},pp);delete pd.id;pd.buyAjrat=it.ajrat;if(await put('products',pp.id,pd))pp.buyAjrat=it.ajrat}}
+      if(k==='whole'&&d.doc==='rc')for(var it of d.items){var pp=!it.ret&&it.pid?prodById(it.pid):null;if(!pp)continue;var nb=it.ajrat>0&&pp.buyAjrat!==it.ajrat,ns=p&&(pp.supId!==p.id||pp.supName!==p.name);
+        if(nb||ns){var pd=Object.assign({},pp);delete pd.id;if(nb)pd.buyAjrat=it.ajrat;if(ns){pd.supId=p.id;pd.supName=p.name||''}if(await put('products',pp.id,pd))Object.assign(pp,pd)}}
       S.editId=id;S.editTs=d.ts;S.dirty=false;toast(made.length?'فاکتور ذخیره شد و '+fmt(made.length)+' کالای جدید به لیست کالاها اضافه شد'+(k==='whole'&&d.doc==='rc'?'':'؛ موجودی‌اش منفی است تا منبعش را ثبت کنی'):'فاکتور ذخیره شد');S.invoices=S.invoices.filter(function(x){return x.id!==id}).concat([Object.assign({id:id},d)]);S.unlock=o.keep?id:'';S.invSig=invSig();
       if(S.fromOrder){var oo=null;S.orders.forEach(function(x){if(x.id===S.fromOrder)oo=x});if(oo){var od=Object.assign({},oo);delete od.id;od.status='done';od.invId=id;put('orders',oo.id,od)}S.fromOrder=''}
       /* a section's «ذخیره» on an opened invoice (owner, 2026-11-14): written to the ledger at once, so the party's balance moves; it stays open for the next section */
