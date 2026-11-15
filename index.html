@@ -7,6 +7,7 @@
 .sheet .fxp{margin-top:3mm}.sheet .fxp table td,.sheet .fxp table th{text-align:center;padding:1.2mm 1.5mm}
 .bkr{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center;margin:0 0 10px}.bkr small{display:block;color:var(--muted);font-size:12px}.bkr input{min-width:0}
 .cbar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,#c9a24c,#e2cb94);margin-inline-end:6px;vertical-align:middle;max-width:40%}.tips{margin:0;padding-inline-start:18px;display:grid;gap:6px}
+.cinr .s{line-height:1.8}.cinr .btns{margin-top:6px}.cinhome{border:1px solid var(--gold,#c9a24c)}
 </style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
    lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
 @media (min-width:1100px){
@@ -408,7 +409,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:35</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:40</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2778,7 +2779,7 @@ function vCash(){var off=S.coff||0,P=period('m',off),F=cashFlow(P.s,P.e),B=banks
      :'<p class="note">برای این حساب، سه ماه قبل باید فاکتور، سند تسویه یا هزینه‌ی ریالی داشته باشد.</p>')+'</section>'
    +'<section class="sec"><h2>فروش طلا برای نقدینگی؟</h2><p>بدهی ریالی تو به طرف‌حساب‌ها <b>'+R(owe)+'</b> و میانگین هزینه‌ی یک ماه <b>'+R(aExp)+'</b>؛ روی هم <b>'+R(need)+'</b>. موجودی بانک <b>'+R(bt)+'</b>.</p>'
      +(gap>0?'<p class="warn">موجودی بانک <b>'+R(gap)+'</b> کم است.'+(gp?' به قیمت امروز (هر گرم ۱۸ عیار '+fmt(gp)+' ریال)، حدود <b>'+fmt(gap/gp,1)+' گرم</b> طلای ۷۵۰ باید فروخته شود.':'')+'</p>'
-       :'<p>نیازی به فروش طلا نیست؛ <b>'+R(-gap)+'</b> بیشتر از این تعهدها در بانک داری.</p>')
+       :'<p>نیازی به فروش طلا نیست؛ <b>'+R(Math.abs(gap))+'</b> بیشتر از این تعهدها در بانک داری.</p>')
      +(bt?'':'<p class="note">موجودی بانک‌ها هنوز وارد نشده؛ بالای همین صفحه بنویس.</p>')+'</section>'
    +'<section class="sec"><h2>هزینه‌ها به تفکیک</h2>'+(cats.length?'<div class="list">'+cats.map(function(c){var sh=F.exp?F.by[c]/F.exp:0,pa=H.reduce(function(a,x){return a+(x.by[c]||0)},0)/3;
        return '<div class="row"><span class="t">'+esc(xcatN(c))+'</span><span class="s"><i class="cbar" style="width:'+Math.max(2,Math.round(sh*100))+'%"></i>'+fmt(Math.round(sh*100))+'٪ · '+fmt(F.nby[c])+' بار'+(pa?' · میانگین ۳ ماه '+fmt(Math.round(pa)):'')+'</span><span class="v"><span class="d">'+fmt(Math.round(F.by[c]))+' ریال</span></span></div>'}).join('')+'</div>':'<div class="empty">این ماه هزینه‌ی ریالی ثبت نشده.</div>')+'</section>'
@@ -2786,6 +2787,56 @@ function vCash(){var off=S.coff||0,P=period('m',off),F=cashFlow(P.s,P.e),B=banks
      +'<p class="note">این‌ها فقط از هزینه‌ها و سندهای خود دفتر حساب شده‌اند.</p></section>'}
 async function saveBanks(){var L=BANKS0.map(function(b){var v=Math.round(num(val('bk_'+b.k)));return {k:b.k,bal:v,at:new Date().toISOString()}});
   if(await put('settings','banks',{accts:L})){toast('موجودی بانک‌ها ذخیره شد');render()}}
+
+/* ---------- cash received on an invoice (owner, 2026-11-15): which account it went into, and why, «کاری» or «شخصی».
+   Required whenever the invoice takes in cash (a retail invoice's payments, a wholesale trade's cash in).
+   «کاری»: money of the business that goes out again later in a payment of the same amount; the cash page lists the ones
+   not yet paid out. «شخصی»: the owner's own money; the cash page and the home remind him what it is for, how much of it
+   is to be spent, and what it would be worth in gold today against the day it came (gain or loss). ---------- */
+S.cin={acct:'',kind:'',why:'',spend:0};
+function cinAccts(){return banks().map(function(b){return [b.k,b.bank+' (…'+toFa(b.card)+')']}).concat([['box','صندوق نقد مغازه']])}
+function cinAmount(){if(S.kind==='whole'){var W=window.LGW||{};return Math.max(0,Math.round(+W.ci||0))}var r=window.LGR||{};return Math.max(0,Math.round((+r.eff||0)-(+r.delta||0)))}
+function cinSec(){var s=document.createElement('section');s.className='sec';
+  var draw=function(){var c=S.cin,amt=cinAmount();
+    s.innerHTML='<h2>ورود نقدی</h2><p class="note cin-note">'+(amt?'این فاکتور <b>'+fmt(amt)+' ریال</b> پول گرفته؛ بگو کجا رفت و برای چه بود.':'وقتی در این فاکتور پول نقد، کارت یا چک گرفته شود، این‌جا باید پر شود.')+'</p><div class="grid">'
+     +'<label class="f"><span>به کدام حساب رفت</span><select class="cin-a"><option value="">— انتخاب —</option>'+cinAccts().map(function(o){return '<option value="'+o[0]+'"'+(c.acct===o[0]?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')+'</select></label>'
+     +'<label class="f"><span>نوع</span><select class="cin-k"><option value="">— انتخاب —</option><option value="work"'+(c.kind==='work'?' selected':'')+'>کاری</option><option value="own"'+(c.kind==='own'?' selected':'')+'>شخصی</option></select></label>'
+     +'<label class="f w2"><span>بابت چه بود (الزامی)</span><input class="cin-w" value="'+esc(c.why||'')+'" maxlength="140" placeholder="'+(c.kind==='own'?'مثلاً پس‌انداز خرید ماشین':'مثلاً پول خرید طلا از فلانی')+'"></label>'
+     +(c.kind==='own'?'<label class="f w2"><span>چقدرش باید خرج شود (ریال، اختیاری)</span><input class="cin-s num" inputmode="numeric" value="'+(c.spend?plain(c.spend,0):'')+'"></label>':'')
+     +'</div>'+(c.kind==='work'?'<p class="note">کاری: بعداً همین مقدار در یک سند پرداختی رد و بدل می‌شود؛ تا آن موقع در «نقدینگی و بانک» می‌ماند.</p>':c.kind==='own'?'<p class="note">شخصی: در «نقدینگی و بانک» و صفحه‌ی اصلی یادآوری می‌شود که این پول برای چیست.</p>':'')};
+  draw();
+  s.addEventListener('change',function(e){var t=e.target;if(t.classList.contains('cin-a'))S.cin.acct=t.value;else if(t.classList.contains('cin-k')){S.cin.kind=t.value;draw()}S.dirty=true});
+  s.addEventListener('input',function(e){var t=e.target;if(t.classList.contains('cin-w'))S.cin.why=t.value;else if(t.classList.contains('cin-s'))S.cin.spend=Math.round(num(t.value));S.dirty=true});
+  return s}
+// check before saving: false (with the reason told) when cash came in and the section is not filled
+// the amount follows the payments as they are typed
+function cinNoteTxt(){var amt=cinAmount();return amt?'این فاکتور <b>'+fmt(amt)+' ریال</b> پول گرفته؛ بگو کجا رفت و برای چه بود.':'وقتی در این فاکتور پول نقد، کارت یا چک گرفته شود، این‌جا باید پر شود.'}
+document.addEventListener('input',function(){if(S.view==='inv')setTimeout(function(){$$('.cin-note').forEach(function(n){n.innerHTML=cinNoteTxt()})},0)});
+function cinCheck(){var amt=cinAmount();if(!amt)return true;var c=S.cin;
+  if(!c.acct){toast('بگو پول این فاکتور به کدام حساب رفت («ورود نقدی»)');return false}
+  if(!c.kind){toast('نوع پول این فاکتور را بزن: کاری یا شخصی');return false}
+  if(!String(c.why||'').trim()){toast('بنویس این پول بابت چه بود («ورود نقدی»)');return false}return true}
+function cinData(){var amt=cinAmount();if(!amt)return null;var c=S.cin;return {amount:amt,acct:c.acct,kind:c.kind==='own'?'own':'work',why:String(c.why||'').trim().slice(0,140),spend:c.kind==='own'&&c.spend>0?c.spend:0}}
+function cinLoad(inv){var c=inv&&inv.cash;S.cin=c?{acct:c.acct||'',kind:c.kind||'',why:c.why||'',spend:+c.spend||0}:{acct:'',kind:'',why:'',spend:0}}
+function cinDone(){var d=null;S.settings.forEach(function(x){if(x.id==='cashdone')d=x});return d&&d.ids||{}}
+function cinAcctN(k){var a=cinAccts().filter(function(o){return o[0]===k})[0];return a?a[1]:'—'}
+// personal money still to keep in mind, newest first; business money not yet paid out
+function cinOwn(){var D=cinDone();return S.invoices.filter(function(i){return i.cash&&i.cash.kind==='own'&&!D[i.id]}).sort(function(a,b){return a.ts<b.ts?1:-1})}
+function cinWork(){var D=cinDone();return S.invoices.filter(function(i){if(!i.cash||i.cash.kind!=='work'||D[i.id])return false;var a=i.cash.amount,t=i.ts;
+  // paid out: a rial payment of the same amount after it (a settlement to anyone, or a wholesale trade's cash out)
+  return !S.settlements.some(function(s){return s.unit==='r'&&s.dir==='out'&&Math.abs((+s.amount||0)-a)<1&&s.ts>=t})&&!S.invoices.some(function(j){return j.trade&&Math.abs((+j.trade.cout||0)-a)<1&&j.ts>=t})}).sort(function(a,b){return a.ts<b.ts?1:-1})}
+// what the money would be in gold: the invoice's own gold price that day against today's
+function cinGold(i){var pr=todayPrice(),now=pr&&+pr.gp||0,then=+i.gp||0;if(!now||!then)return '';var g=i.cash.amount/then,v=g*now-i.cash.amount;
+  return 'اگر همان روز طلا خریده بودی ('+fmt(g,2)+' گرم)، امروز '+fmt(Math.round(Math.abs(v)))+' ریال '+(v>=0?'سود':'ضرر')+' بود.'}
+function cinOwnHTML(L,max){return L.slice(0,max||50).map(function(i){var c=i.cash;
+  return '<div class="row cinr"><span class="t">'+esc(c.why)+'<span class="badge">'+fmt(c.amount)+' ریال</span></span><span class="s">'+esc(jdate(i.ts))+' · '+esc(cinAcctN(c.acct))+' · '+esc(invLabel(i)+' '+(i.no||''))+(c.spend?' · باید خرج شود: '+fmt(c.spend)+' ریال، '+fmt(Math.max(0,c.amount-c.spend))+' ریال بماند':'')+'<br>'+esc(cinGold(i))+'</span>'
+    +'<span class="btns"><button class="btn sm" data-act="cindone" data-id="'+esc(i.id)+'" type="button">انجام شد</button></span></div>'}).join('')}
+function cinWorkHTML(L){return L.map(function(i){var c=i.cash;return '<div class="row cinr"><span class="t">'+esc(c.why)+'<span class="badge">'+fmt(c.amount)+' ریال</span></span><span class="s">'+esc(jdate(i.ts))+' · '+esc(cinAcctN(c.acct))+' · '+esc(i.partyName||'')+' · '+esc(invLabel(i)+' '+(i.no||''))+'</span>'
+  +'<span class="btns"><button class="btn sm" data-act="cindone" data-id="'+esc(i.id)+'" type="button">پرداخت شد</button></span></div>'}).join('')}
+function cinCashHTML(){var O=cinOwn(),W=cinWork();
+  return '<section class="sec"><h2>پول‌های شخصی</h2>'+(O.length?'<div class="list">'+cinOwnHTML(O)+'</div>':'<p class="note">پول شخصیِ باز نیست.</p>')+'</section>'
+   +'<section class="sec"><h2>پول‌های کاری منتظر سند پرداختی</h2>'+(W.length?'<div class="list">'+cinWorkHTML(W)+'</div><p class="note">وقتی سند پرداختیِ همین مبلغ ثبت شود، خودش از این فهرست می‌رود.</p>':'<p class="note">همه‌ی پول‌های کاری پرداخت شده‌اند.</p>')+'</section>'}
+async function cinMarkDone(id){var D=Object.assign({},cinDone());D[id]=new Date().toISOString();if(await put('settings','cashdone',{ids:D})){toast('از فهرست برداشته شد');render()}}
 
 function srvApi(p,o){return window.__leonSync.api(p,o)}
 /* «بازدید سایت» (owner, 2026-11-15): the public site's visits from the sync server (visits.mjs): today, who is on it now,
@@ -3998,7 +4049,7 @@ function setKind(k){S.kind=k;$$('.sheet',ex).forEach(function(s){s.hidden=s.id!=
 function hvOpts(){var sel=$('#w_hvp'),v=sel.value;sel.innerHTML='<option value="">—</option>'+S.parties.filter(function(p){return p.id!==S.partyId}).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','fa')}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('');sel.value=v}
 function lockSheets(on){$$('.sheet',ex).forEach(function(s){$$('input',s).forEach(function(e){e.readOnly=on});$$('select,button',s).forEach(function(e){e.disabled=on})})}
 function resetSheet(k,keepPrice){
-  S.fx=[];lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;$('#w_hv').value='';$('#w_hv_t').selectedIndex=0;hvOpts();$('#w_hvp').value='';['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
+  S.fx=[];cinLoad(null);lockSheets(false);setKind(k);fields(k).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else if(!e.classList.contains('dt'))e.value=''});$('#w_rprev').value='';$('#w_rprev_t').selectedIndex=0;$('#w_hv').value='';$('#w_hv_t').selectedIndex=0;hvOpts();$('#w_hvp').value='';['#r_discg','#w_discg','#w_discr'].forEach(function(q){$(q).value=''});
   $$('.gx,.tx',sheet(k)).forEach(function(e){if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});shownG=1;$$('#wt tbody tr').forEach(function(tr){delete tr.dataset.ret});
   $('#taxPct').value='۰';var now=Date.now();$$('.dt',sheet(k)).forEach(function(e){e.value=jdate(now)});
   if(k==='retail'){var t=$('.meta div:nth-child(3) input',sheet(k));if(t)t.value=jtime(now)}
@@ -4025,6 +4076,7 @@ async function autoProducts(s,inbound){var made=[],next=nextCode();
     S.products=S.products.concat([Object.assign({id:pid},pd)]);di.value=toFa(code)+' '+d;fire(di,'input');made.push(pd)}
   return made}
 function loadInvoice(inv){
+  cinLoad(inv);
   S.fx=(inv.fx||[]).filter(function(f){return isFx(f.u)}).map(function(f){return {u:f.u,n:+f.n||0,dir:f.dir==='out'?'out':'in'}});
   setKind(inv.kind);var s=sheet(inv.kind),cur=$$('#rt tbody tr,#wt tbody tr',s).length;
   for(var i=cur;i<(inv.rows||cur);i++)$('.addrow',s).click();
@@ -4104,11 +4156,12 @@ async function saveInvoice(o){
   if(S.kind==='whole'&&num($('#w_hv').value)>0&&!partyById($('#w_hvp').value)){toast('حساب حواله را انتخاب کن (حواله از حساب چه کسی)');return}
   S.saving=true;try{
     fire($('#taxPct'),'input');
+    if(!cinCheck())return;
     var k=S.kind,p=partyById(S.partyId),s=sheet(k),made=await autoProducts(s,k==='whole'&&$('#w_doc').value==='rc');
     var d={kind:k,doc:k==='whole'?$('#w_doc').value:'',no:$('.meta div:nth-child(2) input',s).value,date:$('.meta div:nth-child(1) input',s).value,
       partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,disc2:[$('#r_discg').value,$('#w_discg').value,$('#w_discr').value],rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
       ts:S.editTs||new Date().toISOString(),upd:new Date().toISOString()};
-    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);d.fx=fxClean();if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
+    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);d.fx=fxClean();var cd=cinData();if(cd)d.cash=cd;if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
     if(k==='whole'){var w=window.LGW||{eff:0,delta:0};d.unit='g';d.amount=w.eff;d.deltaG=w.delta}else{var r=window.LGR||{eff:0,delta:0};d.unit='r';d.amount=r.eff;d.deltaR=r.delta}
     var id=S.editId||newId('invoices');
     if(S.editId){var prev=null;S.invoices.forEach(function(x){if(x.id===id)prev=x});if(prev){var snap=Object.assign({},prev);delete snap.id;logAct('edit','invoices',id,snap)}}
@@ -4229,6 +4282,7 @@ function renderForm(){
     mk('نقدی',P(0),{num:1,w2:1,sel:'#r_p1_t'}),mk('کارت / حواله',P(1),{num:1,w2:1,sel:'#r_p2_t'}),mk('چک',P(2),{num:1,w2:1,sel:'#r_p3_t'}),mk('طلای مشتری (تهاتر)',P(3),{num:1,w2:1,sel:'#r_p4_t'})]));
   else app.appendChild(fsec('تسویه و مانده',[mk('مانده قبلی (گرم)','#w_prev',{num:1,w2:1,sel:'#w_prev_t'}),mk('مانده قبلی (ریال)','#w_rprev',{num:1,w2:1,sel:'#w_rprev_t'}),mkSelect('وضعیت تحویل کالا','#w_deliv',{w2:1}),mk('طلای دریافتی (گرم)','#w_recv',{num:1,w2:1,sel:'#w_recv_t'}),mk('حواله (گرم)','#w_hv',{num:1,w2:1,sel:'#w_hv_t'}),mkSelect('حساب حواله (نزد چه کسی)','#w_hvp',{w2:1}),mk('پرداخت ریالی (تبدیل به گرم)','#w_cash',{num:1,w2:1,sel:'#w_cash_t'}),mk('جریمه دیرکرد ٪','#w_late',{num:1,w2:1}),mk('تخفیف (گرم)','#w_discg',{num:1,w2:1}),mk('تخفیف (ریال)','#w_discr',{num:1,w2:1})]));
   app.appendChild(fxSec());
+  app.appendChild(cinSec());
   app.appendChild(fsec('مشخصات '+(kind==='retail'?'خریدار':'مشتری'),kind==='retail'?[mk('خریدار',N('.cust label:nth-child(1) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(2) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(3) input'),{w2:1})]:
     [mk('حساب (نام مشتری)',N('.cust label:nth-child(1) input'),{w2:1}),mk('فروشگاه',N('.cust label:nth-child(2) input'),{w2:1}),mk('تلفن',N('.cust label:nth-child(3) input'),{tel:1,w2:1}),mk('آدرس',N('.cust label:nth-child(4) input'),{w2:1})]));
   app.appendChild(fsec('توضیحات',[mk('توضیحات (اختیاری)',notes,{w2:1})]));
@@ -4248,7 +4302,7 @@ function invSum(s){var t=s.dataset.t||'';
 function invSums(){var nav=$('.invmenu');if(!nav)return;S.invDone=S.invDone||{};
   $$('.invrow',nav).forEach(function(b){var s=$('#form .fsheet[data-t="'+b.dataset.t+'"]');if(!s)return;var t=invSum(s);b.querySelector('small').textContent=t||'خالی';b.classList.toggle('done',!!S.invDone[b.dataset.t])})}
 /* the sheet as it was opened or last saved; a section's «ذخیره» writes an opened invoice only when this changed */
-function invSig(){return $$('input,select,textarea',sheet(S.kind)).map(function(e){return e.value}).join('\u0001')+'|'+$('#taxPct').value+'|'+JSON.stringify(fxClean())}
+function invSig(){return $$('input,select,textarea',sheet(S.kind)).map(function(e){return e.value}).join('\u0001')+'|'+$('#taxPct').value+'|'+JSON.stringify(fxClean())+'|'+JSON.stringify(S.cin)}
 function invOpen(i){var secs=$$('#form .fsheet'),sc=$('#form .fscrim');secs.forEach(function(s,j){s.hidden=j!==i});if(sc)sc.hidden=i<0;
   document.documentElement.classList.toggle('fs-on',i>=0);INV_OPEN=i>=0&&secs[i]?secs[i].dataset.t:null;
   if(i>=0&&secs[i]){secs[i].scrollTop=0;var x=$('.fsx',secs[i]);if(x)x.focus({preventScroll:true})}}
@@ -4380,6 +4434,7 @@ document.addEventListener('click',function(e){
     case 'saveset':saveSet(id);break;
     case 'fxopen':fxSaveOpen();break;
     case 'savebanks':saveBanks();break;
+    case 'cindone':cinMarkDone(id);break;
     case 'coff':S.coff=Math.min(0,(S.coff||0)+(+b.dataset.d||0));render();break;
     case 'aifill':aiFill();break;
     case 'log':go('log',null);break;
@@ -4627,7 +4682,9 @@ function viewMode(){document.body.classList.add('viewmode');var sp=document.getE
   var party=vParty;vParty=function(){party();var p=partyById(S.param);if(!p)return;var k=$('#main .kpis');if(k)k.insertAdjacentHTML('afterend',fxBalHTML(S.bal[p.id]||{}))};
   var home=vHome;vHome=function(){home();var d=$('#main .dbal');if(d)d.insertAdjacentHTML('beforeend',fxHomeHTML())};
   var prods=vProducts;vProducts=function(){prods();main.insertAdjacentHTML('beforeend',fxStockHTML())};
-  var rep=vReport;vReport=function(){rep();main.insertAdjacentHTML('beforeend',fxReportHTML())}})();
+  var rep=vReport;vReport=function(){rep();main.insertAdjacentHTML('beforeend',fxReportHTML())};
+  var cash=vCash;vCash=function(){cash();main.insertAdjacentHTML('beforeend',cinCashHTML())};
+  var home2=vHome;vHome=function(){home2();var L=cinOwn();if(!L.length)return;main.insertAdjacentHTML('afterbegin','<section class="sec cinhome"><h2>یادآوری پول‌های شخصی</h2><div class="list">'+cinOwnHTML(L,3)+'</div>'+(L.length>3?'<button class="lnk" data-act="tab" data-t="cash" type="button">همه ('+fmt(L.length)+')</button>':'')+'</section>')}})();
 /* ---------- boot ---------- */
 /* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
    a device that already has a token (the phone/PC already in use) boots straight in, same as before */
