@@ -1,6 +1,7 @@
 <!doctype html><html lang="fa" dir="rtl"><head><script>try{var t=localStorage.getItem("leon-theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#07130e;color:var(--dk-ink, #000)}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.movebar{position:fixed;top:0;left:0;right:0;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 14px calc(10px);padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(180deg,#154a37,#0b2a1e);color:#efe7d2;border-bottom:1px solid #c9a24c;font-size:13px;line-height:1.7}
 .movebar p{margin:0;flex:1 1 220px}.movebar b{display:block;color:#e9cf8a;font-size:14px}
 .movebtns{display:flex;gap:8px}.movebar .btn{white-space:nowrap;text-decoration:none;border:1px solid #c9a24c;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}.movebar .btn.pri{background:linear-gradient(180deg,#f0d999,#c9a24c);color:#0b2a1e}.movebar .btn:not(.pri){background:rgba(255,255,255,.06)!important;color:#efe7d2!important;-webkit-text-fill-color:#efe7d2!important;text-shadow:none!important}
+.visw{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:66px;margin-top:10px}.visw span{display:grid;justify-items:center;gap:2px}.visw i{display:block;width:100%;max-width:22px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#e2cb94,#b08d57)}.visw small{font-size:10px;color:var(--muted)}
 </style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
    lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
 @media (min-width:1100px){
@@ -402,7 +403,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 10:01</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 10:39</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2257,7 +2258,7 @@ function vHome(){
   var D=dDays(Math.max(14,2*(S.drange||30)));
   main.innerHTML=dashHead()+signupsHTML()+leadsHTML()
    +'<div class="dash">'+dashKpis(D)+dashTarget()+dashSales(D)
-   +'<div class="dside">'+priceCard()+dashMarket()+'</div>'
+   +'<div class="dside">'+priceCard()+dashMarket()+visCard()+'</div>'
    +dashList('سفارش‌های باز',fmt(S.orders.filter(isOpenOrder).length)+' سفارش','orders',oo.map(orderRow).join(''),'سفارش بازی نیست.')
    +dashList('از «حساب من»','آخرین ثبت‌نام‌ها، سفارش‌ها و رسیدها','feed',dashFeed(),'هنوز چیزی نیامده.')
    +dashList('موجودی کم','به حداقل یا زیر آن رسیده','products',low.map(function(p){return prodRow(p)}).join(''),'همه‌ی کالاها بالای حداقل‌اند.')
@@ -2652,6 +2653,18 @@ async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
   if(await put('vitrin',nid,d)){S.dirty=false;S.vMedia=null;toast('ذخیره شد'+(d.show?'؛ در «حساب من» '+(to.length?fmt(to.length)+' نفر':'همه')+' دیده می‌شود.':'.'));back()}}
 async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURIComponent(id)+'/done',{method:'POST',json:{}});return true}catch(e){toast(srvErrMsg(e));return false}}
 function srvApi(p,o){return window.__leonSync.api(p,o)}
+/* «بازدید سایت» (owner, 2026-11-15): the public site's visits from the sync server (visits.mjs): today, who is on it now,
+   the last 7 days and the most seen pages. Read at most every 15 seconds; the card draws from the last answer. */
+var VIS=null,VIS_AT=0,VIS_ING=false;
+var VIS_NAMES={'/':'خانه','/vitrin/':'ویترین','/kids/':'لئون کیدز','/hesab/':'حساب من','/museum/':'موزه'};
+function visCard(){if(!window.__leonSync||!window.__leonSync.info().on)return '';
+  if(!VIS_ING&&Date.now()-VIS_AT>15000){VIS_ING=true;srvApi('/api/visits').then(function(v){VIS=v;VIS_AT=Date.now();var b=$('#visBody');if(b)b.innerHTML=visBody()}).catch(function(){}).finally(function(){VIS_ING=false})}
+  return '<section class="dcard" id="visCard"><div class="dch"><div><h2>بازدید سایت</h2><p>امروز و ۷ روز گذشته</p></div></div><div id="visBody">'+visBody()+'</div></section>'}
+function visBody(){var v=VIS;if(!v)return '<p class="note">در حال آوردن…</p>';
+  var wk=v.week.reduce(function(a,d){return {views:a.views+d.views,visitors:a.visitors+d.visitors}},{views:0,visitors:0}),mx=Math.max.apply(null,v.week.map(function(d){return d.visitors}).concat([1]));
+  return '<div class="dbal-n"><div><small>امروز</small><b>'+fmt(v.today.visitors)+'</b><i>نفر · '+fmt(v.today.views)+' بازدید</i></div><div><small>همین الان</small><b>'+fmt(v.online)+'</b><i>نفر روی سایت</i></div><div><small>۷ روز</small><b>'+fmt(wk.visitors)+'</b><i>نفر · '+fmt(wk.views)+' بازدید</i></div></div>'
+   +'<div class="visw" aria-label="بازدیدکننده‌های هر روز">'+v.week.map(function(d){return '<span title="'+esc(toFa(d.day))+': '+fmt(d.visitors)+' نفر"><i style="height:'+Math.max(4,Math.round(d.visitors/mx*44))+'px"></i><small>'+fmt(d.visitors)+'</small></span>'}).join('')+'</div>'
+   +(v.top.length?'<p class="note" style="margin:8px 0 0">بیشترین بازدید: '+esc(v.top.slice(0,4).map(function(t){return (VIS_NAMES[t.path]||toFa(decodeURIComponent(t.path)))+' ('+fmt(t.n)+')'}).join('، '))+'</p>':'')}
 function srvErrMsg(e){var c=(e&&e.body&&e.body.error)||(e&&e.login&&'login');
   return c==='bad_user'?'نام کاربری یا رمز نامعتبر است (رمز حداقل ۴ رقم).':c==='cant_disable_owner'?'نمی‌توان مالک دفتر را غیرفعال کرد.':c==='forbidden'?'اجازه نداری.':c==='no_such_user'?'این کاربر دیگر نیست.':c==='portal_off'?'«حساب من» این طرف‌حساب خاموش است؛ اول روشنش کن.':c==='no_party'?'این طرف‌حساب هنوز به سرور نرسیده؛ کمی بعد دوباره امتحان کن.':'ذخیره نشد. اینترنت را بررسی کن.'}
 async function loadSrvUsers(){var box=$('#susersList');if(!box)return;
