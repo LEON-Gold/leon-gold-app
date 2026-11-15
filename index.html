@@ -8,6 +8,7 @@
 .bkr{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center;margin:0 0 10px}.bkr small{display:block;color:var(--muted);font-size:12px}.bkr input{min-width:0}
 .cbar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,#c9a24c,#e2cb94);margin-inline-end:6px;vertical-align:middle;max-width:40%}.tips{margin:0;padding-inline-start:18px;display:grid;gap:6px}
 .cinr .s{line-height:1.8}.cinr .btns{margin-top:6px}.cinhome{border:1px solid var(--gold,#c9a24c)}
+.bmf{margin-top:8px}.bmhome{display:grid;gap:4px;width:100%;text-align:start;cursor:pointer;background:var(--card);color:inherit;font:inherit}
 </style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
    lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
 @media (min-width:1100px){
@@ -409,7 +410,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:40</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:58</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2106,7 +2107,7 @@ async function initDb(){
   if(!db){S.nodb=true;render();return}
   S.db=db;
   try{var us=await window.claude.use('user');if(us){S.me=await us.me();var cw=await us.can('data.write');if(cw===false&&!S.me.isOwner)S.noaccess=true}}catch(e){}
-  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses'],['vitrin','vitrin']].forEach(function(c){
+  [['parties','parties'],['invoices','invoices'],['settlements','settlements'],['log','log'],['products','products'],['settings','settings'],['prices','prices'],['orders','orders'],['targets','targets'],['expenses','expenses'],['vitrin','vitrin'],['bankmsgs','bankmsgs']].forEach(function(c){
     db.collection(c[0]).onSnapshot(function(snap){S[c[1]]=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});S.loaded[c[1]]=true;schedule()},
       function(e){S.err=(e&&e.code)||'error';render()})});
   db.collection('signups').onSnapshot(function(snap){S.signups=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});signupAlert();schedule()},function(){});
@@ -2739,7 +2740,7 @@ async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURICompo
    wholesale trades' cash out, rial settlements paid, retail invoices where Leon paid. ---------- */
 var BANKS0=[{k:'mellat',bank:'ملت',card:'0802'},{k:'saman',bank:'سامان',card:'8451'}];
 function banks(){var d=null;S.settings.forEach(function(x){if(x.id==='banks')d=x});var L=d&&Array.isArray(d.accts)?d.accts:[];
-  return BANKS0.map(function(b){var o=L.filter(function(x){return x.k===b.k})[0]||{};return {k:b.k,bank:b.bank,card:b.card,bal:+o.bal||0,at:o.at||''}})}
+  return BANKS0.map(function(b){var o=L.filter(function(x){return x.k===b.k})[0]||{},m=bmBal(b.k,o.at||'');return m?{k:b.k,bank:b.bank,card:b.card,bal:+m.bal||0,at:m.ts,sms:1}:{k:b.k,bank:b.bank,card:b.card,bal:+o.bal||0,at:o.at||''}})}
 function cashFlow(s,e){var F={inR:0,outR:0,exp:0,expG:0,by:{},nby:{}};
   S.invoices.forEach(function(i){var d=invDay(i);if(d<s||d>e)return;
     if(i.kind!=='whole'){var a=+i.amount||0,paid=a-(+i.deltaR||0);if(paid>0)F.inR+=paid;else F.outR-=paid}
@@ -2768,7 +2769,7 @@ function vCash(){var off=S.coff||0,P=period('m',off),F=cashFlow(P.s,P.e),B=banks
   if(aExp>0&&F.exp>aExp*1.25)tips.push('هزینه‌ی این ماه '+fmt(Math.round((F.exp/aExp-1)*100))+'٪ بالاتر از میانگین سه ماه قبل است.');
   main.innerHTML='<div class="chips"><button class="chip" data-act="coff" data-d="-1" type="button">ماه قبل</button><button class="chip" aria-pressed="true" type="button">'+esc(P.label)+'</button>'+(off<0?'<button class="chip" data-act="coff" data-d="1" type="button">ماه بعد</button>':'')+'</div>'
    +'<section class="sec"><h2>حساب‌های بانکی</h2><p class="note">موجودی هر حساب را خودت بنویس و ذخیره کن.</p>'
-     +B.map(function(b){return '<div class="bkr"><div><b>'+esc(b.bank)+'</b><small>کارت …'+toFa(b.card)+(b.at?' · به‌روز: '+esc(jdate(b.at)):'')+'</small></div><input class="num" id="bk_'+b.k+'" inputmode="numeric" value="'+(b.bal?plain(b.bal,0):'')+'" placeholder="موجودی (ریال)" aria-label="موجودی '+esc(b.bank)+'"></div>'}).join('')
+     +B.map(function(b){return '<div class="bkr"><div><b>'+esc(b.bank)+'</b><small>کارت …'+toFa(b.card)+(b.at?' · به‌روز: '+esc(jdate(b.at))+(b.sms?' (از پیامک)':''):'')+'</small></div><input class="num" id="bk_'+b.k+'" inputmode="numeric" value="'+(b.bal?plain(b.bal,0):'')+'" placeholder="موجودی (ریال)" aria-label="موجودی '+esc(b.bank)+'"></div>'}).join('')
      +'<div class="btns"><button class="btn pri sm" data-act="savebanks" type="button">ذخیره‌ی موجودی‌ها</button></div><p><b>جمع موجودی بانک: '+R(bt)+'</b></p></section>'
    +'<div class="kpis"><div class="kpi"><small>ورودی نقد</small><b>'+fmt(Math.round(F.inR))+'</b><span class="sub">ریال</span></div><div class="kpi"><small>پرداخت به طرف‌حساب‌ها</small><b>'+fmt(Math.round(F.outR))+'</b><span class="sub">ریال</span></div>'
      +'<div class="kpi"><small>هزینه‌ها</small><b>'+fmt(Math.round(F.exp))+'</b><span class="sub">ریال'+(F.expG>=0.0005?' + '+fmt(F.expG,3)+' گرم':'')+'</span></div><div class="kpi"><small>خالص این ماه</small><b>'+fmt(Math.round(Math.abs(F.net)))+'</b><span class="sub">ریال · '+(F.net>=0?'مثبت':'کسری')+'</span></div></div>'
@@ -2837,6 +2838,36 @@ function cinCashHTML(){var O=cinOwn(),W=cinWork();
   return '<section class="sec"><h2>پول‌های شخصی</h2>'+(O.length?'<div class="list">'+cinOwnHTML(O)+'</div>':'<p class="note">پول شخصیِ باز نیست.</p>')+'</section>'
    +'<section class="sec"><h2>پول‌های کاری منتظر سند پرداختی</h2>'+(W.length?'<div class="list">'+cinWorkHTML(W)+'</div><p class="note">وقتی سند پرداختیِ همین مبلغ ثبت شود، خودش از این فهرست می‌رود.</p>':'<p class="note">همه‌ی پول‌های کاری پرداخت شده‌اند.</p>')+'</section>'}
 async function cinMarkDone(id){var D=Object.assign({},cinDone());D[id]=new Date().toISOString();if(await put('settings','cashdone',{ids:D})){toast('از فهرست برداشته شد');render()}}
+
+/* ---------- bank messages (owner, 2026-11-15): every SMS from Mellat or Blu (Saman) reaches «bankmsgs» through the iPhone
+   shortcut (leon-gold-server banksms.mjs); here the owner writes what each one was for, «کاری» or «شخصی». A message's
+   balance is newer than a typed one, so the account shows it. ---------- */
+S.bankmsgs=[];
+var BM_URL='https://api.leongold.net/api/public/banksms';
+function bmOpen(){return (S.bankmsgs||[]).filter(function(m){return !m.why}).sort(function(a,b){return a.ts<b.ts?1:-1})}
+function bmBankN(k){return k==='mellat'?'ملت':k==='saman'?'سامان (بلو)':'بانک نامشخص'}
+// the newest balance a message gave for an account, if it is newer than the one typed by hand
+function bmBal(k,at){var L=(S.bankmsgs||[]).filter(function(m){return m.bank===k&&m.bal!=null&&(!at||m.ts>at)}).sort(function(a,b){return a.ts<b.ts?1:-1});return L[0]||null}
+function bmRow(m,edit){var when=(m.date?toFa(m.date):jdate(m.ts))+(m.time?' · '+toFa(m.time):'');
+  return '<div class="row bmr" data-id="'+esc(m.id)+'"><span class="t">'+(m.dir==='in'?'واریز':m.dir==='out'?'برداشت':'پیامک')+' · '+esc(bmBankN(m.bank))+'<span class="badge'+(m.dir==='out'?' lo':'')+'">'+fmt(m.amount||0)+' ریال</span></span>'
+   +'<span class="s">'+esc(when)+(m.why?' · '+esc(m.kind==='own'?'شخصی':'کاری')+': '+esc(m.why):'')+'</span>'
+   +(edit?'<div class="grid bmf"><label class="f w2"><span>بابت چه بود</span><input class="bm-w" maxlength="140"></label><label class="f"><span>نوع</span><select class="bm-k"><option value="">— انتخاب —</option><option value="work">کاری</option><option value="own">شخصی</option></select></label><div class="btns"><button class="btn sm pri" data-act="bmsave" data-id="'+esc(m.id)+'" type="button">ثبت</button></div></div>'
+     +'<details><summary>متن پیامک</summary><p class="note" style="white-space:pre-wrap">'+esc(m.text||'')+'</p></details>':'')+'</div>'}
+function bmHTML(){var O=bmOpen(),D=(S.bankmsgs||[]).filter(function(m){return m.why}).sort(function(a,b){return a.ts<b.ts?1:-1}).slice(0,10);
+  return '<section class="sec" id="bmsec"><h2>پیامک‌های بانک</h2>'
+   +(O.length?'<p class="note">'+fmt(O.length)+' پیامک بی‌توضیح؛ برای هر کدام بنویس بابت چه بود.</p><div class="list">'+O.map(function(m){return bmRow(m,true)}).join('')+'</div>':'<p class="note">همه‌ی پیامک‌ها توضیح دارند.</p>')
+   +(D.length?'<details><summary>آخرین‌های توضیح‌دار</summary><div class="list">'+D.map(function(m){return bmRow(m,false)}).join('')+'</div></details>':'')
+   +'<details><summary>راه‌اندازی روی آیفون</summary><ol class="tips">'
+     +'<li>دکمه‌ی پایین را بزن تا یک کلید بسازد، و کلید را کپی کن. (کلید تازه، کلید قبلی را از کار می‌اندازد.)</li>'
+     +'<li>در برنامه‌ی Shortcuts، بخش Automation، «+» و بعد «Message» را بزن. در Sender، پیامک‌های بانک ملت و بلو را انتخاب کن و «Run Immediately» را روشن کن.</li>'
+     +'<li>کار «Get Contents of URL» را اضافه کن: نشانی <b dir="ltr">'+BM_URL+'</b>، Method روی POST، Request Body روی JSON با دو خانه: <b dir="ltr">k</b> = کلید، <b dir="ltr">text</b> = Shortcut Input (متن پیامک).</li>'
+     +'<li>از این به بعد هر پیامک بانک چند ثانیه بعد این‌جا می‌آید.</li></ol>'
+     +'<div class="btns"><button class="btn sm" data-act="bmkey" type="button">ساخت کلید میانبر</button></div><input id="bmKey" class="num" readonly dir="ltr" placeholder="کلید این‌جا می‌آید" style="width:100%;margin-top:8px"></details></section>'}
+async function bmSave(id){var r=$('.bmr[data-id="'+id+'"]'),why=r?$('.bm-w',r).value.trim():'',kind=r?$('.bm-k',r).value:'';
+  if(!why){toast('بنویس این پول بابت چه بود');return}if(!kind){toast('کاری یا شخصی را انتخاب کن');return}
+  var m=null;S.bankmsgs.forEach(function(x){if(x.id===id)m=x});if(!m)return;var d=Object.assign({},m);delete d.id;d.why=why.slice(0,140);d.kind=kind;
+  if(await put('bankmsgs',id,d)){toast('ثبت شد');render()}}
+async function bmKey(){try{var r=await srvApi('/api/banksms/key',{method:'POST',json:{}});var i=$('#bmKey');if(i&&r&&r.key){i.value=r.key;i.select();try{await navigator.clipboard.writeText(r.key);toast('کلید ساخته و کپی شد')}catch(e){toast('کلید ساخته شد؛ کپی‌اش کن')}}}catch(e){toast('کلید ساخته نشد؛ اینترنت را بررسی کن')}}
 
 function srvApi(p,o){return window.__leonSync.api(p,o)}
 /* «بازدید سایت» (owner, 2026-11-15): the public site's visits from the sync server (visits.mjs): today, who is on it now,
@@ -4435,6 +4466,8 @@ document.addEventListener('click',function(e){
     case 'fxopen':fxSaveOpen();break;
     case 'savebanks':saveBanks();break;
     case 'cindone':cinMarkDone(id);break;
+    case 'bmsave':bmSave(id);break;
+    case 'bmkey':bmKey();break;
     case 'coff':S.coff=Math.min(0,(S.coff||0)+(+b.dataset.d||0));render();break;
     case 'aifill':aiFill();break;
     case 'log':go('log',null);break;
@@ -4683,8 +4716,8 @@ function viewMode(){document.body.classList.add('viewmode');var sp=document.getE
   var home=vHome;vHome=function(){home();var d=$('#main .dbal');if(d)d.insertAdjacentHTML('beforeend',fxHomeHTML())};
   var prods=vProducts;vProducts=function(){prods();main.insertAdjacentHTML('beforeend',fxStockHTML())};
   var rep=vReport;vReport=function(){rep();main.insertAdjacentHTML('beforeend',fxReportHTML())};
-  var cash=vCash;vCash=function(){cash();main.insertAdjacentHTML('beforeend',cinCashHTML())};
-  var home2=vHome;vHome=function(){home2();var L=cinOwn();if(!L.length)return;main.insertAdjacentHTML('afterbegin','<section class="sec cinhome"><h2>یادآوری پول‌های شخصی</h2><div class="list">'+cinOwnHTML(L,3)+'</div>'+(L.length>3?'<button class="lnk" data-act="tab" data-t="cash" type="button">همه ('+fmt(L.length)+')</button>':'')+'</section>')}})();
+  var cash=vCash;vCash=function(){cash();var k=$('#main .kpis');if(k)k.insertAdjacentHTML('beforebegin',bmHTML());else main.insertAdjacentHTML('beforeend',bmHTML());main.insertAdjacentHTML('beforeend',cinCashHTML())};
+  var home2=vHome;vHome=function(){home2();var B=bmOpen();if(B.length)main.insertAdjacentHTML('afterbegin','<button class="sec cinhome bmhome" data-act="tab" data-t="cash" type="button"><b>'+fmt(B.length)+' پیامک بانک بی‌توضیح</b><span class="note">بزن و بنویس بابت چه بود</span></button>');var L=cinOwn();if(!L.length)return;main.insertAdjacentHTML('afterbegin','<section class="sec cinhome"><h2>یادآوری پول‌های شخصی</h2><div class="list">'+cinOwnHTML(L,3)+'</div>'+(L.length>3?'<button class="lnk" data-act="tab" data-t="cash" type="button">همه ('+fmt(L.length)+')</button>':'')+'</section>')}})();
 /* ---------- boot ---------- */
 /* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
    a device that already has a token (the phone/PC already in use) boots straight in, same as before */
