@@ -1,4 +1,7 @@
-<!doctype html><html lang="fa" dir="rtl"><head><script>try{var t=localStorage.getItem("leon-theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#07130e;color:var(--dk-ink, #000)}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
+<!doctype html><html lang="fa" dir="rtl"><head><script>try{var t=localStorage.getItem("leon-theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#07130e;color:var(--dk-ink, #000)}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.movebar{position:fixed;top:0;left:0;right:0;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 14px calc(10px);padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(180deg,#154a37,#0b2a1e);color:#efe7d2;border-bottom:1px solid #c9a24c;font-size:13px;line-height:1.7}
+.movebar p{margin:0;flex:1 1 220px}.movebar b{display:block;color:#e9cf8a;font-size:14px}
+.movebtns{display:flex;gap:8px}.movebar .btn{white-space:nowrap;text-decoration:none;border:1px solid #c9a24c;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}.movebar .btn.pri{background:linear-gradient(180deg,#f0d999,#c9a24c);color:#0b2a1e}.movebar .btn:not(.pri){background:rgba(255,255,255,.06)!important;color:#efe7d2!important;-webkit-text-fill-color:#efe7d2!important;text-shadow:none!important}
+</style><style>/* ---------- desktop (1100px and wider): the menu stays open as a side bar, the page uses the width ----------
    lists in two columns, the home page's cards side by side, more showcase pieces a row, the invoice wide */
 @media (min-width:1100px){
   :root{--side:272px}
@@ -399,7 +402,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 02:58</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 07:52</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -4452,6 +4455,16 @@ function viewMode(){document.body.classList.add('viewmode');var sp=document.getE
     try{resetSheet(k,true);loadInvoice(inv);fire($('#taxPct'),'input');openPv();up({leonView:'shown'})}catch(x){up({leonView:'error',why:String(x&&x.message||x)})}});
   ['#pvClose','#pvBack'].forEach(function(q){$(q).addEventListener('click',function(){up({leonView:'close'})})});
   up({leonView:'ready'})}
+/* ---------- the ledger has moved (owner, 2026-11-15): on the old GitHub address, a bar at the top sends to
+   leongold.net/daftar/ (faster from Iran, no VPN). The data lives on the sync server, so after signing in there it is
+   all the same. Not in «حساب من»'s invoice frame (#view); «بعداً» hides it until the app is opened again. ---------- */
+(function(){if(location.hostname!=='leon-gold.github.io'||location.hash==='#view')return;try{if(sessionStorage.getItem('lg-moved-later'))return}catch(e){}
+  var go=function(){var b=document.createElement('div');b.className='movebar';b.setAttribute('role','note');
+    b.innerHTML='<p><b>دفتر به آدرس تازه آمد</b>leongold.net/daftar — سریع‌تر و بدون فیلترشکن. بعد از ورود، همه‌ی اطلاعات همان است.</p>'
+      +'<div class="movebtns"><a class="btn pri sm" href="https://leongold.net/daftar/">باز کردن دفتر تازه</a><button class="btn sm" type="button">بعداً</button></div>';
+    b.querySelector('button').addEventListener('click',function(){try{sessionStorage.setItem('lg-moved-later','1')}catch(e){}b.remove()});
+    document.body.insertBefore(b,document.body.firstChild)};
+  if(document.body)go();else addEventListener('DOMContentLoaded',go)})();
 /* ---------- boot ---------- */
 /* a device that has never signed in to the sync server sees only the entry gate, nothing else, until it does;
    a device that already has a token (the phone/PC already in use) boots straight in, same as before */
