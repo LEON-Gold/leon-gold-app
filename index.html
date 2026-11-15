@@ -399,7 +399,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 02:35</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 02:41</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -1810,10 +1810,14 @@ function supOf(p){if(p.supName)return {id:p.supId||'',name:p.supName};
   if(SUPM_OF!==S.invoices){SUPM={};SUPM_OF=S.invoices;S.invoices.filter(function(i){return i.kind==='whole'&&i.doc==='rc'}).sort(function(a,b){return (a.ts||'')<(b.ts||'')?-1:1})
     .forEach(function(i){(i.items||[]).forEach(function(it){if(it.pid&&!it.ret)SUPM[it.pid]={id:i.partyId||'',name:i.partyName||(partyById(i.partyId)||{}).name||''}})})}
   return SUPM[p.id]||null}
+/* each piece's group (ریخته، لیزری، …: the vitrin's groups) and category (the vitrin's categories), set on the piece
+   (owner, 2026-11-15) so the vitrin knows where it goes */
+function pGroups(p){return (p.tags||[]).map(vtagName).filter(Boolean)}
+function pUnset(p){return !pGroups(p).length&&!p.cat}
 function supBits(p){var sp=supOf(p);return [sp&&sp.name?'تأمین‌کننده: '+sp.name:'',p.buyAjrat!=null?'اجرت دریافتی '+fmt(p.buyAjrat,2)+'٪':'',p.payAjrat!=null?'اجرت پرداختی '+fmt(p.payAjrat,2)+'٪':'']}
 function prodRow(p){var s=S.stock[p.id]||{q:0,g:0};
-  return '<button class="row" data-act="prod" data-id="'+esc(p.id)+'"><span class="t">'+(p.photo?'<img class="thumb" src="'+esc(photoURL(p.photo))+'" alt="" loading="lazy">':'')+esc(p.name)+(p.code?'<span class="badge">'+esc(toFa(fanum(p.code)))+'</span>':'')+(isNeg(p)?'<span class="badge lo">منفی</span>':isLow(p)?'<span class="badge lo">کم‌موجودی</span>':'')+'</span>'
-  +'<span class="s">'+esc([p.cat,p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.unitW?'هر عدد '+fmt(p.unitW,3)+' گرم':'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].concat(supBits(p)).filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+(s.q>0||s.g>0.0005?qtyHTML(s):isNeg(p)?qtyHTML(s):'<span class="qty">ناموجود</span>')+'</span></button>'}
+  return '<button class="row" data-act="prod" data-id="'+esc(p.id)+'"><span class="t">'+(p.photo?'<img class="thumb" src="'+esc(photoURL(p.photo))+'" alt="" loading="lazy">':'')+esc(p.name)+(p.code?'<span class="badge">'+esc(toFa(fanum(p.code)))+'</span>':'')+(isNeg(p)?'<span class="badge lo">منفی</span>':isLow(p)?'<span class="badge lo">کم‌موجودی</span>':'')+(pUnset(p)?'<span class="badge lo">گروه و دسته تعیین نشده</span>':'')+'</span>'
+  +'<span class="s">'+esc([pGroups(p).join('، '),p.cat,p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.unitW?'هر عدد '+fmt(p.unitW,3)+' گرم':'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].concat(supBits(p)).filter(Boolean).join(' · ')||' ')+'</span><span class="v">'+(s.q>0||s.g>0.0005?qtyHTML(s):isNeg(p)?qtyHTML(s):'<span class="qty">ناموجود</span>')+'</span></button>'}
 /* inventory sort: name, availability (in stock first), ajrat %, stock weight; tapping the active one flips the order */
 var SORTS=[['name','نام'],['stock','موجود بودن'],['aj','درصد اجرت'],['w','وزن']];
 function sortChips(){var s=S.psort||'name';return SORTS.map(function(x){return '<button class="chip" data-act="psort" data-s="'+x[0]+'" aria-pressed="'+(s===x[0])+'">'+x[1]+(s===x[0]&&x[0]!=='name'?(S.pdesc===false?' ↑':' ↓'):'')+'</button>'}).join('')}
@@ -1886,7 +1890,9 @@ function vProduct(){
   main.innerHTML='<div class="kpis flat"><div class="kpi"><small>موجودی (عدد)</small><b>'+fmt(s.q)+'</b>'+(p.minQ?'<span class="sub">حداقل '+fmt(p.minQ)+'</span>':'')+'</div><div class="kpi"><small>موجودی (گرم)</small><b>'+fmt(s.g,3)+'</b>'+((p.carat||p.ajrat)?'<span class="sub">'+[p.carat?'عیار '+fmt(Math.round(labOf(p.carat))):'',p.ajrat?'اجرت '+fmt(p.ajrat,2)+'٪':''].filter(Boolean).join(' · ')+'</span>':'')+'</div></div>'
   +(p.photo?'<img class="pimg" src="'+esc(photoURL(p.photo))+'" alt="'+esc(p.name)+'">':'')
   +(isLow(p)?'<div class="warn">موجودی این کالا به حداقل رسیده است.</div>':'')
-  +(function(){var sp=supOf(p);return '<section class="sec"><h2>تأمین‌کننده و اجرت</h2><div class="paygrid">'
+  +(function(){var sp=supOf(p);return '<section class="sec"><h2>گروه، دسته، تأمین‌کننده و اجرت</h2><div class="paygrid">'
+    +'<div><small>گروه</small><b>'+esc(pGroups(p).join('، ')||'تعیین نشده')+'</b></div>'
+    +'<div><small>دسته</small><b>'+esc(p.cat||'تعیین نشده')+'</b></div>'
     +'<div><small>تأمین‌کننده</small><b>'+esc(sp&&sp.name?sp.name:'ثبت نشده')+'</b></div>'
     +'<div><small>اجرت دریافتی (از تأمین‌کننده)</small><b>'+(p.buyAjrat!=null?fmt(p.buyAjrat,2)+'٪':'—')+'</b></div>'
     +'<div><small>اجرت پرداختی</small><b>'+(p.payAjrat!=null?fmt(p.payAjrat,2)+'٪':'خالی؛ در «ویرایش کالا» پرش کن')+'</b></div></div></section>'})()
@@ -1951,10 +1957,12 @@ function vPrform(){
   var p=S.param&&S.param.id?prodById(S.param.id):null,isNew=!p;p=p||{};
   setTop(isNew?'کالای جدید':'ویرایش کالا','',true);S.prPhoto=p.photo||'';
   var n=function(v,d){return v?plain(v,d):''};
-  main.innerHTML='<section class="sec"><h2>مشخصات کالا</h2><div class="grid">'+fld('کد کالا','pr_code',p.code,{num:1,ph:'مثلاً ۱۰۲'})+fld('دسته','pr_cat',p.cat,{ph:'النگو، انگشتر، سرویس…'})
+  main.innerHTML='<section class="sec"><h2>مشخصات کالا</h2><div class="grid">'+fld('کد کالا','pr_code',p.code,{num:1,ph:'مثلاً ۱۰۲'})+(function(){var L=vcats().map(function(c){return c.name});if(p.cat&&L.indexOf(p.cat)<0)L.push(p.cat);
+     return '<label class="f"><span>دسته (کتگوری ویترین)</span><select id="pr_cat"><option value="">— انتخاب —</option>'+L.map(function(n){return '<option'+(n===p.cat?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label>'})()
    +fld('نام کالا *','pr_name',p.name,{w2:1})+fld('عیار (عدد آزمایشگاهی، مثلاً ۷۵۰)','pr_carat',n(Math.round(labOf(p.carat)),0),{num:1})+fld('وزن هر عدد (گرم، اختیاری)','pr_unitw',n(p.unitW,3),{num:1})+fld('اجرت فروش (درصد)','pr_aj',n(p.ajrat,2),{num:1,ph:'مثلاً ۱۵'})+fld('اجرت دریافتی از تأمین‌کننده (درصد)','pr_buy',p.buyAjrat!=null?plain(p.buyAjrat,2):'',{num:1,ph:'از سند دریافتی'})+fld('اجرت پرداختی (درصد)','pr_pay',p.payAjrat!=null?plain(p.payAjrat,2):'',{num:1,ph:'خودت پر کن'})
    +(function(){var sp=p.id?supOf(p):null;return sp&&sp.name?'<p class="note w2">تأمین‌کننده: <b>'+esc(sp.name)+'</b> (از سند دریافتی)</p>':''})()
    +fld('یادداشت','pr_note',p.note,{w2:1})+'</div></section>'
+   +'<section class="sec"><h2>گروه</h2><p class="note">این کار ریخته است، لیزری، پایه جواهر یا بچگانه؟ می‌تواند در چند گروه باشد. گروه یا دسته باید تعیین شود.</p><div class="vset" id="prGrp">'+vtagsHTML(p.tags,true)+'</div></section>'
    +'<section class="sec" id="phsec" hidden><h2>عکس کالا</h2><div class="phbox" id="phbox"></div><input type="file" id="pr_photo" accept="image/*" hidden>'
    +'<div class="btns"><button class="btn" data-act="pickphoto" type="button">انتخاب یا گرفتن عکس</button><button class="btn dng" data-act="rmphoto" type="button" hidden>برداشتن عکس</button></div><p class="note" id="phmsg"></p></section>'
    +'<section class="sec"><h2>موجودی</h2><p class="note">موجودی فعلی را اینجا بنویس؛ از این به بعد فاکتورها خودکار کم و زیادش می‌کنند.</p><div class="grid">'
@@ -1964,10 +1972,13 @@ function vPrform(){
 function prformReady(){photoBox(S.prPhoto);getAssets().then(function(a){var s=$('#phsec');if(s)s.hidden=!a})}
 async function saveProduct(id){
   var name=val('pr_name');if(!name){toast('نام کالا را بنویس');return}
+  var grp=$$('#prGrp .vtg:checked').map(function(c){return c.value});
+  if(!grp.length&&!val('pr_cat')){toast('گروه (مثلاً ریخته) یا دسته‌ی این کار را تعیین کن');return}
   var code=fanum(val('pr_code'));if(code&&S.products.some(function(x){return x.id!==id&&fanum(x.code)===code})){toast('این کد برای کالای دیگری ثبت شده');return}
   var old=id?prodById(id):null;
   var d={code:code,name:name,cat:val('pr_cat'),carat:Math.round(labOf(num(val('pr_carat')))),unitW:Math.round(num(val('pr_unitw'))*1000)/1000,ajrat:num(val('pr_aj')),buyAjrat:val('pr_buy')===''?null:num(val('pr_buy')),openQ:num(val('pr_oq')),openG:Math.round(num(val('pr_og'))*1000)/1000,minQ:num(val('pr_min')),note:val('pr_note'),photo:S.prPhoto||'',ts:old&&old.ts?old.ts:new Date().toISOString()};
   d.payAjrat=val('pr_pay')===''?null:num(val('pr_pay'));
+  var other=(old&&old.tags||[]).filter(function(k){return !vtags().some(function(t){return t.k===k&&t.group})});d.tags=other.concat(grp);
   if(old){var keep=Object.assign({},old);delete keep.id;d=Object.assign(keep,d)}
   if(await put('products',id||newId('products'),d)){toast('کالا ذخیره شد');back()}
 }
