@@ -402,7 +402,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 07:52</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 10:01</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2359,7 +2359,7 @@ async function rcOpen(id){var r=RC.filter(function(x){return x.id===id})[0];if(!
    The server keeps only a hash, so a forgotten password is replaced, never shown again. */
 var PL=null; // partyId -> username, from the server
 async function loadLogins(){try{var j=await srvApi('/api/portal/logins');PL={};(j.logins||[]).forEach(function(x){PL[x.partyId]=x.username})}catch(e){PL=null}return PL}
-function hesabURL(){var p=location.pathname;if(/\/daftar\//.test(p))return location.origin+p.replace(/\/daftar\/.*$/,'/hesab/');return new URL('site/hesab/',location.href).href}
+function hesabURL(){var p=location.pathname;if(/\/daftar\//.test(p))return location.origin+p.replace(/\/daftar\/.*$/,'/hesab/');return 'https://leongold.net/hesab/'}   // the old address too sends customers to «حساب من» on the domain (owner, 2026-11-15)
 function ptPass(){var a=new Uint32Array(1);crypto.getRandomValues(a);return String(100000+a[0]%900000)}
 function ptName(p){var d=fanum(String(p.phone||'')).replace(/\D/g,'');if(d.indexOf('98')===0&&d.length===12)d='0'+d.slice(2);return /^09\d{9}$/.test(d)?d:'leon'+ptPass().slice(0,4)}
 // makes (or, with a new password, renews) one party's sign-in; returns {p,u,pw} or null
