@@ -208,6 +208,24 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
 .me-li { position: relative; padding-inline-start: 18px; font-size: 14px; line-height: 1.9; }
 .me-li::before { content: ""; position: absolute; inset-inline-start: 2px; top: .75em; width: 8px; height: 8px; border-radius: 50%; background: var(--me-mut); }
 .me-li-up::before { background: var(--me-up); } .me-li-down::before { background: var(--me-dn); }
+/* the outlook line: a little card of its own inside each reading */
+.me-li.me-fc { padding: 8px 12px 8px 12px; padding-inline-start: 28px; border-radius: 14px; background: var(--me-bb); border: 1px solid var(--me-line); }
+.me-li.me-fc::before { inset-inline-start: 12px; top: 1.15em; }
+/* currencies and coins: one quiet row each, opened to its chart and reading */
+.me-xs { display: grid; gap: 10px; padding: 14px; border-radius: 20px; background: var(--me-card); border: 1px solid var(--me-line); min-width: 0; }
+.me-xs h3 { margin: 0; font-size: 16px; } .me-xhint { margin: -4px 0 0; font-size: 12.5px; color: var(--me-mut); }
+.me-xg { display: grid; } .me-xg h4 { margin: 6px 0 2px; font-size: 12.5px; color: var(--me-mut); font-weight: 700; }
+.me-x { border-top: 1px solid var(--me-grid); } .me-xg h4 + .me-x { border-top: 0; }
+.me-xh { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 11px 2px; align-items: center; -webkit-tap-highlight-color: transparent; }
+.me-xh:focus-visible { outline: 2px solid var(--me-gold); outline-offset: 2px; border-radius: 10px; }
+.me-xn { font-weight: 800; font-size: 14.5px; } .me-xp { text-align: end; font-size: 13px; white-space: nowrap; } .me-xp b { font-size: 15px; }
+.me-xp .up { color: var(--me-up); } .me-xp .dn { color: var(--me-dn); }
+.me-xc { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.me-xb, .me-xf { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--me-line); color: var(--me-mut); }
+.me-xb.up, .me-xf-up { color: var(--me-up); border-color: currentColor; } .me-xb.dn, .me-xf-down { color: var(--me-dn); border-color: currentColor; }
+.me-xbody { display: grid; gap: 10px; padding: 2px 0 14px; animation: meIn .35s var(--me-ease) both; }
+.me-xbody ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.me-xbody .me-fig { padding: 10px; }
 .me-note { margin: 0; font-size: 12.5px; color: var(--me-mut); line-height: 1.9; }
 .me-load { display: grid; justify-items: center; gap: 10px; padding: 40px 0; color: var(--me-mut); font-size: 13px; }
 .me-load i { display: none; }
@@ -410,7 +428,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 12:58</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 21:29</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2348,7 +2366,7 @@ function vHome(){
    +dashList('آخرین فاکتورها','','invoices',rec.map(invRow).join(''),'هنوز فاکتوری ذخیره نشده.')+'</div>';
   var ps=$('.sec.price');if(ps){ps.insertAdjacentHTML('beforeend','<div class="livep" id="liveP" hidden></div>');livePrice().then(fillLive)}
   if(!MK.live||Date.now()-MK.liveAt>100000)mkLive().then(function(){var m=$('.dmk');if(m&&S.view==='home')m.outerHTML=dashMarket()});
-  if(!MK.hist||Date.now()-MK.histAt>3600000)mkHist().then(function(){var m=$('.dmk');if(m&&S.view==='home')m.outerHTML=dashMarket()});
+  if(!MK.hist||!MK.hist.x||Date.now()-MK.histAt>3600000)mkHist().then(function(){var m=$('.dmk');if(m&&S.view==='home')m.outerHTML=dashMarket()});
 }
 function vBackup(){setTop('پشتیبان و خروجی‌ها','',true);
   var lb=lsGet('leon_lastbk')||'',info={};try{info=JSON.parse(lsGet('leon_lastbk_info')||'{}')}catch(e){}
@@ -3249,10 +3267,12 @@ function mkLive(force){if(!force&&MK.live&&Date.now()-MK.liveAt<100000)return Pr
       return mkGet('https://api.tgju.org/v1/market/indicator/today-table-data/price_dollar_rl?length=1&start=0').then(function(x){var r=x&&x.data&&x.data[0];if(r){L.usd=mkN(r[0]);L.usdWhen='امروز ساعت '+toFa(String(r[1]||'').slice(0,5))}return L}).catch(function(){return L})})
     .then(function(L){if(L.gp||L.usd){MK.live=L;MK.liveAt=Date.now()}return MK.live})}
 // daily history: oldest first, {d: '2026/11/09', j: '1405/08/18', c: close, h, l}; refreshed once an hour
-function mkHist(force){if(!force&&MK.hist&&Date.now()-MK.histAt<3600000)return Promise.resolve(MK.hist);if(MK.busy)return MK.busy;
+function mkHist(force){if(!force&&MK.hist&&MK.hist.x&&Date.now()-MK.histAt<3600000)return Promise.resolve(MK.hist);if(MK.busy)return MK.busy;
   var one=function(ind){return mkGet('https://api.tgju.org/v1/market/indicator/summary-table-data/'+ind+'?length=400&start=0',15000).then(function(x){
     return ((x&&x.data)||[]).map(function(r){return {d:String(r[6]||''),j:String(r[7]||''),c:mkN(r[3]),h:mkN(r[2]),l:mkN(r[1])}}).filter(function(r){return r.c>0&&r.d}).reverse()})};
-  MK.busy=Promise.all([one(MK_IND.g),one(MK_IND.d),one(MK_IND.o)]).then(function(a){if(!a[0].length)throw 0;MK.hist={g:a[0],d:a[1],o:a[2]};MK.histAt=Date.now();
+  // the currencies and coins too (owner, 2026-11-16); one that fails only leaves its row out
+  var xs=Promise.all(ME.XS.map(function(x){return one(x.ind).catch(function(){return []})})).then(function(a){var o={};ME.XS.forEach(function(x,i){o[x.k]=a[i]});return o});
+  MK.busy=Promise.all([one(MK_IND.g),one(MK_IND.d),one(MK_IND.o),xs]).then(function(a){if(!a[0].length)throw 0;MK.hist={g:a[0],d:a[1],o:a[2],x:a[3]};MK.histAt=Date.now();
       try{localStorage.setItem('lg-mk',JSON.stringify({hist:MK.hist,at:MK.histAt}))}catch(e){}return MK.hist})
     .catch(function(){return MK.hist}).then(function(h){MK.busy=null;return h});
   return MK.busy}
@@ -3311,15 +3331,16 @@ function mkHover(fig,e){var svg=$('svg',fig),d=(MK.cd||{})[fig.dataset.mk]||[],b
   $('.mk-read',fig).innerHTML='<b>'+toFa(r[0])+'</b> · '+fmt(Math.round(r[1]/10))+' تومان <span>(میانگین ۳۰ روزه '+fmt(Math.round(r[2]/10))+')</span>'}
 function mkTile(k,v,sub){return '<div class="kpi"><small>'+k+'</small><b>'+v+'</b><span class="sub">'+sub+'</span></div>'}
 var MKS={range:90,tools:null,anim:true,prev:null};
-function vMarket(){setTop('تحلیل بازار','طلا، دلار، انس و حباب',false);if(!MKS.tools)MKS.tools=ME.TOOLS0();
+function vMarket(){setTop('تحلیل بازار','طلا، ارز، سکه و پیش‌بینی',false);if(!MKS.tools)MKS.tools=ME.TOOLS0();
   main.innerHTML='<div class="me-top"><span><i class="ddot on"></i>زنده · هر ۲ دقیقه'+(MK.liveAt?' · آخرین دریافت '+esc(jtime(MK.liveAt)):'')+'</span><button class="lnk" data-act="mkrefresh" type="button">به‌روزرسانی</button></div>'+ME.page(MK.hist,MK.live,MKS);
   ME.bind(main);var now=ME.liveOf(MK.hist,MK.live);ME.flashAll(main,MKS.prev,now);MKS.prev=now;
   if(MKS.anim&&MK.hist)setTimeout(function(){MKS.anim=false},1600);
-  if(!MK.hist||Date.now()-MK.histAt>3600000)mkHist().then(function(){if(S.view==='market'){MKS.anim=true;render()}});
+  if(!MK.hist||!MK.hist.x||Date.now()-MK.histAt>3600000)mkHist().then(function(){if(S.view==='market'){MKS.anim=true;render()}});
   if(!MK.live||Date.now()-MK.liveAt>100000)mkLive(true).then(function(){if(S.view==='market')render()})}
 // the chart tools and the range, inside the engine's page
-document.addEventListener('click',function(e){if(S.view!=='market')return;var r=e.target.closest('[data-me-range]'),t=e.target.closest('[data-me-tool]');
-  if(r){MKS.range=+r.dataset.meRange;MKS.anim=true;render()}
+document.addEventListener('click',function(e){if(S.view!=='market')return;var r=e.target.closest('[data-me-range]'),t=e.target.closest('[data-me-tool]'),xr=e.target.closest('[data-me-x]');
+  if(xr){if(!MKS.open)MKS.open=new Set();var xk=xr.dataset.meX;if(MKS.open.has(xk))MKS.open.delete(xk);else MKS.open.add(xk);render()}
+  else if(r){MKS.range=+r.dataset.meRange;MKS.anim=true;render()}
   else if(t){var k=t.closest('.me-fig').dataset.kind,set=MKS.tools[k];if(!set)return;if(set.has(t.dataset.meTool))set.delete(t.dataset.meTool);else set.add(t.dataset.meTool);render()}});
 // every 2 minutes while the page is open and in front
 setInterval(function(){if(S.view==='market'&&document.visibilityState==='visible')mkLive(true).then(function(){if(S.view==='market'&&!document.querySelector('.me-cur[visibility="visible"]'))render()})},120000);
@@ -3475,6 +3496,47 @@ var ME = (function () {
     return { g: Math.exp(Math.log(b.g / a.g)) - 1, d: Math.log(b.usd / a.usd), o: Math.log(b.oz / a.oz), p: Math.log((1 + b.c) / (1 + a.c)) };
   }
   const TR = { up: "صعودی", down: "نزولی", flat: "بی‌جهت" };
+
+  // ---------- currencies and coins (owner, 2026-11-16): a few, each with its reading, its bubble and a 30-day outlook ----------
+  // peg: dollars per unit in the world (tether 1, the dirham's fixed 3.6725); w: grams of 900 gold in a coin
+  const XS = [
+    { k: "usdt", ind: "crypto-tether-irr", name: "تتر", g: "fx", peg: 1 },
+    { k: "eur", ind: "price_eur", name: "یورو", g: "fx" },
+    { k: "aed", ind: "price_aed", name: "درهم امارات", g: "fx", peg: 1 / 3.6725 },
+    { k: "gbp", ind: "price_gbp", name: "پوند انگلیس", g: "fx" },
+    { k: "try", ind: "price_try", name: "لیر ترکیه", g: "fx" },
+    { k: "sekee", ind: "sekee", name: "سکه امامی", g: "coin", w: 8.133 },
+    { k: "sekeb", ind: "sekeb", name: "سکه بهار آزادی", g: "coin", w: 8.133 },
+    { k: "nim", ind: "nim", name: "نیم سکه", g: "coin", w: 4.0665 },
+    { k: "rob", ind: "rob", name: "ربع سکه", g: "coin", w: 2.0332 },
+  ];
+  // a coin against the 18-carat gram of the same day (its gold, 900 fine); tether and the dirham against the free dollar;
+  // the euro, pound and lira have no world rate here, so they are read as dollars per unit in Tehran against their own usual
+  function xBubble(H, x, rows) {
+    const ref = x.g === "coin" ? H.g : H.d; if (!ref || ref.length < 30) return null;
+    const R = Object.fromEntries(ref.map(r => [r.d, r.c]));
+    const J = rows.filter(r => R[r.d]).map(r => { const v = R[r.d], fair = x.g === "coin" ? v * x.w * .9 / .75 : x.peg ? v * x.peg : 0;
+      return fair ? { c: r.c / fair - 1, p: r.c, fair } : { c: r.c / v, p: r.c, fair: 0 }; });
+    if (J.length < 30) return null;
+    const pr = J.map(q => q.c), last = J[J.length - 1], a90 = mean(pr.slice(-90)), s90 = sd(pr.slice(-90));
+    return { kind: last.fair ? "prem" : "cross", now: last.c, gap: last.fair ? last.p - last.fair : 0, a90, z: s90 ? (last.c - a90) / s90 : 0 };
+  }
+  // the next 30 days, from the past only: the 30- and 90-day trends carried on (damped), part of a big stretch from the trend
+  // line given back, RSI extremes and an unusual bubble easing; the range is one usual 30-day swing either side (about two times in three)
+  function outlook(S, bz) {
+    if (!S || !S.t90) return null;
+    const s30 = S.vol * Math.sqrt(30), t30 = S.t30 ? S.t30.m30 : S.t90.m30;
+    // the last month counts more than the three; only half of a trend is assumed to carry on; a stretch past 1.5σ gives a little back
+    let mu = .5 * (.35 * Math.log(1 + S.t90.m30) + .65 * Math.log(1 + t30)) - (Math.abs(S.t90.z) > 1.5 ? .15 * S.t90.z * S.t90.s : 0);
+    if (S.rsi >= 70) mu -= .25 * s30; else if (S.rsi <= 30) mu += .25 * s30;
+    if (bz != null && Math.abs(bz) > 1) mu -= .15 * Math.sign(bz) * s30;
+    mu = Math.max(-1.5 * s30, Math.min(1.5 * s30, mu));
+    const agree = Math.sign(S.t90.m30) === Math.sign(t30), r2 = Math.max(0, S.t90.r2);
+    return { dir: mu > .35 * s30 ? "up" : mu < -.35 * s30 ? "down" : "flat", mid: S.last * Math.exp(mu), lo: S.last * Math.exp(mu - s30), hi: S.last * Math.exp(mu + s30),
+      conf: agree && r2 > .6 ? "نسبتاً قوی" : agree && r2 > .3 ? "متوسط" : "ضعیف" };
+  }
+  const FC = { up: "احتمالاً بالا می‌رود", down: "احتمالاً پایین می‌آید", flat: "احتمالاً در همین حدود نوسان می‌کند" };
+  const fcLine = (F, S, unit) => F && { t: F.dir, fc: true, h: `<b>پیش‌بینی ۳۰ روز آینده:</b> ${FC[F.dir]}؛ محدوده‌ی محتمل ${unit(F.lo)} تا ${unit(F.hi)} (وسط آن ${sgn(F.mid / S.last - 1)}). اطمینان: ${F.conf}.` };
   const LEVEL = z => z > 1.5 ? "خیلی بالاتر از معمول" : z > .5 ? "بالاتر از معمول" : z < -1.5 ? "خیلی پایین‌تر از معمول" : z < -.5 ? "پایین‌تر از معمول" : "نزدیک معمول";
 
   // ---------- the reading: one card per subject, each line with its tone ----------
@@ -3487,8 +3549,8 @@ var ME = (function () {
   }
   function reading(G, D, Oz, B, H) {
     const sec = [];
-    const asset = (S, name, unit) => {
-      if (!S) return null; const L = [];
+    const asset = (S, name, unit, bz) => {
+      if (!S) return null; const L = []; const f = fcLine(outlook(S, bz), S, unit); if (f) L.push(f);
       L.push({ t: S.trend === "up" ? "up" : S.trend === "down" ? "down" : "flat", h: `<b>روند میان‌مدت ${TR[S.trend]}.</b> قیمت ${S.last >= S.s50 ? "بالای" : "زیر"} میانگین ۵۰ روزه (${unit(S.s50)}) و میانگین ۲۰ روزه ${S.s20 >= S.s50 ? "بالای" : "زیر"} آن؛ میانگین ۵۰ روزه در ۱۰ روز ${pct(S.slope50, 2)} ${S.slope50 > 0 ? "بالا رفته" : "پایین آمده"}.` });
       if (S.t90) L.push({ t: S.t90.m30 > 0 ? "up" : "down", h: `<b>خط روند ۹۰ روزه:</b> ماهانه ${pct(S.t90.m30)} (قدرت روند ${fa(Math.max(0, S.t90.r2) * 100)}٪). قیمت ${Math.abs(S.t90.z) < .5 ? "روی خط" : S.t90.z > 0 ? fa(S.t90.z, 1) + " انحراف معیار بالای خط" : fa(-S.t90.z, 1) + " انحراف معیار زیر خط"} است${S.t90.z > 1.5 ? "؛ کشیده شده و جای اصلاح دارد" : S.t90.z < -1.5 ? "؛ زیادی افت کرده و جای برگشت دارد" : ""}.` });
       L.push({ t: "flat", h: `<b>تغییرها:</b> روز ${pct(S.d1, 2)} · هفته ${pct(S.d7)} · ماه ${pct(S.d30)} · سه ماه ${pct(S.d90)}${S.d365 != null ? " · سال " + pct(S.d365) : ""}.` });
@@ -3497,9 +3559,10 @@ var ME = (function () {
       L.push({ t: "flat", h: `<b>نوسان:</b> معمول روزانه ${fa(S.swing * 100, 1)}٪؛ پهنای باند بولینگر ${fa(S.bbW * 100, 1)}٪${S.bbW < .03 ? " (فشرده؛ معمولاً قبل از یک حرکت بزرگ)" : ""}. بیشترین افت از سقف در سه ماه: ${pct(S.dd90)}.` });
       return { name, L };
     };
-    const g = asset(G, "طلای ۱۸ عیار", v => tm(v) + " تومان"), d = asset(D, "دلار آزاد", v => tm(v) + " تومان"), o = asset(Oz, "انس جهانی", v => fa(v) + " دلار");
+    const g = asset(G, "طلای ۱۸ عیار", v => tm(v) + " تومان", B ? B.z : null), d = asset(D, "دلار آزاد", v => tm(v) + " تومان"), o = asset(Oz, "انس جهانی", v => fa(v) + " دلار");
     if (B) {
       const L = [], s = split(B, H.g[Math.max(0, H.g.length - 31)].d);
+      L.push({ t: B.z > .5 ? "down" : B.z < -.5 ? "up" : "flat", fc: true, h: `<b>پیش‌بینی حباب:</b> ${Math.abs(B.z) < .5 ? `نزدیک میانگین سه ماه (${sgn(B.a90)}) است و از این طرف فشار خاصی روی قیمت طلا نیست.` : B.z > 0 ? `بالاتر از معمول است و معمولاً در هفته‌های بعد به سمت میانگین (${sgn(B.a90)}) کم می‌شود؛ یعنی طلا نسبت به دلار و انس جای افت دارد.` : `پایین‌تر از معمول است و معمولاً در هفته‌های بعد به سمت میانگین (${sgn(B.a90)}) بالا می‌آید؛ یعنی طلا نسبت به دلار و انس جای رشد دارد.`}` });
       L.push({ t: B.z < -.5 ? "up" : B.z > .5 ? "down" : "flat", h: `<b>به ریال:</b> ارزش جهانی هر گرم ۱۸ عیار (انس ${fa(B.oz)} دلار × دلار ${tm(B.usd)} تومان) ${tm(B.fair)} تومان است و بازار تهران ${tm(B.gp)} تومان؛ یعنی هر گرم <b>${tm(Math.abs(B.gapT))} تومان ${B.gapT >= 0 ? "گران‌تر" : "ارزان‌تر"}</b> (${sgn(B.prem)}).` });
       L.push({ t: "flat", h: `<b>به انس:</b> قیمت طلای تهران با دلار آزاد یعنی انس <b>${fa(B.impOz)} دلار</b>، در حالی که انس جهانی ${fa(B.oz)} دلار است (${B.impOz >= B.oz ? "+" : "−"}${fa(Math.abs(B.impOz - B.oz))} دلار). به زبان دیگر، طلا در تهران با دلار ${tm(B.impUsd)} تومانی قیمت خورده، نه ${tm(B.usd)}.` });
       L.push({ t: B.z < -.5 ? "up" : B.z > .5 ? "down" : "flat", h: `<b>نسبت به معمول:</b> میانگین حباب سه ماه ${sgn(B.a90)} و یک سال ${sgn(B.a365)}؛ دامنه‌ی یک سال از ${sgn(B.lo)} تا ${sgn(B.hi)}. حباب امروز ${LEVEL(B.z)} است (${fa(B.rank * 100)}٪ روزهای سال پایین‌تر بوده).` });
@@ -3558,7 +3621,7 @@ var ME = (function () {
     let rs = `<rect class="me-rz" x="${PL}" y="${ry(70).toFixed(1)}" width="${W - PL - PR}" height="${(ry(30) - ry(70)).toFixed(1)}"/><line class="me-rl" x1="${PL}" x2="${W - PR}" y1="${ry(70)}" y2="${ry(70)}"/><line class="me-rl" x1="${PL}" x2="${W - PR}" y1="${ry(30)}" y2="${ry(30)}"/>`
       + `<text class="me-t" x="${W - PR + 4}" y="${ry(70) + 3}">۷۰</text><text class="me-t" x="${W - PR + 4}" y="${ry(30) + 3}">۳۰</text><path class="me-rsi" d="${path(r, x, ry)}"/><line class="me-cur" x1="0" x2="0" y1="4" y2="${RH - 4}" visibility="hidden"/>`;
     const tools = [["ma20", "میانگین ۲۰"], ["ma50", "میانگین ۵۰"], ["bb", "باند بولینگر"], ["reg", "کانال روند"], ["sr", "حمایت و مقاومت"]];
-    return `<figure class="me-fig me-${o.kind}" data-me="${id}" data-kind="${o.kind}"><figcaption><b>${esc(o.title)}</b><span class="me-chg ${up ? "up" : "dn"}">${pct(last / c[0] - 1)} در این بازه</span></figcaption>`
+    return `<figure class="me-fig me-${o.cls || o.kind}" data-me="${id}" data-kind="${o.kind}"><figcaption><b>${esc(o.title)}</b><span class="me-chg ${up ? "up" : "dn"}">${pct(last / c[0] - 1)} در این بازه</span></figcaption>`
       + `<div class="me-tools" role="group" aria-label="ابزارهای نمودار">${tools.map(([k, t]) => `<button type="button" class="me-tool me-k-${k}${T.has(k) ? " on" : ""}" data-me-tool="${k}" aria-pressed="${T.has(k)}"><i></i>${t}</button>`).join("")}</div>`
       + `<p class="me-read" aria-live="polite">انگشت را روی نمودار بکش.</p>`
       + `<svg class="me-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(o.title)}">${g}</svg>`
@@ -3579,6 +3642,36 @@ var ME = (function () {
     g += `<g class="me-now"><circle class="me-ring" cx="${x(J.length - 1).toFixed(1)}" cy="${y(p[p.length - 1]).toFixed(1)}" r="4"/><circle class="me-dot" cx="${x(J.length - 1).toFixed(1)}" cy="${y(p[p.length - 1]).toFixed(1)}" r="4"/></g><line class="me-cur" x1="0" x2="0" y1="${PT}" y2="${Hh - PB}" visibility="hidden"/><circle class="me-cd" r="4" cx="0" cy="0" visibility="hidden"/>`;
     return `<figure class="me-fig me-bub" data-me="${id}"><figcaption><b>حباب طلا (٪ نسبت به ارزش انس × دلار آزاد)</b><span class="me-chg ${B.prem <= B.a90 ? "up" : "dn"}">امروز ${sgn(B.prem)}</span></figcaption>`
       + `<p class="me-read" aria-live="polite">بالای صفر: گران‌تر از ارزش جهانی · زیر صفر: ارزان‌تر</p><svg class="me-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="حباب طلا">${g}</svg></figure>`;
+  }
+  function xItems(H) {
+    const X = (H && H.x) || {}, out = [];
+    for (const x of XS) { const rows = X[x.k]; if (!rows || rows.length < 20) continue; const S = stats(rows); if (!S) continue;
+      const B = xBubble(H, x, rows); out.push({ x, rows, S, B, F: outlook(S, B && B.kind === "prem" ? B.z : null) }); }
+    return out;
+  }
+  function xLines(it) {
+    const { x, S, B, F } = it, unit = v => tm(v) + " تومان", L = [fcLine(F, S, unit)];
+    L.push({ t: S.trend, h: `<b>روند ${TR[S.trend]}.</b> روز ${pct(S.d1, 2)} · هفته ${pct(S.d7)} · ماه ${pct(S.d30)} · سه ماه ${pct(S.d90)}${S.d365 != null ? " · سال " + pct(S.d365) : ""}.` });
+    if (B) { const t = B.z > .5 ? "down" : B.z < -.5 ? "up" : "flat";
+      if (x.g === "coin") L.push({ t, h: `<b>حباب سکه ${sgn(B.now)}:</b> هر سکه ${tm(Math.abs(B.gap))} تومان ${B.gap >= 0 ? "بالای" : "زیر"} ارزش طلای داخلش (به قیمت طلای ۱۸ عیار امروز). میانگین سه ماه ${sgn(B.a90)}؛ حباب امروز ${LEVEL(B.z)} است.` });
+      else if (B.kind === "prem") L.push({ t, h: `<b>نسبت به دلار آزاد ${sgn(B.now)}:</b> ${x.k === "aed" ? "درهم در دنیا به نرخ ثابت ۳٫۶۷۲۵ به دلار بسته است؛ در تهران" : "تتر در دنیا هم‌ارز یک دلار است؛ در تهران"} ${tm(Math.abs(B.gap))} تومان ${B.gap >= 0 ? "گران‌تر" : "ارزان‌تر"} از دلار آزاد. میانگین سه ماه ${sgn(B.a90)}؛ امروز ${LEVEL(B.z)}.` });
+      else { const dg = B.now < .1 ? 4 : 3; L.push({ t, h: `<b>به دلار:</b> هر ${x.name} در تهران ${fa(B.now, dg)} دلار حساب می‌شود؛ میانگین سه ماه ${fa(B.a90, dg)}. نسبت به دلار ${LEVEL(B.z)} است.` }); } }
+    L.push({ t: S.rsi >= 70 ? "down" : S.rsi <= 30 ? "up" : "flat", h: `<b>کف و سقف ۳۰ روز:</b> ${unit(S.lo30)} تا ${unit(S.hi30)} · RSI ${fa(S.rsi)}${S.rsi >= 70 ? " (اشباع خرید)" : S.rsi <= 30 ? " (اشباع فروش)" : ""}.` });
+    return L.filter(Boolean);
+  }
+  function xRow(it, st, n) {
+    const { x, S, B, F } = it, open = !!(st.open && st.open.has(x.k));
+    const chip = !B ? "" : B.kind === "prem" ? `<span class="me-xb${B.z > .5 ? " dn" : B.z < -.5 ? " up" : ""}">حباب ${sgn(B.now)}</span>` : `<span class="me-xb">${fa(B.now, B.now < .1 ? 4 : 3)} دلار</span>`;
+    const fc = F ? `<span class="me-xf me-xf-${F.dir}">${F.dir === "up" ? "▲" : F.dir === "down" ? "▼" : "◆"} ۳۰ روز ${sgn(F.mid / S.last - 1)}</span>` : "";
+    let h = `<button type="button" class="me-xh" data-me-x="${x.k}" aria-expanded="${open}"><span class="me-xn">${x.name}</span><span class="me-xp"><b>${tm(S.last)}</b> <small class="${S.d1 >= 0 ? "up" : "dn"}">${pct(S.d1, 2)}</small></span><span class="me-xc">${chip}${fc}</span></button>`;
+    if (open) h += `<div class="me-xbody">` + chart(it.rows.slice(-n), it.rows, { tools: (st.tools && st.tools["x-" + x.k]) || new Set(["ma20", "ma50", "reg"]), kind: "x-" + x.k, cls: x.g === "coin" ? "gold" : "usd", title: x.name + " · تومان", unit: "rial", anim: st.anim })
+      + `<ul>${xLines(it).map(l => `<li class="me-li me-li-${l.t}${l.fc ? " me-fc" : ""}">${l.h}</li>`).join("")}</ul></div>`;
+    return `<div class="me-x${open ? " open" : ""}">${h}</div>`;
+  }
+  function xSection(H, st, n) {
+    const I = xItems(H); if (!I.length) return H && !H.x ? "" : "";
+    const grp = (g, t) => { const a = I.filter(i => i.x.g === g); return a.length ? `<div class="me-xg"><h4>${t}</h4>${a.map(i => xRow(i, st, n)).join("")}</div>` : ""; };
+    return `<section class="me-xs" aria-label="ارز و سکه"><h3>ارز و سکه</h3><p class="me-xhint">روی هر کدام بزنید: نمودار، تحلیل و پیش‌بینی‌اش باز می‌شود.</p>${grp("fx", "ارز")}${grp("coin", "سکه")}</section>`;
   }
   // the finger readout on every chart inside root
   function bind(root) {
@@ -3624,17 +3717,18 @@ var ME = (function () {
       + (B ? bubbleChart(B, n, st.anim) : "")
       + (H.o.length > 20 ? chart(H.o.slice(-n), H.o, { tools: st.tools.oz, kind: "oz", title: "انس جهانی طلا · دلار", unit: "usd", anim: st.anim }) : "")
       + "</div>"
-      + `<div class="me-reading">${R.map(s => `<section class="me-rc"><h3>${s.name}</h3><ul>${s.L.map(l => `<li class="me-li me-li-${l.t}">${l.h}</li>`).join("")}</ul></section>`).join("")}</div>`
-      + '<p class="me-note">این تحلیل از روی قیمت‌های گذشته (tgju و تابلوی اتحادیه) حساب شده و پیش‌بینی قطعی نیست؛ برای تصمیم، کنار تجربه‌ی بازار خودتان ببینید. حباب با فرض ۰٫۷۵ عیار و ۳۱٫۱ گرم در هر انس حساب شده.</p>'
+      + xSection(H, st, n)
+      + `<div class="me-reading">${R.map(s => `<section class="me-rc"><h3>${s.name}</h3><ul>${s.L.map(l => `<li class="me-li me-li-${l.t}${l.fc ? " me-fc" : ""}">${l.h}</li>`).join("")}</ul></section>`).join("")}</div>`
+      + '<p class="me-note">این تحلیل از روی قیمت‌های گذشته (tgju و تابلوی اتحادیه) حساب شده و پیش‌بینی قطعی نیست؛ برای تصمیم، کنار تجربه‌ی بازار خودتان ببینید. حباب طلا با فرض ۰٫۷۵ عیار و ۳۱٫۱ گرم در هر انس حساب شده؛ حباب سکه نسبت به طلای ۱۸ عیار همان روز (سکه‌ی تمام ۸٫۱۳۳ گرم با عیار ۹۰۰). پیش‌بینی‌ها فقط از روند گذشته‌اند و هر خبر تازه‌ای می‌تواند عوضشان کند.</p>'
       + "</div>";
   }
-  const TOOLS0 = () => ({ gold: new Set(["ma20", "ma50", "bb", "sr"]), usd: new Set(["ma20", "ma50", "reg"]), oz: new Set(["ma50", "reg"]) });
+  const TOOLS0 = () => { const o = { gold: new Set(["ma20", "ma50", "bb", "sr"]), usd: new Set(["ma20", "ma50", "reg"]), oz: new Set(["ma50", "reg"]) }; XS.forEach(x => { o["x-" + x.k] = new Set(["ma20", "ma50", "reg"]); }); return o; };
   // the live values a page shows, to compare with the next refresh
   function liveOf(H, L) { const B = H && bubble(H, L); return { gp: L && L.gp || 0, usd: L && L.usd || 0, oz: L && L.ounce || 0, prem: B ? B.prem : 0 }; }
   // after a refresh: flash each tile whose number moved
   function flashAll(root, before, after) { if (!before) return; ["gp", "usd", "oz", "prem"].forEach(k => { const a = before[k], b = after[k]; if (a && b && Math.abs(b - a) > Math.abs(a) * 1e-6) flash(root.querySelector(`[data-me-live="${k}"]`), b > a ? 1 : -1); }); }
 
-  return { page, TOOLS0, liveOf, flashAll, OZ, fa, tm, pct, sgn, toFa, stats, bubble, verdict, reading, events, chart, bubbleChart, bind, flash, TR };
+  return { page, XS, outlook, xItems, TOOLS0, liveOf, flashAll, OZ, fa, tm, pct, sgn, toFa, stats, bubble, verdict, reading, events, chart, bubbleChart, bind, flash, TR };
 })();
 
 /* ==== ME:end ==== */
