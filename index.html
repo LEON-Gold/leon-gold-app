@@ -428,7 +428,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-15 21:29</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-16 02:27</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2758,7 +2758,12 @@ async function rcDone(id){try{await srvApi('/api/portal/receipt/'+encodeURICompo
    wholesale trades' cash out, rial settlements paid, retail invoices where Leon paid. ---------- */
 var BANKS0=[{k:'mellat',bank:'ملت',card:'0802'},{k:'saman',bank:'سامان',card:'8451'}];
 function banks(){var d=null;S.settings.forEach(function(x){if(x.id==='banks')d=x});var L=d&&Array.isArray(d.accts)?d.accts:[];
-  return BANKS0.map(function(b){var o=L.filter(function(x){return x.k===b.k})[0]||{},m=bmBal(b.k,o.at||'');return m?{k:b.k,bank:b.bank,card:b.card,bal:+m.bal||0,at:m.ts,sms:1}:{k:b.k,bank:b.bank,card:b.card,bal:+o.bal||0,at:o.at||''}})}
+  return BANKS0.map(function(b){var o=L.filter(function(x){return x.k===b.k})[0]||{},m=bmBal(b.k,o.at||''),r=m?{k:b.k,bank:b.bank,card:b.card,bal:+m.bal||0,at:m.ts,sms:1}:{k:b.k,bank:b.bank,card:b.card,bal:+o.bal||0,at:o.at||''};
+    var v=acctMoves(b.k,r.at);r.bal+=v.n;r.moves=v.c;return r})}
+// money the invoices took into or paid out of an account after a time (owner, 2026-11-16): the balance moves at once; the
+// bank's next SMS carries the real balance and becomes the new starting point, so nothing is counted twice
+function acctMoves(k,at){var n=0,c=0;S.invoices.forEach(function(i){var t=i.ts||'';if(at&&t<=at)return;
+    if(i.cash&&i.cash.acct===k){n+=+i.cash.amount||0;c++}if(i.cashOut&&i.cashOut.acct===k){n-=+i.cashOut.amount||0;c++}});return {n:n,c:c}}
 function cashFlow(s,e){var F={inR:0,outR:0,exp:0,expG:0,by:{},nby:{}};
   S.invoices.forEach(function(i){var d=invDay(i);if(d<s||d>e)return;
     if(i.kind!=='whole'){var a=+i.amount||0,paid=a-(+i.deltaR||0);if(paid>0)F.inR+=paid;else F.outR-=paid}
@@ -2812,31 +2817,48 @@ async function saveBanks(){var L=BANKS0.map(function(b){var v=Math.round(num(val
    «کاری»: money of the business that goes out again later in a payment of the same amount; the cash page lists the ones
    not yet paid out. «شخصی»: the owner's own money; the cash page and the home remind him what it is for, how much of it
    is to be spent, and what it would be worth in gold today against the day it came (gain or loss). ---------- */
-S.cin={acct:'',kind:'',why:'',spend:0};
+S.cin={acct:'',kind:'',why:'',spend:0};S.cout={acct:'',kind:'',why:''};
 function cinAccts(){return banks().map(function(b){return [b.k,b.bank+' (…'+toFa(b.card)+')']}).concat([['box','صندوق نقد مغازه']])}
-function cinAmount(){if(S.kind==='whole'){var W=window.LGW||{};return Math.max(0,Math.round(+W.ci||0))}var r=window.LGR||{};return Math.max(0,Math.round((+r.eff||0)-(+r.delta||0)))}
+// money in and out of this invoice (owner, 2026-11-16): retail: cash, card and cheque (not the customer's gold), each by
+// its own side; wholesale: «دریافت / پرداخت نقدی» and «پرداخت ریالی (تبدیل به گرم)» by its side
+function cinMoves(){var I=0,O=0,add=function(v){v=Math.round(v||0);if(v>0)I+=v;else O-=v};
+  if(S.kind==='whole'){I+=Math.max(0,Math.round(num(($('#tx_ci')||{}).value||'')));O+=Math.max(0,Math.round(num(($('#tx_co')||{}).value||'')));
+    var wc=num(($('#w_cash')||{}).value||''),wt=$('#w_cash_t');if(wc)add(wc*(wt&&wt.value==='dr'?-1:1))}
+  else $$('.rp').slice(0,3).forEach(function(e){var t=e.parentNode.querySelector('select');add(num(e.value||'')*(t&&t.value==='dr'?-1:1))});
+  return {i:I,o:O}}
+function cinAmount(){return cinMoves().i}
+function coutAmount(){return cinMoves().o}
+var CIN_T={i:['ورود نقدی','پول گرفته؛ بگو به کدام حساب رفت و برای چه بود.','وقتی در این فاکتور پول نقد، کارت یا چک گرفته شود، این‌جا باید پر شود.','به کدام حساب رفت','مثلاً پول خرید طلا از فلانی'],
+  o:['خروج نقدی','پول داده؛ بگو از کدام حساب رفت و برای چه بود.','وقتی در این فاکتور پول نقد، کارت یا چک داده شود، این‌جا باید پر شود.','از کدام حساب رفت','مثلاً پول طلای خریده‌شده از فلانی']};
+function cinNoteTxt(d){var amt=d==='o'?coutAmount():cinAmount(),T=CIN_T[d];return amt?'این فاکتور <b>'+fmt(amt)+' ریال</b> '+T[1]:T[2]}
 function cinSec(){var s=document.createElement('section');s.className='sec';
-  var draw=function(){var c=S.cin,amt=cinAmount();
-    s.innerHTML='<h2>ورود نقدی</h2><p class="note cin-note">'+(amt?'این فاکتور <b>'+fmt(amt)+' ریال</b> پول گرفته؛ بگو کجا رفت و برای چه بود.':'وقتی در این فاکتور پول نقد، کارت یا چک گرفته شود، این‌جا باید پر شود.')+'</p><div class="grid">'
-     +'<label class="f"><span>به کدام حساب رفت</span><select class="cin-a"><option value="">— انتخاب —</option>'+cinAccts().map(function(o){return '<option value="'+o[0]+'"'+(c.acct===o[0]?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')+'</select></label>'
-     +'<label class="f"><span>نوع</span><select class="cin-k"><option value="">— انتخاب —</option><option value="work"'+(c.kind==='work'?' selected':'')+'>کاری</option><option value="own"'+(c.kind==='own'?' selected':'')+'>شخصی</option></select></label>'
-     +'<label class="f w2"><span>بابت چه بود (الزامی)</span><input class="cin-w" value="'+esc(c.why||'')+'" maxlength="140" placeholder="'+(c.kind==='own'?'مثلاً پس‌انداز خرید ماشین':'مثلاً پول خرید طلا از فلانی')+'"></label>'
-     +(c.kind==='own'?'<label class="f w2"><span>چقدرش باید خرج شود (ریال، اختیاری)</span><input class="cin-s num" inputmode="numeric" value="'+(c.spend?plain(c.spend,0):'')+'"></label>':'')
-     +'</div>'+(c.kind==='work'?'<p class="note">کاری: بعداً همین مقدار در یک سند پرداختی رد و بدل می‌شود؛ تا آن موقع در «نقدینگی و بانک» می‌ماند.</p>':c.kind==='own'?'<p class="note">شخصی: در «نقدینگی و بانک» و صفحه‌ی اصلی یادآوری می‌شود که این پول برای چیست.</p>':'')};
+  var one=function(d){var c=d==='o'?S.cout:S.cin,T=CIN_T[d],pre=d==='o'?'cout':'cin';
+    return '<h2'+(d==='o'?' style="margin-top:14px"':'')+'>'+T[0]+'</h2><p class="note cin-note" data-d="'+d+'">'+cinNoteTxt(d)+'</p><div class="grid">'
+     +'<label class="f"><span>'+T[3]+'</span><select class="'+pre+'-a"><option value="">— انتخاب —</option>'+cinAccts().map(function(o){return '<option value="'+o[0]+'"'+(c.acct===o[0]?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')+'</select></label>'
+     +'<label class="f"><span>نوع</span><select class="'+pre+'-k"><option value="">— انتخاب —</option><option value="work"'+(c.kind==='work'?' selected':'')+'>کاری</option><option value="own"'+(c.kind==='own'?' selected':'')+'>شخصی</option></select></label>'
+     +'<label class="f w2"><span>بابت چه بود (الزامی)</span><input class="'+pre+'-w" value="'+esc(c.why||'')+'" maxlength="140" placeholder="'+(d==='i'&&c.kind==='own'?'مثلاً پس‌انداز خرید ماشین':T[4])+'"></label>'
+     +(d==='i'&&c.kind==='own'?'<label class="f w2"><span>چقدرش باید خرج شود (ریال، اختیاری)</span><input class="cin-s num" inputmode="numeric" value="'+(c.spend?plain(c.spend,0):'')+'"></label>':'')
+     +'</div>'+(d==='i'?(c.kind==='work'?'<p class="note">کاری: بعداً همین مقدار در یک سند پرداختی رد و بدل می‌شود؛ تا آن موقع در «نقدینگی و بانک» می‌ماند.</p>':c.kind==='own'?'<p class="note">شخصی: در «نقدینگی و بانک» و صفحه‌ی اصلی یادآوری می‌شود که این پول برای چیست.</p>':''):'')};
+  var draw=function(){s.innerHTML=one('i')+one('o')};
   draw();
-  s.addEventListener('change',function(e){var t=e.target;if(t.classList.contains('cin-a'))S.cin.acct=t.value;else if(t.classList.contains('cin-k')){S.cin.kind=t.value;draw()}S.dirty=true});
-  s.addEventListener('input',function(e){var t=e.target;if(t.classList.contains('cin-w'))S.cin.why=t.value;else if(t.classList.contains('cin-s'))S.cin.spend=Math.round(num(t.value));S.dirty=true});
+  s.addEventListener('change',function(e){var t=e.target,cl=t.classList;
+    if(cl.contains('cin-a'))S.cin.acct=t.value;else if(cl.contains('cin-k')){S.cin.kind=t.value;draw()}
+    else if(cl.contains('cout-a'))S.cout.acct=t.value;else if(cl.contains('cout-k'))S.cout.kind=t.value;S.dirty=true});
+  s.addEventListener('input',function(e){var t=e.target,cl=t.classList;if(cl.contains('cin-w'))S.cin.why=t.value;else if(cl.contains('cout-w'))S.cout.why=t.value;else if(cl.contains('cin-s'))S.cin.spend=Math.round(num(t.value));S.dirty=true});
   return s}
-// check before saving: false (with the reason told) when cash came in and the section is not filled
-// the amount follows the payments as they are typed
-function cinNoteTxt(){var amt=cinAmount();return amt?'این فاکتور <b>'+fmt(amt)+' ریال</b> پول گرفته؛ بگو کجا رفت و برای چه بود.':'وقتی در این فاکتور پول نقد، کارت یا چک گرفته شود، این‌جا باید پر شود.'}
-document.addEventListener('input',function(){if(S.view==='inv')setTimeout(function(){$$('.cin-note').forEach(function(n){n.innerHTML=cinNoteTxt()})},0)});
-function cinCheck(){var amt=cinAmount();if(!amt)return true;var c=S.cin;
-  if(!c.acct){toast('بگو پول این فاکتور به کدام حساب رفت («ورود نقدی»)');return false}
-  if(!c.kind){toast('نوع پول این فاکتور را بزن: کاری یا شخصی');return false}
-  if(!String(c.why||'').trim()){toast('بنویس این پول بابت چه بود («ورود نقدی»)');return false}return true}
+// the amounts follow the payments as they are typed (a side switched counts too)
+['input','change'].forEach(function(ev){document.addEventListener(ev,function(){if(S.view==='inv')setTimeout(function(){$$('.cin-note').forEach(function(n){n.innerHTML=cinNoteTxt(n.dataset.d)})},0)})});
+// check before saving: false (with the reason told) when money came in or went out and its part is not filled
+function cinCheck(){var M=cinMoves(),L=[['i',M.i,S.cin,'ورود نقدی','به'],['o',M.o,S.cout,'خروج نقدی','از']];
+  for(var k=0;k<L.length;k++){var x=L[k],c=x[2];if(!x[1])continue;
+    if(!c.acct){toast('بگو پول این فاکتور '+x[4]+' کدام حساب رفت («'+x[3]+'»)');return false}
+    if(!c.kind){toast('نوع پول را بزن: کاری یا شخصی («'+x[3]+'»)');return false}
+    if(!String(c.why||'').trim()){toast('بنویس این پول بابت چه بود («'+x[3]+'»)');return false}}
+  return true}
 function cinData(){var amt=cinAmount();if(!amt)return null;var c=S.cin;return {amount:amt,acct:c.acct,kind:c.kind==='own'?'own':'work',why:String(c.why||'').trim().slice(0,140),spend:c.kind==='own'&&c.spend>0?c.spend:0}}
-function cinLoad(inv){var c=inv&&inv.cash;S.cin=c?{acct:c.acct||'',kind:c.kind||'',why:c.why||'',spend:+c.spend||0}:{acct:'',kind:'',why:'',spend:0}}
+function coutData(){var amt=coutAmount();if(!amt)return null;var c=S.cout;return {amount:amt,acct:c.acct,kind:c.kind==='own'?'own':'work',why:String(c.why||'').trim().slice(0,140)}}
+function cinLoad(inv){var c=inv&&inv.cash,o=inv&&inv.cashOut;S.cin=c?{acct:c.acct||'',kind:c.kind||'',why:c.why||'',spend:+c.spend||0}:{acct:'',kind:'',why:'',spend:0};
+  S.cout=o?{acct:o.acct||'',kind:o.kind||'',why:o.why||''}:{acct:'',kind:'',why:''}}
 function cinDone(){var d=null;S.settings.forEach(function(x){if(x.id==='cashdone')d=x});return d&&d.ids||{}}
 function cinAcctN(k){var a=cinAccts().filter(function(o){return o[0]===k})[0];return a?a[1]:'—'}
 // personal money still to keep in mind, newest first; business money not yet paid out
@@ -4286,7 +4308,7 @@ async function saveInvoice(o){
     var d={kind:k,doc:k==='whole'?$('#w_doc').value:'',no:$('.meta div:nth-child(2) input',s).value,date:$('.meta div:nth-child(1) input',s).value,
       partyId:S.partyId,partyName:p?p.name:'',vals:fields(k).map(function(e){return e.value}),rprev:k==='whole'?[$('#w_rprev').value,$('#w_rprev_t').value]:null,disc2:[$('#r_discg').value,$('#w_discg').value,$('#w_discr').value],rows:$$('#rt tbody tr,#wt tbody tr',s).length,tax:$('#taxPct').value,
       ts:S.editTs||new Date().toISOString(),upd:new Date().toISOString()};
-    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);d.fx=fxClean();var cd=cinData();if(cd)d.cash=cd;if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
+    d.ver=2;d.gp=num($('.gp',s).value);d.items=itemsOf(k);d.fx=fxClean();var cd=cinData();if(cd)d.cash=cd;var co=coutData();if(co)d.cashOut=co;if(k==='whole'){d.rets=$$('#wt tbody tr',s).map(function(tr,i){return tr.dataset.ret?i:-1}).filter(function(i){return i>=0});d.gold=goldOf();d.goldDir=$('#w_gx_t').value;var W=window.LGW||{};d.deltaR=Math.round(W.tR||0);var hw=num($('#w_hv').value),hp=partyById($('#w_hvp').value);d.hav=hw>0&&hp?{partyId:hp.id,partyName:hp.name,w:Math.round(hw*1000)/1000,dir:$('#w_hv_t').value==='in'?'in':'out'}:null;var hasT=$('#tx_t').value&&W.tw;d.trade=hasT||W.ci||W.co?{type:hasT?$('#tx_t').value:'',mode:$('#tx_m').value,w:hasT?W.tw:0,gp:hasT?W.tgp:0,amount:hasT?W.ta:0,note:$('#tx_n').value.trim(),cin:W.ci||0,cout:W.co||0}:null}
     if(k==='whole'){var w=window.LGW||{eff:0,delta:0};d.unit='g';d.amount=w.eff;d.deltaG=w.delta}else{var r=window.LGR||{eff:0,delta:0};d.unit='r';d.amount=r.eff;d.deltaR=r.delta}
     var id=S.editId||newId('invoices');
     if(S.editId){var prev=null;S.invoices.forEach(function(x){if(x.id===id)prev=x});if(prev){var snap=Object.assign({},prev);delete snap.id;logAct('edit','invoices',id,snap)}}
