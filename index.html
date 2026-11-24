@@ -443,7 +443,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 12:47</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 12:54</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -4937,9 +4937,10 @@ async function sheetCanvas(el){
     /* html2canvas draws form fields badly (owner, 2026-11-24: «اعداد و نوشته‌ها جای اشتباه»): an input's text sinks below
        its line and a select prints every option. So for the drawing each field of this page is swapped, on the page
        itself, for plain text in a box of the field's own measured size and look (what the preview shows), and put back after */
-    var swaps=fieldsToText(el);
+    var swaps=fieldsToText(el);await Promise.all(swaps.imgs.map(function(i){return i.im.decode?i.im.decode().catch(function(){}):null}));
     return drawFields(await window.html2canvas(el,{scale:sc,backgroundColor:'#f6efe3',useCORS:true,logging:false,onclone:function(doc){
       var ce=doc.getElementById(el.id);
+      if(ce)[].slice.call(ce.querySelectorAll('.lion')).forEach(function(n){n.style.backgroundImage='none'});
       if(ce)[].slice.call(ce.querySelectorAll('input,select,textarea')).forEach(function(f){if(f.tagName==='SELECT'){f.innerHTML='';f.style.visibility='hidden'}else{f.value='';f.removeAttribute('placeholder')}});
 if(ce)[].slice.call(ce.querySelectorAll('svg')).forEach(function(s,i){var z=svgSz[i];if(!z)return;
         var pre=null;
@@ -4959,6 +4960,9 @@ function fieldsToText(root){var r0=root.getBoundingClientRect();
       bw:cs.borderTopStyle!=='none'&&cs.borderTopColor.indexOf('rgba(0, 0, 0, 0)')<0?n('borderTopWidth'):0,bc:cs.borderTopColor,bg:cs.backgroundColor,rad:n('borderTopLeftRadius'),pill:f.tagName==='SELECT'}});
   L.forEach(function(o){o.f.style.visibility='hidden'});
   L.W=r0.width;
+  // the lion: html2canvas redraws a background picture at screen size, so it comes out in pixels; it is drawn from its own file instead
+  L.imgs=[].slice.call(root.querySelectorAll('.lion')).map(function(n){var r=n.getBoundingClientRect(),m=/url\(["']?(.*?)["']?\)/.exec(getComputedStyle(n).backgroundImage||'');if(!m||!r.width)return null;
+    var im=new Image();im.src=m[1];return {x:r.left-r0.left,y:r.top-r0.top,w:r.width,h:r.height,im:im}}).filter(Boolean);
   return L}
 function drawFields(cv,L,sc){var g=cv.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.scale(cv.width/Math.max(1,L.W||cv.width/sc),cv.width/Math.max(1,L.W||cv.width/sc));
   L.forEach(function(o){
@@ -4972,6 +4976,8 @@ function drawFields(cv,L,sc){var g=cv.getContext('2d');g.save();g.setTransform(1
     if(o.area){g.textBaseline='top';String(o.txt).split('\n').forEach(function(line,i){g.fillText(line,X,o.y+o.pt+i*o.lh)})}
     else{g.textBaseline='middle';g.fillText(o.txt,X,o.y+o.pt+(o.h-o.pt-o.pb)/2)}
     g.restore()});
+  (L.imgs||[]).forEach(function(o){var iw=o.im.naturalWidth,ih=o.im.naturalHeight;if(!iw||!ih)return;var k=Math.min(o.w/iw,o.h/ih),w=iw*k,h=ih*k;
+    g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(o.im,o.x+(o.w-w)/2,o.y+(o.h-h)/2,w,h)});
   g.restore();return cv}
 // every A5 page, drawn one by one (the preview's pages, made again from the sheet as it is now)
 async function pageCanvases(){var pv=ex.classList.contains('pvon');ex.classList.remove('pvon');ex.classList.add('exporting');showSheets(true);
