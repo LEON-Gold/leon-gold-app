@@ -443,7 +443,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 12:54</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 13:11</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -2587,6 +2587,9 @@ var VCATS_DEFAULT=[['ring','انگشتر'],['necklace','گردنبند'],['brace
 function vcats(){for(var i=0;i<S.settings.length;i++)if(S.settings[i].id==='vcats'&&Array.isArray(S.settings[i].cats)&&S.settings[i].cats.length)return S.settings[i].cats.filter(function(c){return c&&c.k&&c.name});return VCATS_DEFAULT}
 function vCatReqs(){return S.settings.filter(function(d){return d&&d.kind==='vcatreq'&&/^vcq_/.test(d.id||'')&&d.name})}
 function vck(s){return String(s||'').replace(/[\s\u200c\u200d]/g,'').replace(/ي/g,'ی').replace(/ك/g,'ک').toLowerCase()}
+// a category's sub-categories (owner, 2026-11-24), for the piece form's «زیردسته»
+function vSubsOf(cat){var k=vck(cat||''),L=vcats();for(var i=0;i<L.length;i++)if(vck(L[i].name)===k||(L[i].alias||[]).some(function(a){return vck(a)===k}))return L[i].subs||[];return []}
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='vt_cat'){var d=$('#vt_subs');if(d)d.innerHTML=vSubsOf(e.target.value).map(function(v){return '<option value="'+esc(v)+'">'}).join('')}});
 function vCatOf(x){var k=vck(x.cat),L=vcats();for(var i=0;i<L.length;i++)if(vck(L[i].name)===k||(L[i].alias||[]).some(function(a){return vck(a)===k}))return L[i].name;return x.cat||''}
 var VSET=['نقدی پای کفه','۳ روز','۱ هفته']; // how long the buyer has to settle (wholesale terms)
 // stock: qty = in hand (with a count), order = not in hand but can be ordered, none = not available at all
@@ -2630,6 +2633,7 @@ function vVform(){var x=S.param&&S.param.id?vitById(S.param.id):null,isNew=!x;x=
     +'<input type="file" id="vm_file" accept="image/*,video/*" multiple hidden><div class="btns"><button class="btn" data-act="vmpick" type="button"'+(vOnline()?'':' disabled')+'>افزودن عکس یا فیلم</button></div><p class="note" id="vmmsg"></p></section>'
     +'<section class="sec"><h2>مشخصات</h2><div class="grid">'+fld('نام کار *','vt_name',x.name,{w2:1,ph:'مثلاً انگشتر سولیتر'})
     +'<label class="f"><span>دسته</span><input id="vt_cat" list="vt_cats" value="'+esc(x.cat||'')+'" placeholder="انگشتر، گردنبند…"><datalist id="vt_cats">'+vcats().map(function(c){return '<option value="'+esc(c.name)+'">'}).join('')+'</datalist></label>'
+    +'<label class="f"><span>زیردسته</span><input id="vt_sub" list="vt_subs" value="'+esc(x.sub||'')+'" placeholder="اگر دسته زیردسته دارد"><datalist id="vt_subs">'+vSubsOf(x.cat).map(function(v){return '<option value="'+esc(v)+'">'}).join('')+'</datalist></label>'
     +fld('کد (اختیاری)','vt_code',x.code,{ph:'مثلاً R12'})+vSupSel(x)+fld('وزن (گرم) *','vt_w',n(x.weight,3),{num:1})+fld('عیار (آزمایشگاهی)','vt_carat',n(x.carat||750,0),{num:1})
     +fld('اجرت پایه (درصد)','vt_aj',n(x.ajrat,2),{num:1,ph:'مثلاً ۱۸'})+fld('سود پایه (درصد)','vt_pr',n(x.profit==null?7:x.profit,2),{num:1})+'</div>'
     +'<p class="note">قیمت با نرخ همان ساعت اتحادیه حساب می‌شود: طلا + اجرت + سود، و ۳٪ مالیات بر ارزش افزوده روی کل. اجرت پایه برای همه‌ی خریدارهای «حساب من» است، مگر نوع کسب‌وکارشان در یکی از اجرت‌های پایین باشد.</p></section>'
@@ -2680,7 +2684,7 @@ function vtagDialog(){var L=vtags().map(function(x){return Object.assign({},x)})
 /* «افزودن کتگوری» (owner, 2026-11-13): the showcase's categories in the order of the tiles: add, rename (the old name is kept
    as alias, so the pieces stay in it), move, remove (its pieces are not touched; they come last); and the categories the
    suppliers proposed, to approve (added to the list) or reject. Both are written when the owner saves. */
-function vcatDialog(){var L=vcats().map(function(c){return {k:c.k,name:c.name,was:c.name,alias:(c.alias||[]).slice()}}),R=vCatReqs().map(function(r){return {id:r.id,name:r.name,byName:r.byName||'',act:''}}),used={};
+function vcatDialog(){var L=vcats().map(function(c){return {k:c.k,name:c.name,was:c.name,alias:(c.alias||[]).slice(),subs:(c.subs||[]).slice()}}),R=vCatReqs().map(function(r){return {id:r.id,name:r.name,byName:r.byName||'',act:''}}),used={};
   (S.vitrin||[]).forEach(function(v){var c=vCatOf(v);if(c)used[vck(c)]=(used[vck(c)]||0)+1});
   var m=document.createElement('div');m.className='modal';
   var draw=function(){
@@ -2690,12 +2694,13 @@ function vcatDialog(){var L=vcats().map(function(c){return {k:c.k,name:c.name,wa
           :'<button class="btn sm pri" type="button" data-qok="'+i+'">تأیید</button><button class="btn sm" type="button" data-qno="'+i+'">رد</button>')+'</span></div>'}).join(''):'';
     $('#vcList',m).innerHTML=L.map(function(c,i){if(c.del)return '';var n=used[vck(c.was||c.name)]||0;
       return '<div class="bzr" data-i="'+i+'"><input class="bzn" value="'+esc(c.name||'')+'" placeholder="مثلاً انگشتر" maxlength="24" aria-label="نام کتگوری">'+(n?'<small>'+fmt(n)+' کار</small>':'<span></span>')
-        +'<span class="vcmv"><button class="lnk" type="button" data-up="'+i+'" aria-label="بالاتر">▲</button><button class="lnk" type="button" data-dn="'+i+'" aria-label="پایین‌تر">▼</button><button class="lnk" type="button" data-rm="'+i+'">حذف</button></span></div>'}).join('')};
+        +'<span class="vcmv"><button class="lnk" type="button" data-up="'+i+'" aria-label="بالاتر">▲</button><button class="lnk" type="button" data-dn="'+i+'" aria-label="پایین‌تر">▼</button><button class="lnk" type="button" data-rm="'+i+'">حذف</button></span>'
+        +'<input class="bzs" value="'+esc((c.subs||[]).join('، '))+'" placeholder="زیردسته‌ها (اختیاری، با ویرگول جدا)" maxlength="400" aria-label="زیردسته‌های '+esc(c.name||'')+'" style="grid-column:1/-1"></div>'}).join('')};
   m.innerHTML='<form class="box bzbox" role="dialog" aria-modal="true" aria-label="افزودن کتگوری"><p><b>کتگوری‌های ویترین</b><br>کاشی‌های ویترین سایت و «حساب من» به همین ترتیب می‌آیند. تغییر نام، کارهای قبلی را در همان کتگوری نگه می‌دارد. حذف یک کتگوری کارهایش را پاک نمی‌کند؛ فقط آخر لیست می‌آیند.</p>'
    +'<div id="vcReq"></div><div id="vcList"></div><button class="btn sm" type="button" data-add>+ کتگوری تازه</button><p class="err" id="vcErr" style="color:#b3261e;min-height:18px"></p>'
    +'<div class="btns"><button class="btn pri" type="submit">ذخیره</button><button class="btn" type="button" data-n>انصراف</button></div></form>';
   document.body.appendChild(m);draw();
-  var grab=function(){$$('#vcList .bzr',m).forEach(function(r){L[+r.dataset.i].name=$('.bzn',r).value.replace(/\s+/g,' ').trim()})};
+  var grab=function(){$$('#vcList .bzr',m).forEach(function(r){var c=L[+r.dataset.i];c.name=$('.bzn',r).value.replace(/\s+/g,' ').trim();var sb=$('.bzs',r);if(sb){var seen={};c.subs=sb.value.split(/[،,]/).map(function(v){return v.replace(/\s+/g,' ').trim()}).filter(function(v){var k=vck(v);if(!v||seen[k])return false;seen[k]=1;return true}).slice(0,30)}})};
   m.addEventListener('click',function(e){var t=e.target,b;if(t===m||t.closest('[data-n]')){m.remove();return}
     if(t.closest('[data-add]')){grab();L.push({k:'c'+Date.now().toString(36),name:''});draw();var q=$$('#vcList .bzn',m);q[q.length-1].focus();return}
     if((b=t.closest('[data-rm]'))){grab();L[+b.dataset.rm].del=true;draw();return}
@@ -2710,7 +2715,7 @@ function vcatDialog(){var L=vcats().map(function(c){return {k:c.k,name:c.name,wa
     if(!keep.length){$('#vcErr',m).textContent='دست‌کم یک کتگوری لازم است.';return}
     for(var i=0;i<keep.length;i++){var k=vck(keep[i].name);if(seen[k]){$('#vcErr',m).textContent='«'+keep[i].name+'» دو بار آمده.';return}seen[k]=1}
     var out=keep.map(function(c){var al=(c.alias||[]).slice();if(c.was&&vck(c.was)!==vck(c.name)&&al.indexOf(c.was)<0)al.push(c.was);al=al.filter(function(a){return vck(a)!==vck(c.name)});
-      return al.length?{k:c.k,name:c.name,alias:al}:{k:c.k,name:c.name}});
+      var o={k:c.k,name:c.name};if(al.length)o.alias=al;if(c.subs&&c.subs.length)o.subs=c.subs;return o});
     try{await S.db.collection('settings').doc('vcats').set({cats:out,ts:Date.now()});
       for(var j=0;j<R.length;j++)if(R[j].act)await S.db.collection('settings').doc(R[j].id).delete();
       m.remove();toast('کتگوری‌ها ذخیره شد.');var dl=$('#vt_cats');if(dl)dl.innerHTML=out.map(function(c){return '<option value="'+esc(c.name)+'">'}).join('');else render()}catch(x){$('#vcErr',m).textContent=dberr(x)}})}
@@ -2757,7 +2762,7 @@ async function saveVit(id){var name=val('vt_name').trim(),w=num(val('vt_w'));
     bz.forEach(function(k){if(seenB[k])bad='«'+bizName(k)+'» در دو ردیف اجرت آمده.';seenB[k]=1});prices.push({ajrat:num(aj),profit:pr===''?null:num(pr),biz:bz})});
   if(bad){toast(bad);return}
   var site=!!($('#vt_site')||{}).checked;if(site&&!val('vt_saj').trim()){toast('اجرت سایت را بنویس.');var sa=$('#vt_saj');if(sa)sa.focus();return}
-  var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
+  var old=id?vitById(id):null,d={name:name,cat:val('vt_cat').trim(),sub:(($('#vt_sub')||{}).value||'').replace(/\s+/g,' ').trim().slice(0,60),code:fanum(val('vt_code')).trim(),weight:Math.round(w*1000)/1000,carat:Math.round(labOf(num(val('vt_carat'))||750)),
     ajrat:num(val('vt_aj'))||0,profit:val('vt_pr').trim()===''?7:num(val('vt_pr')),settle:VSET.filter(function(s,i){var c=$('#vt_s'+i);return c&&c.checked}),settleNote:val('vt_sn').trim(),
     desc:$('#vt_desc').value.trim(),media:(S.vMedia||[]).slice(),show:$('#vt_show').checked,stock:(($('input[name=vt_stock]:checked')||{}).value)||'order',qty:Math.max(0,Math.round(num(val('vt_qty')))),to:to,ts:old&&old.ts||new Date().toISOString()};
   if(sup==='__own')d.own=true;else{d.supId=sup;d.supName=(partyById(sup)||{}).name||''}
