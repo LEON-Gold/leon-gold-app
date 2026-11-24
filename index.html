@@ -443,7 +443,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-21 22:08</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 12:47</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -4934,13 +4934,45 @@ async function sheetCanvas(el){
     /* Safari draws an SVG with no width/height attributes as an empty image, so give every SVG its real content size */
     var svgSz=[].map.call(el.querySelectorAll('svg'),function(s){var cs=getComputedStyle(s),r=s.getBoundingClientRect(),px=function(k){return parseFloat(cs[k])||0};
       return [Math.max(1,r.width-px('paddingLeft')-px('paddingRight')-px('borderLeftWidth')-px('borderRightWidth')),Math.max(1,r.height-px('paddingTop')-px('paddingBottom')-px('borderTopWidth')-px('borderBottomWidth'))]});
-    return await window.html2canvas(el,{scale:sc,backgroundColor:'#f6efe3',useCORS:true,logging:false,onclone:function(doc){
-      var ce=doc.getElementById(el.id);if(ce)[].slice.call(ce.querySelectorAll('svg')).forEach(function(s,i){var z=svgSz[i];if(!z)return;
+    /* html2canvas draws form fields badly (owner, 2026-11-24: «اعداد و نوشته‌ها جای اشتباه»): an input's text sinks below
+       its line and a select prints every option. So for the drawing each field of this page is swapped, on the page
+       itself, for plain text in a box of the field's own measured size and look (what the preview shows), and put back after */
+    var swaps=fieldsToText(el);
+    return drawFields(await window.html2canvas(el,{scale:sc,backgroundColor:'#f6efe3',useCORS:true,logging:false,onclone:function(doc){
+      var ce=doc.getElementById(el.id);
+      if(ce)[].slice.call(ce.querySelectorAll('input,select,textarea')).forEach(function(f){if(f.tagName==='SELECT'){f.innerHTML='';f.style.visibility='hidden'}else{f.value='';f.removeAttribute('placeholder')}});
+if(ce)[].slice.call(ce.querySelectorAll('svg')).forEach(function(s,i){var z=svgSz[i];if(!z)return;
         var pre=null;
         if(pre){var im=doc.createElement('img');im.src=pre;if(s.getAttribute('class'))im.className=s.getAttribute('class');if(s.getAttribute('style'))im.setAttribute('style',s.getAttribute('style'));im.style.boxSizing='content-box';im.style.width=z[0]+'px';im.style.height=z[1]+'px';im.style.display=getComputedStyle(s).display==='inline'?'inline-block':getComputedStyle(s).display;s.parentNode.replaceChild(im,s);return}
         s.setAttribute('xmlns','http://www.w3.org/2000/svg');s.setAttribute('width',z[0].toFixed(2));s.setAttribute('height',z[1].toFixed(2))});
-      [].slice.call(doc.querySelectorAll('.cust label span,.meta span,.gcard label span,.card label span,.card h2,.notes h2,.free h2')).forEach(function(n){n.textContent=n.textContent.replace(/\s*:\s*$/,'')})}})}
-  finally{}}
+      [].slice.call(doc.querySelectorAll('.cust label span,.meta span,.gcard label span,.card label span,.card h2,.notes h2,.free h2')).forEach(function(n){n.textContent=n.textContent.replace(/\s*:\s*$/,'')})}}),swaps,sc)}
+  finally{if(swaps)swaps.forEach(function(o){o.f.style.visibility=o.vis})}}
+// every form field inside root, measured as it stands (box, look, text), then hidden for html2canvas; drawFields puts
+// its text (and a select's pill) back on the finished canvas with the browser's own shaping, at exactly that place
+function fieldsToText(root){var r0=root.getBoundingClientRect();
+  var L=[].slice.call(root.querySelectorAll('input,select,textarea')).filter(function(f){var t=(f.type||'').toLowerCase();return t!=='hidden'&&t!=='checkbox'&&t!=='radio'&&f.offsetWidth>0}).map(function(f){
+    var cs=getComputedStyle(f),r=f.getBoundingClientRect(),n=function(k){return parseFloat(cs[k])||0};
+    var txt=f.tagName==='SELECT'?(f.selectedOptions[0]?f.selectedOptions[0].textContent:''):(f.value||''),ph=!txt&&f.tagName!=='SELECT'&&f.placeholder?f.placeholder:'';
+    return {f:f,vis:f.style.visibility,x:r.left-r0.left,y:r.top-r0.top,w:r.width,h:r.height,txt:txt||ph,col:ph?getComputedStyle(f,'::placeholder').color:cs.color,
+      font:cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily,size:n('fontSize'),align:cs.textAlign,dir:cs.direction,pl:n('paddingLeft')+n('borderLeftWidth'),pr:n('paddingRight')+n('borderRightWidth'),
+      pt:n('paddingTop')+n('borderTopWidth'),pb:n('paddingBottom')+n('borderBottomWidth'),area:f.tagName==='TEXTAREA',lh:parseFloat(cs.lineHeight)||n('fontSize')*1.5,
+      bw:cs.borderTopStyle!=='none'&&cs.borderTopColor.indexOf('rgba(0, 0, 0, 0)')<0?n('borderTopWidth'):0,bc:cs.borderTopColor,bg:cs.backgroundColor,rad:n('borderTopLeftRadius'),pill:f.tagName==='SELECT'}});
+  L.forEach(function(o){o.f.style.visibility='hidden'});
+  L.W=r0.width;
+  return L}
+function drawFields(cv,L,sc){var g=cv.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.scale(cv.width/Math.max(1,L.W||cv.width/sc),cv.width/Math.max(1,L.W||cv.width/sc));
+  L.forEach(function(o){
+    if(o.pill&&o.bw){g.beginPath();var x=o.x+o.bw/2,y=o.y+o.bw/2,w=o.w-o.bw,h=o.h-o.bw,rr=Math.min(o.rad,h/2);
+      g.moveTo(x+rr,y);g.arcTo(x+w,y,x+w,y+h,rr);g.arcTo(x+w,y+h,x,y+h,rr);g.arcTo(x,y+h,x,y,rr);g.arcTo(x,y,x+w,y,rr);g.closePath();
+      if(o.bg&&o.bg.indexOf('rgba(0, 0, 0, 0)')<0){g.fillStyle=o.bg;g.fill()}g.lineWidth=o.bw;g.strokeStyle=o.bc;g.stroke()}
+    if(!o.txt)return;
+    g.save();g.beginPath();g.rect(o.x,o.y,o.w,o.h);g.clip();g.font=o.font;g.fillStyle=o.col;g.direction=o.dir==='rtl'?'rtl':'ltr';
+    var al=o.align==='start'?(o.dir==='rtl'?'right':'left'):o.align==='end'?(o.dir==='rtl'?'left':'right'):o.align==='center'?'center':o.align==='right'?'right':'left';
+    g.textAlign=al;var X=al==='center'?o.x+(o.pl+o.w-o.pr)/2:al==='right'?o.x+o.w-o.pr:o.x+o.pl;
+    if(o.area){g.textBaseline='top';String(o.txt).split('\n').forEach(function(line,i){g.fillText(line,X,o.y+o.pt+i*o.lh)})}
+    else{g.textBaseline='middle';g.fillText(o.txt,X,o.y+o.pt+(o.h-o.pt-o.pb)/2)}
+    g.restore()});
+  g.restore();return cv}
 // every A5 page, drawn one by one (the preview's pages, made again from the sheet as it is now)
 async function pageCanvases(){var pv=ex.classList.contains('pvon');ex.classList.remove('pvon');ex.classList.add('exporting');showSheets(true);
   try{var L=buildPages(),out=[];fit();for(var i=0;i<L.length;i++)out.push(await sheetCanvas(L[i]));return out}
