@@ -443,7 +443,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-24 13:11</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-25 16:30</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -770,7 +770,7 @@ html.fs-on,html.fs-on body{overflow:hidden}
 .sheet.a5 td{height:17px;font-size:9.2px}
 .sheet.a5 td input{padding:1px 2px}
 .sheet.a5 .lower{gap:6px}
-.sheet.a5 .card,.sheet.a5 .gcard{padding:4px 8px 5px;font-size:9.2px}
+.sheet.a5 .card,.sheet.a5 .gcard{padding:4px 8px 8px;font-size:9.2px}
 .sheet.a5 .card label{grid-template-columns:1fr 24mm;padding:.5px 0}
 .sheet.a5 .gcard label{grid-template-columns:minmax(0,1fr) auto;padding:.5px 0}
 .sheet.a5 .gcard .out{white-space:nowrap}
@@ -4877,39 +4877,49 @@ function pgRowOn(t,tr){if(t.id==='wg'){var w=tr.querySelector('.gw');return !!(w
 function pgCopy(src){var c=src.cloneNode(true),a=src.querySelectorAll('input,select,textarea'),b=c.querySelectorAll('input,select,textarea');
   for(var i=0;i<a.length;i++)if(b[i])b[i].value=a[i].value;
   c.hidden=false;c.removeAttribute('aria-label');c.classList.add('a5');return c}
+/* rows flow through the pages (owner, 2026-11-25: «این همه فاصله بین فاکتور چیه»): the products, then the melt rows,
+   then the gold trade, then the totals/notes/signatures — a new page starts only when this one is full. p.rng gives each
+   table's row range on this page ({main:[a,b],wg:[a,b],wtr:[a,b]}); p.tail puts the totals block here (the last page). */
 function pgMake(src,p){var c=pgCopy(src),one=function(sel){return c.querySelector(':scope>'+sel)},drop=function(e){if(e)e.remove()};
-  var main=c.querySelector('#rt,#wt'),mbox=main?main.closest('.tbox'):null,F=[];
-  if(main){[].slice.call(main.tBodies[0].rows).forEach(function(tr){if(pgFilled(tr))F.push(tr);else tr.remove()});
-    F.forEach(function(tr,i){if(i<p.from||i>=p.to)tr.remove()});
-    if(!F.length||p.to<=p.from)drop(mbox);else if(p.to<F.length&&main.tFoot)main.tFoot.remove()}
-  [].slice.call(c.querySelectorAll('#wg,#wtr')).forEach(function(t){[].slice.call(t.tBodies[0].rows).forEach(function(tr){if(!pgRowOn(t,tr))tr.remove()});
-    if(!t.tBodies[0].rows.length||!p.last)drop(t.closest('.tbox'))});
+  var R=p.rng||{main:[p.from||0,p.to||0],wg:p.last?[0,1e9]:[0,0],wtr:p.last?[0,1e9]:[0,0]},TP=p.tp||((p.tail!=null?p.tail:p.last)?[0,3]:[0,0]),tail=TP[1]>=3;
+  var cut=function(t,on,rg){if(!t)return;var box=t.closest('.tbox'),L=[];[].slice.call(t.tBodies[0].rows).forEach(function(tr){if(on(tr))L.push(tr);else tr.remove()});
+    L.forEach(function(tr,i){if(i<rg[0]||i>=rg[1])tr.remove()});
+    if(!L.length||rg[1]<=rg[0])drop(box);else if(rg[1]<L.length&&t.tFoot)t.tFoot.remove()};   // the sum row only under the table's last row
+  cut(c.querySelector('#rt,#wt'),pgFilled,R.main);
+  var wg=c.querySelector('#wg'),wtr=c.querySelector('#wtr');
+  cut(wg,function(tr){return pgRowOn(wg,tr)},R.wg);cut(wtr,function(tr){return pgRowOn(wtr,tr)},R.wtr);
   if(p.first)c.classList.add('p1');else{drop(one('.hd'));drop(one('.cust'))}
   // the details card: a line with nothing written in it is left out (late penalty, discounts… when unused)
   [].slice.call(c.querySelectorAll('.card label')).forEach(function(l){var ins=[].slice.call(l.querySelectorAll('input')),sel=[].slice.call(l.querySelectorAll('select'));
     if(ins.length?ins.every(function(x){return !String(x.value||'').trim()}):sel.length&&sel.every(function(x){return !x.value}))l.remove()});
-  if(!p.last){drop(one('.lower'));drop(one('.notes'));drop(one('.sign'));drop(one('.fxp'))}
-  if(p.of>1){var n=document.createElement('p');n.className='pgno';n.textContent='صفحه‌ی '+fmt(p.no)+' از '+fmt(p.of)+(p.last?'':' · ادامه در صفحه‌ی بعد');c.insertBefore(n,one('.foot'))}
+  // end parts in order: 0 balance cards (with the currency table), 1 notes, 2 signatures
+  if(!(TP[0]<=0&&TP[1]>0)){drop(one('.lower'));drop(one('.fxp'))}if(!(TP[0]<=1&&TP[1]>1))drop(one('.notes'));if(!tail)drop(one('.sign'))
+  if(p.of>1){var n=document.createElement('p');n.className='pgno';n.textContent='صفحه‌ی '+fmt(p.no)+' از '+fmt(p.of)+(tail?'':' · ادامه در صفحه‌ی بعد');c.insertBefore(n,one('.foot'))}
   return c}
 /* the printed invoice's «ارز و سکه» (owner, 2026-11-15): the rows of the invoice's currency and coin section */
 function fxPrintSync(){var L=fxClean();$$('.sheet .fxp').forEach(function(b){b.hidden=!L.length;
   b.innerHTML=L.length?'<table><thead><tr><th>ردیف</th><th>ارز و سکه</th><th>مقدار</th><th>دریافتی / پرداختی</th></tr></thead><tbody>'
    +L.map(function(r,i){var f=fxOf(r.u);return '<tr><td>'+fmt(i+1)+'</td><td>'+esc(f.n)+'</td><td>'+fmt(r.n,f.d)+' '+(f.w==='عدد'?'عدد':esc(f.w))+'</td><td>'+(r.dir==='out'?'پرداختی به شما':'دریافتی از شما')+'</td></tr>'}).join('')+'</tbody></table>':''})}
 function buildPages(){fxPrintSync();var src=sheet(S.kind),box=$('#pages');if(!box){box=document.createElement('div');box.id='pages';ex.appendChild(box)}box.innerHTML='';
-  var PH=pageH(),main=src.querySelector('#rt,#wt'),N=main?[].filter.call(main.tBodies[0].rows,pgFilled).length:0;
-  var fits=function(q){var c=pgMake(src,q);box.appendChild(c);var ok=c.offsetHeight<=PH+1;c.remove();return ok};
+  var PH=pageH(),main=src.querySelector('#rt,#wt'),wg=src.querySelector('#wg'),wtr=src.querySelector('#wtr'),
+    cnt=function(t,on){return t?[].filter.call(t.tBodies[0].rows,on).length:0},
+    N=cnt(main,pgFilled),G=cnt(wg,function(tr){return pgRowOn(wg,tr)}),X=cnt(wtr,function(tr){return pgRowOn(wtr,tr)}),M=N+G+X;
+  // one flat list: the rows (products, melt, trade), then the end parts (balance cards, notes, signatures); a page takes [s,e)
+  var T=M+3,rng=function(s,e){var r=function(a,b){return [Math.max(0,s-a),Math.max(0,Math.min(e,b)-a)]};return {main:r(0,N),wg:r(N,N+G),wtr:r(N+G,M)}},
+    tp=function(s,e){return [Math.max(0,s-M),Math.max(0,e-M)]},
+    spec=function(s,e,first,no,of){return {first:first,rng:rng(s,e),tp:tp(s,e),no:no,of:of}},
+    fits=function(s,e,first){var c=pgMake(src,spec(s,e,first,1,2));box.appendChild(c);var ok=c.offsetHeight<=PH+1;c.remove();return ok};
   var plan=[];
-  if(!N||fits({first:true,last:true,from:0,to:N,no:1,of:1}))plan=[{first:true,last:true,from:0,to:N}];
-  else{var from=0;
-    while(plan.length<30){var first=!plan.length,best=null;
-      for(var to=N;to>from&&!best;to--){
-        if(to===N&&fits({first:first,last:true,from:from,to:to,no:1,of:2}))best={first:first,last:true,from:from,to:to};
-        else if(fits({first:first,last:false,from:from,to:to,no:1,of:2}))best={first:first,last:false,from:from,to:to}}
-      if(!best)best=from<N?{first:first,last:false,from:from,to:from+1}:{first:first,last:true,from:N,to:N};
-      plan.push(best);from=best.to;if(best.last)break;if(from>=N){plan.push({first:false,last:true,from:N,to:N});break}}}
-  plan.forEach(function(q,i){var c=pgMake(src,{first:q.first,last:q.last,from:q.from,to:q.to,no:i+1,of:plan.length});c.id='pg'+(i+1);box.appendChild(c)});
+  var one=pgMake(src,spec(0,T,true,1,1));box.appendChild(one);var all=one.offsetHeight<=PH+1;one.remove();
+  if(all)plan=[{s:0,e:T}];
+  else{var s=0;
+    while(s<T&&plan.length<40){var first=!plan.length,e=s;
+      while(e<T&&fits(s,e+1,first))e++;
+      if(e===s)e=s+1;                                        // something taller than a page still gets a page
+      plan.push({s:s,e:e});s=e}}
+  plan.forEach(function(q,i){var c=pgMake(src,spec(q.s,q.e,!i,i+1,plan.length));c.id='pg'+(i+1);box.appendChild(c)});
   return [].slice.call(box.children)}
-window.__leonPages={make:function(q){return pgMake(sheet(S.kind),q)},build:function(){return buildPages()},h:function(){return pageH()}}; // for the tests
+window.__leonPages={make:function(q){return pgMake(sheet(S.kind),q)},build:function(){return buildPages()},h:function(){return pageH()},canvases:function(){return pageCanvases()}}; // for the tests
 function showSheets(pages){$$('#retail,#whole',ex).forEach(function(s){s.hidden=pages?true:s.id!==S.kind});var b=$('#pages');if(b)b.hidden=!pages;if(!pages&&b)b.innerHTML=''}
 function fit(){var s=$('#pages>.sheet')||sheet(S.kind),w=s.offsetWidth||794,
     /* document.documentElement.clientWidth is the layout viewport: unlike window.innerWidth it does not
@@ -4951,7 +4961,14 @@ if(ce)[].slice.call(ce.querySelectorAll('svg')).forEach(function(s,i){var z=svgS
         var pre=null;
         if(pre){var im=doc.createElement('img');im.src=pre;if(s.getAttribute('class'))im.className=s.getAttribute('class');if(s.getAttribute('style'))im.setAttribute('style',s.getAttribute('style'));im.style.boxSizing='content-box';im.style.width=z[0]+'px';im.style.height=z[1]+'px';im.style.display=getComputedStyle(s).display==='inline'?'inline-block':getComputedStyle(s).display;s.parentNode.replaceChild(im,s);return}
         s.setAttribute('xmlns','http://www.w3.org/2000/svg');s.setAttribute('width',z[0].toFixed(2));s.setAttribute('height',z[1].toFixed(2))});
-      [].slice.call(doc.querySelectorAll('.cust label span,.meta span,.gcard label span,.card label span,.card h2,.notes h2,.free h2')).forEach(function(n){n.textContent=n.textContent.replace(/\s*:\s*$/,'')})}}),swaps,sc)}
+      [].slice.call(doc.querySelectorAll('.cust label span,.meta span,.gcard label span,.card label span,.card h2,.notes h2,.free h2')).forEach(function(n){n.textContent=n.textContent.replace(/\s*:\s*$/,'')});
+      if(ce){
+        /* (owner, 2026-11-25: «نوشته‌ها از کادرشون میرن بیرون») html2canvas puts a right-to-left list's numbers on the left,
+           outside the text: write them into each line instead */
+        [].slice.call(ce.querySelectorAll('.notes ol')).forEach(function(ol){ol.style.listStyle='none';[].slice.call(ol.children).forEach(function(li,i){var b=doc.createElement('b');b.textContent=fmt(i+1)+'. ';b.style.fontWeight='600';li.insertBefore(b,li.firstChild)})});
+        /* …and draws the balance card's inset gold line as broken strokes across the last line: a real inner border instead */
+        [].slice.call(ce.querySelectorAll('.gcard')).forEach(function(g){var cs=getComputedStyle(g);g.style.boxShadow='none';if(cs.position==='static')g.style.position='relative';
+          var f=doc.createElement('i');f.style.cssText='position:absolute;inset:3px;border:1px solid rgba(201,162,76,.55);border-radius:2.2mm;pointer-events:none';g.appendChild(f)})}}}),swaps,sc)}
   finally{if(swaps)swaps.forEach(function(o){o.f.style.visibility=o.vis})}}
 // every form field inside root, measured as it stands (box, look, text), then hidden for html2canvas; drawFields puts
 // its text (and a select's pill) back on the finished canvas with the browser's own shaping, at exactly that place
