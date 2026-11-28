@@ -456,7 +456,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-28 20:01</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-28 20:13</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
@@ -4068,13 +4068,25 @@ function vInvoices(){
   +'<div class="chips" id="chips">'+fl.map(function(c){return '<button class="chip" data-act="filter" data-f="'+c[0]+'" aria-pressed="'+(S.filter===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'
   +'<div class="list" id="lst">'+listInvoices()+'</div>';
 }
+/* «طرف‌حساب‌ها» filter and order (owner, 2026-11-28): owing Leon (بدهکار), owed by Leon (بستانکار) or settled, in grams or
+   rials (a party owing grams and owed rials is in both); by name, by when the account was made (newest or oldest first), or
+   by the largest gram balance */
+var PF=[['all','همه'],['dr','بدهکارها'],['cr','بستانکارها'],['zero','تسویه‌شده‌ها']],PS=[['az','ترتیب الفبا'],['new','جدیدترین حساب'],['old','قدیمی‌ترین حساب'],['big','بیشترین مانده‌ی گرمی']];
+function pfOk(p,f){var b=S.bal[p.id]||{g:0,r:0},dr=b.g>0.0005||b.r>0.5,cr=b.g<-0.0005||b.r<-0.5;return f==='dr'?dr:f==='cr'?cr:f==='zero'?!dr&&!cr:true}
+function pfSort(a,k){var t=function(p){return p.ts||p.refAt||''};return a.sort(k==='new'?function(x,y){return t(x)<t(y)?1:t(x)>t(y)?-1:0}:k==='old'?function(x,y){return t(x)<t(y)?-1:t(x)>t(y)?1:0}
+  :k==='big'?function(x,y){return Math.abs((S.bal[y.id]||{}).g||0)-Math.abs((S.bal[x.id]||{}).g||0)}:function(x,y){return (x.name||'').localeCompare(y.name||'','fa')})}
+function pfBar(){var f=S.pf||'all',k=S.ps||'az';
+  return '<div class="vfilt pfilt"><select id="pfSel" aria-label="بدهکار یا بستانکار" class="'+(f!=='all'?'on':'')+'">'+PF.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===f?' selected':'')+'>'+o[1]+' ('+fmt(S.parties.filter(function(p){return pfOk(p,o[0])}).length)+')</option>'}).join('')+'</select>'
+    +'<select id="psSel" aria-label="ترتیب" class="'+(k!=='az'?'on':'')+'">'+PS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===k?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'}
 function listParties(){
-  var q=S.q.trim(),a=S.parties.slice().sort(function(x,y){return (x.name||'').localeCompare(y.name||'','fa')}).filter(function(p){return !q||((p.name||'')+' '+(p.shop||'')+' '+(p.phone||'')).indexOf(q)>=0});
+  var q=S.q.trim(),f=S.pf||'all',a=pfSort(S.parties.slice(),S.ps||'az').filter(function(p){return pfOk(p,f)&&(!q||((p.name||'')+' '+(p.shop||'')+' '+(p.phone||'')).indexOf(q)>=0)});
   return a.length?a.map(function(p){return partyRow(p)}).join(''):'<div class="empty">'+(S.parties.length?'موردی پیدا نشد.':'هنوز طرف‌حسابی اضافه نشده.')+'</div>';
 }
 function vParties(){
   setTop('طرف‌حساب‌ها',fmt(S.parties.length)+' نفر',false);
-  main.innerHTML=signupsHTML()+refSummary()+'<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها"><div class="list" id="lst">'+listParties()+'</div>';
+  main.innerHTML=signupsHTML()+refSummary()+'<button class="btn pri" data-act="newparty">+ طرف‌حساب جدید</button><input id="q" class="srch" type="search" placeholder="جستجو: نام، فروشگاه یا تلفن" value="'+esc(S.q)+'" aria-label="جستجو در طرف‌حساب‌ها">'+pfBar()+'<div class="list" id="lst">'+listParties()+'</div>';
+  var a=$('#pfSel'),b=$('#psSel'),re=function(){$('#lst').innerHTML=listParties();a.classList.toggle('on',a.value!=='all');b.classList.toggle('on',b.value!=='az')};
+  a.addEventListener('change',function(){S.pf=a.value;re()});b.addEventListener('change',function(){S.ps=b.value;re()});
 }
 function vParty(){
   var p=partyById(S.param);if(!p){back();return}
