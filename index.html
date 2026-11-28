@@ -310,9 +310,22 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
   var user={me:async function(){return {id:'local',name:'مالک',avatarUrl:'',isOwner:true}},can:async function(){return true}};
   function saveAs(name,blob){var a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},60000)}
   var downloads={save:async function(o){var b=o.data instanceof Blob?o.data:new Blob([o.data]);
-    // «#view» on a phone: the share sheet saves to Files or sends it on; elsewhere (or if sharing is refused) a plain download
-    if(VIEW){var fl=new File([b],o.filename,{type:b.type||'application/pdf'});if(navigator.canShare&&navigator.canShare({files:[fl]})){try{await navigator.share({files:[fl]});return}catch(e){if(e&&e.name==='AbortError')throw {code:'declined'}}}}
+    // «#view» on a phone: the share sheet saves to Files or sends it on. On a computer (owner, 2026-11-28: on Windows the share
+    // sheet is where nobody looks) a PDF opens in a new browser tab, where its own buttons print and download it; if the
+    // browser stops the new tab, a button for it shows on the page. Anything else is a plain download.
+    var phone=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+    if(VIEW&&phone){var fl=new File([b],o.filename,{type:b.type||'application/pdf'});if(navigator.canShare&&navigator.canShare({files:[fl]})){try{await navigator.share({files:[fl]});return}catch(e){if(e&&e.name==='AbortError')throw {code:'declined'}}}}
+    if(VIEW&&!phone&&/pdf$/i.test(o.filename)){var pb=b.type==='application/pdf'?b:new Blob([b],{type:'application/pdf'}),pu=URL.createObjectURL(pb),w=null;
+      try{w=window.open(pu,'_blank')}catch(e){}
+      if(!w)openBar(pu,o.filename);setTimeout(function(){URL.revokeObjectURL(pu)},600000);return}
     saveAs(o.filename,b)}};
+  // the new tab was blocked: one bar with «باز کردن PDF» (a real click, so the browser lets it open) and «دانلود»
+  function openBar(u,name){var old=document.getElementById('pdfBar');if(old)old.remove();var d=document.createElement('div');d.id='pdfBar';d.dir='rtl';
+    d.style.cssText='position:fixed;inset:auto 12px 12px;z-index:9999;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px 14px;border-radius:14px;background:#0c1d15;color:#f3ead9;font:600 15px Vazirmatn,Tahoma,sans-serif;box-shadow:0 0 0 1px rgba(201,162,76,.6),0 18px 40px -18px rgba(0,0,0,.8)';
+    var bt='padding:10px 18px;border-radius:999px;text-decoration:none;font:700 15px Vazirmatn,Tahoma,sans-serif;cursor:pointer;';
+    d.innerHTML='<span>فایل PDF آماده است</span><a target="_blank" rel="noopener" style="'+bt+'background:linear-gradient(100deg,#ac8641,#eddfbd 40%,#d5b56d);color:#0c1d15">باز کردن و چاپ</a><a style="'+bt+'border:1px solid rgba(226,203,148,.6);color:#e2cb94">دانلود</a><button type="button" aria-label="بستن" style="'+bt+'background:none;border:0;color:#e2cb94">✕</button>';
+    var L=d.querySelectorAll('a');L[0].href=u;L[1].href=u;L[1].download=name;L[0].addEventListener('click',function(){setTimeout(function(){d.remove()},300)});
+    d.querySelector('button').addEventListener('click',function(){d.remove()});document.body.appendChild(d)}
   var assets={upload:async function(b,o){var id='p'+Date.now().toString(36)+(++n),bl=new Blob([b],{type:(o&&o.type)||b.type||'image/jpeg'});
     blobs[id]=bl;await write('blobs',id,bl);if(S.on){await queue('b/'+id,{b:id});soon()}return {id:id}}};
 
@@ -443,7 +456,7 @@ body[data-view=home]::before{content:"";position:fixed;inset:0;z-index:-1;pointe
       '<button type="button" data-o="sync" style="all:unset;display:block;padding:10px 14px;cursor:pointer">همگام‌سازی با سرور</button>'+
       '<button type="button" data-o="exp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">خروجی کامل آفلاین</button>'+
       '<button type="button" data-o="imp" style="all:unset;display:block;padding:10px 14px;cursor:pointer;border-top:1px solid #eee">ورود اطلاعات از فایل</button>'+
-      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-25 23:47</div></div>'+
+      '<div style="padding:6px 14px;border-top:1px solid #eee;color:#6a7468;font-size:11px">نسخه 2026-11-28 18:05</div></div>'+
       '<input type="file" accept="application/json,.json" hidden>';
     var st=document.createElement('style');st.textContent='body:not(.noact) #offBadge,body.menu #offBadge,body:has(.modal) #offBadge,body:has(#lgSync) #offBadge{display:none}';document.head.appendChild(st);
     var m=b.children[1],inp=b.children[2];
